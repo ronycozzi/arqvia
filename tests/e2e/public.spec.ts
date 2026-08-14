@@ -1333,6 +1333,12 @@ test("project portfolio covers load visible architectural images", async ({ page
   const projectCards = page.locator("article").filter({
     has: page.getByRole("link", { name: /ver proyecto|ver/i }),
   });
+  await expect(
+    page.getByRole("heading", {
+      name: /proyectos construidos para vivir, trabajar y crecer/i,
+    }),
+  ).toBeVisible({ timeout: 15_000 });
+  await expect(projectCards.first()).toBeVisible({ timeout: 15_000 });
   const cardCount = await projectCards.count();
   expect(cardCount).toBeGreaterThanOrEqual(4);
 

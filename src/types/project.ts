@@ -1,0 +1,62 @@
+export type PublicProjectImage = {
+  url: string;
+  altText: string;
+  caption: string | null;
+  type: string;
+};
+
+export type PublicBeforeAfter = {
+  beforeImage: string;
+  afterImage: string;
+  beforeAlt: string;
+  afterAlt: string;
+  beforeNote: string;
+  afterNote: string;
+  contextNote: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  ctaLabel: string;
+  ctaHref: string;
+};
+
+export type PublicProject = {
+  id: string;
+  title: string;
+  slug: string;
+  category: string;
+  serviceSlug: string;
+  location: string;
+  year: string;
+  areaM2: number;
+  status: string;
+  clientType: string;
+  servicePerformed: string;
+  coverImage: string;
+  gallery: string[];
+  galleryImages: PublicProjectImage[];
+  beforeAfter?: PublicBeforeAfter;
+  keyDecisions: string[];
+  summary: string;
+  description: string;
+  challenge: string;
+  solution: string;
+  process: string;
+  result: string;
+  optimized: string;
+  specialNote: string;
+  materials: string;
+  duration: string;
+  constructionSystem: string;
+  currentStage: string;
+  responsibleTeam: string;
+  architectDirector: string;
+  supplier: string | null;
+  budgetRange: string | null;
+  featured: boolean;
+  seoTitle: string;
+  seoDescription: string;
+  imageAlt: string;
+  testimonial?: string;
+  updatedAt: Date | null;
+};

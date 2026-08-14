@@ -1,0 +1,721 @@
+// Generated from prisma/schema.prisma.
+// Run `npm run db:postgres:schema` after schema changes.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum RedirectResourceType {
+  PROJECT
+  SERVICE
+  BLOG_POST
+  AREA
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  QUOTED
+  WON
+  LOST
+}
+
+enum LeadActivityType {
+  STATUS_CHANGED
+  ASSIGNED
+  FOLLOW_UP_CHANGED
+  COMMERCIAL_VALUE_UPDATED
+  CONTACT_RECORDED
+  NOTE_ADDED
+}
+
+enum TechnicalVisitStatus {
+  REQUESTED
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum VisitWindow {
+  MORNING
+  AFTERNOON
+  FLEXIBLE
+}
+
+enum EstimateTier {
+  ESSENTIAL
+  BALANCED
+  PREMIUM
+}
+
+enum LeadAutomationEvent {
+  LEAD_CREATED
+  LEAD_RECONSULTED
+}
+
+enum LeadAutomationStatus {
+  PENDING
+  PROCESSING
+  DELIVERED
+  FAILED
+  DEAD
+}
+
+enum ProjectImageType {
+  BEFORE
+  PROCESS
+  AFTER
+  RENDER
+  PLAN
+  FINAL
+}
+
+model ClientConfig {
+  id                String   @id @default(cuid())
+  companyName       String
+  logoUrl           String?
+  primaryColor      String
+  secondaryColor    String
+  accentColor       String
+  fontHeading       String
+  fontBody          String
+  whatsapp          String
+  phone             String
+  email             String
+  address           String
+  businessHours     String
+  instagramUrl      String?
+  linkedinUrl       String?
+  facebookUrl       String?
+  heroTitle         String
+  heroSubtitle      String
+  heroImage         String
+  primaryCtaLabel   String
+  secondaryCtaLabel String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model HomeContent {
+  id                     String   @id @default("arqvia-home")
+  heroEyebrow            String
+  heroImageAlt           String
+  heroTrustItemsJson     String
+  trustMetricsJson       String
+  projectsTitle          String
+  servicesTitle          String
+  servicesDescription    String
+  beforeAfterTitle       String
+  beforeAfterDescription String
+  processTitle           String
+  processReasonsJson     String
+  processStepsJson       String
+  finalCtaTitle          String
+  finalCtaDescription    String
+  seoTitle               String
+  seoDescription         String
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model InstitutionalPage {
+  id                  String   @id @default(cuid())
+  slug                String   @unique
+  eyebrow             String
+  title               String
+  introduction        String
+  payloadJson         String
+  finalCtaTitle       String
+  finalCtaDescription String
+  primaryCtaLabel     String
+  secondaryCtaLabel   String
+  whatsappMessage     String
+  seoTitle            String
+  seoDescription      String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([updatedAt])
+}
+
+model ProjectCategory {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  projects    Project[]
+}
+
+model ServiceCategory {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  services    Service[]
+}
+
+model Project {
+  id                 String          @id @default(cuid())
+  publicationStatus  ContentStatus   @default(DRAFT)
+  publishedAt        DateTime?
+  title              String
+  slug               String          @unique
+  summary            String
+  description        String
+  location           String
+  year               String
+  areaM2             Int
+  status             String
+  clientType         String
+  servicePerformed   String
+  coverImage         String
+  challenge          String
+  solution           String
+  process            String
+  result             String
+  optimized          String
+  specialNote        String
+  materials          String
+  duration           String
+  constructionSystem String
+  currentStage       String
+  responsibleTeam    String
+  architectDirector  String
+  supplier           String?
+  budgetRange        String?
+  featured           Boolean         @default(false)
+  seoTitle           String
+  seoDescription     String
+  seoCategory        String
+  imageAlt           String
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  categoryId         String
+  serviceId          String?
+  category           ProjectCategory @relation(fields: [categoryId], references: [id])
+  service            Service?        @relation(fields: [serviceId], references: [id])
+  images             ProjectImage[]
+  testimonials       Testimonial[]
+
+  @@index([categoryId])
+  @@index([serviceId])
+  @@index([featured])
+  @@index([publicationStatus])
+  @@index([publishedAt])
+  @@index([updatedAt])
+}
+
+model ProjectImage {
+  id        String           @id @default(cuid())
+  projectId String
+  url       String
+  altText   String
+  caption   String?
+  type      ProjectImageType
+  sortOrder Int              @default(0)
+  createdAt DateTime         @default(now())
+  project   Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model MediaAsset {
+  id               String    @id @default(cuid())
+  title            String
+  url              String    @unique
+  altText          String
+  category         String
+  source           String    @default("upload")
+  sourceUrl        String?
+  rightsNote       String?
+  rightsApprovedAt DateTime?
+  rightsApprovedBy String?
+  mimeType         String
+  sizeBytes        Int
+  width            Int?
+  height           Int?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([category])
+  @@index([createdAt])
+  @@index([rightsApprovedAt])
+}
+
+model Service {
+  id                String          @id @default(cuid())
+  publicationStatus ContentStatus   @default(DRAFT)
+  publishedAt       DateTime?
+  title             String
+  slug              String          @unique
+  description       String
+  shortDescription  String
+  icon              String
+  coverImage        String
+  mainBenefit       String
+  audience          String
+  included          String
+  benefits          String
+  process           String
+  faq               String
+  whatsappMessage   String
+  featured          Boolean         @default(false)
+  seoTitle          String
+  seoDescription    String
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  categoryId        String
+  category          ServiceCategory @relation(fields: [categoryId], references: [id])
+  projects          Project[]
+  faqs              Faq[]
+
+  @@index([categoryId])
+  @@index([featured])
+  @@index([publicationStatus])
+  @@index([publishedAt])
+  @@index([updatedAt])
+}
+
+model Lead {
+  id                    String                   @id @default(cuid())
+  name                  String
+  email                 String
+  phone                 String
+  normalizedEmail       String?
+  normalizedPhone       String?
+  city                  String
+  clientType            String?
+  projectType           String
+  currentStatus         String?
+  areaM2                String?
+  budgetRange           String?
+  startDate             String?
+  needsVisit            Boolean                  @default(false)
+  hasPlans              Boolean                  @default(false)
+  referenceLinks        String?
+  message               String
+  sourcePage            String
+  status                LeadStatus               @default(NEW)
+  assignedUserId        String?
+  nextFollowUpAt        DateTime?
+  quotedAmountUsd       Int?
+  wonAmountUsd          Int?
+  lostReason            String?
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+  lastActivityAt        DateTime                 @default(now())
+  possibleDuplicateOfId String?
+  possibleDuplicateOf   Lead?                    @relation("LeadPossibleDuplicates", fields: [possibleDuplicateOfId], references: [id], onDelete: SetNull)
+  possibleDuplicates    Lead[]                   @relation("LeadPossibleDuplicates")
+  assignedUser          User?                    @relation("LeadAssignments", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  commercialActivities  LeadActivity[]
+  notes                 LeadNote[]
+  attachments           LeadAttachment[]
+  technicalVisit        TechnicalVisit?
+  estimate              LeadEstimate?
+  automationDeliveries  LeadAutomationDelivery[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([status, lastActivityAt])
+  @@index([assignedUserId, status])
+  @@index([nextFollowUpAt, status])
+  @@index([normalizedEmail, createdAt])
+  @@index([normalizedPhone, createdAt])
+  @@index([possibleDuplicateOfId])
+  @@index([city])
+  @@index([projectType])
+  @@index([budgetRange])
+  @@index([sourcePage])
+}
+
+model EstimateConfig {
+  id                  String   @id @default("arqvia-estimator")
+  version             Int      @default(1)
+  enabled             Boolean  @default(false)
+  headline            String
+  description         String
+  disclaimer          String
+  essentialMultiplier Float    @default(0.9)
+  balancedMultiplier  Float    @default(1)
+  premiumMultiplier   Float    @default(1.25)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model EstimateRule {
+  id                String         @id @default(cuid())
+  key               String         @unique
+  label             String
+  description       String
+  minUsdPerM2       Int
+  maxUsdPerM2       Int
+  minimumProjectUsd Int            @default(0)
+  active            Boolean        @default(true)
+  sortOrder         Int            @default(0)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  leadEstimates     LeadEstimate[]
+
+  @@index([active, sortOrder])
+  @@index([updatedAt])
+}
+
+model LeadEstimate {
+  id               String        @id @default(cuid())
+  leadId           String        @unique
+  ruleId           String?
+  projectTypeKey   String
+  projectTypeLabel String
+  finishTier       EstimateTier
+  areaM2           Int
+  rateMinUsdM2     Int
+  rateMaxUsdM2     Int
+  totalMinUsd      Int
+  totalMaxUsd      Int
+  configVersion    Int
+  calculatedAt     DateTime      @default(now())
+  lead             Lead          @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  rule             EstimateRule? @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+
+  @@index([ruleId])
+  @@index([finishTier])
+  @@index([calculatedAt])
+}
+
+model LeadAutomationDelivery {
+  id             String               @id @default(cuid())
+  leadId         String
+  event          LeadAutomationEvent
+  status         LeadAutomationStatus @default(PENDING)
+  payloadJson    String
+  claimToken     String?
+  attempts       Int                  @default(0)
+  nextAttemptAt  DateTime             @default(now())
+  lastAttemptAt  DateTime?
+  deliveredAt    DateTime?
+  responseStatus Int?
+  lastErrorCode  String?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  lead           Lead                 @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextAttemptAt])
+  @@index([leadId, createdAt])
+  @@index([createdAt])
+}
+
+model TechnicalVisit {
+  id              String               @id @default(cuid())
+  leadId          String               @unique
+  status          TechnicalVisitStatus @default(REQUESTED)
+  requestedDate   String?
+  preferredWindow VisitWindow          @default(FLEXIBLE)
+  address         String?
+  requestNotes    String?
+  scheduledAt     DateTime?
+  durationMinutes Int                  @default(60)
+  internalNotes   String?
+  assignedUserId  String?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  lead            Lead                 @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  assignedUser    User?                @relation(fields: [assignedUserId], references: [id], onDelete: SetNull)
+
+  @@index([status, scheduledAt])
+  @@index([assignedUserId, scheduledAt])
+  @@index([requestedDate])
+}
+
+model LeadAttachment {
+  id           String   @id @default(cuid())
+  leadId       String
+  fileName     String
+  originalName String
+  storageKey   String   @unique
+  mimeType     String
+  sizeBytes    Int
+  createdAt    DateTime @default(now())
+  lead         Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, createdAt])
+}
+
+model RateLimitBucket {
+  key       String   @id
+  count     Int
+  resetAt   DateTime
+  updatedAt DateTime @updatedAt
+
+  @@index([resetAt])
+}
+
+model LeadNote {
+  id        String   @id @default(cuid())
+  leadId    String
+  body      String
+  createdAt DateTime @default(now())
+  userId    String?
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([leadId])
+  @@index([createdAt])
+}
+
+model LeadActivity {
+  id           String           @id @default(cuid())
+  leadId       String
+  type         LeadActivityType
+  summary      String
+  metadataJson String?
+  createdAt    DateTime         @default(now())
+  userId       String?
+  lead         Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user         User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([leadId, createdAt])
+  @@index([type, createdAt])
+  @@index([userId, createdAt])
+}
+
+model Testimonial {
+  id          String   @id @default(cuid())
+  name        String
+  role        String?
+  projectType String
+  location    String
+  quote       String
+  imageUrl    String?
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id])
+
+  @@index([featured])
+  @@index([createdAt])
+}
+
+model TeamMember {
+  id            String   @id @default(cuid())
+  name          String
+  role          String
+  specialty     String
+  licenseNumber String?
+  bio           String
+  imageUrl      String
+  linkedinUrl   String?
+  sortOrder     Int      @default(0)
+  active        Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+
+  @@index([active])
+  @@index([sortOrder])
+}
+
+model BlogPost {
+  id             String        @id @default(cuid())
+  title          String
+  slug           String        @unique
+  excerpt        String
+  content        String
+  coverImage     String
+  category       String
+  publishedAt    DateTime?
+  status         ContentStatus @default(DRAFT)
+  seoTitle       String
+  seoDescription String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  authorId       String?
+  author         User?         @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([category])
+  @@index([publishedAt])
+}
+
+model LegalPage {
+  id             String        @id @default(cuid())
+  slug           String        @unique
+  title          String
+  summary        String
+  content        String
+  status         ContentStatus @default(DRAFT)
+  seoTitle       String
+  seoDescription String
+  reviewedBy     String?
+  reviewedAt     DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([status])
+  @@index([updatedAt])
+}
+
+model ContentRedirect {
+  id              String               @id @default(cuid())
+  sourcePath      String               @unique
+  destinationPath String
+  resourceType    RedirectResourceType
+  resourceId      String
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  @@index([resourceType, resourceId])
+  @@index([destinationPath])
+}
+
+model Faq {
+  id               String   @id @default(cuid())
+  question         String
+  answer           String
+  category         String
+  sortOrder        Int      @default(0)
+  active           Boolean  @default(false)
+  relatedServiceId String?
+  relatedService   Service? @relation(fields: [relatedServiceId], references: [id])
+  updatedAt        DateTime @default(now()) @updatedAt
+
+  @@index([active])
+  @@index([sortOrder])
+  @@index([relatedServiceId])
+}
+
+model Area {
+  id             String   @id @default(cuid())
+  name           String
+  slug           String   @unique
+  description    String
+  seoTitle       String
+  seoDescription String
+  active         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now()) @updatedAt
+
+  @@index([active])
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  entity    String
+  entityId  String?
+  summary   String
+  createdAt DateTime @default(now())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entity, entityId])
+  @@index([action])
+  @@index([action, createdAt])
+  @@index([createdAt])
+  @@index([entity, createdAt])
+  @@index([userId])
+  @@index([userId, createdAt])
+}
+
+model User {
+  id                       String           @id @default(cuid())
+  name                     String?
+  email                    String?          @unique
+  emailVerified            DateTime?
+  image                    String?
+  passwordHash             String?
+  sessionVersion           Int              @default(0)
+  leadNotificationsReadAt  DateTime?
+  leadNotificationsUndoAt  DateTime?
+  leadNotificationsUndoFor DateTime?
+  role                     UserRole         @default(VIEWER)
+  active                   Boolean          @default(true)
+  updatedAt                DateTime         @default(now()) @updatedAt
+  accounts                 Account[]
+  sessions                 Session[]
+  authenticators           Authenticator[]
+  posts                    BlogPost[]
+  auditLogs                AuditLog[]
+  assignedLeads            Lead[]           @relation("LeadAssignments")
+  leadActivities           LeadActivity[]
+  leadNotes                LeadNote[]
+  assignedTechnicalVisits  TechnicalVisit[]
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model Authenticator {
+  credentialID         String  @unique
+  userId               String
+  providerAccountId    String
+  credentialPublicKey  String
+  counter              Int
+  credentialDeviceType String
+  credentialBackedUp   Boolean
+  transports           String?
+  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, credentialID])
+}

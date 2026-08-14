@@ -1,0 +1,196 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: arqvia_ci
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d arqvia_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: file:./dev.db
+      AUTH_SECRET: ci-local-secret-change-in-production
+      AUTH_URL: http://localhost:3100
+      NEXT_PUBLIC_SITE_URL: http://localhost:3100
+      NEXT_PUBLIC_WHATSAPP_NUMBER: ""
+      NEXT_PUBLIC_WHATSAPP_MESSAGE: "Hola, quiero consultar por un proyecto."
+      ADMIN_EMAIL: admin@arqvia.local
+      ADMIN_PASSWORD: ChangeMe123!
+      POSTGRES_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/arqvia_ci?schema=public
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run db:generate
+
+      - name: Scan repository for committed secrets
+        run: npm run security:scan
+
+      - name: Initialize SQLite database
+        run: npm run db:init
+
+      - name: Verify generated PostgreSQL schema
+        run: |
+          npm run db:postgres:schema
+          git diff --exit-code -- prisma/postgresql/schema.prisma
+
+      - name: Verify PostgreSQL migrations converge to the schema
+        env:
+          DATABASE_URL: ${{ env.POSTGRES_DATABASE_URL }}
+        run: |
+          npx prisma migrate deploy --schema prisma/postgresql/schema.prisma
+          npx prisma migrate diff --exit-code --from-url "$DATABASE_URL" --to-schema-datamodel prisma/postgresql/schema.prisma
+
+      - name: Seed database
+        run: npm run db:seed
+
+      - name: Verify content integrity
+        run: npm run content:check
+
+      - name: Verify local backup workflow
+        run: npm run db:backup:sqlite
+
+      - name: Verify local restore workflow
+        run: npm run db:verify-restore:sqlite
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test
+
+      - name: Production dependency audit (high and critical)
+        run: npm run audit:production
+
+      - name: Build
+        run: npm run build
+
+      - name: Strict public configuration build with SQLite fixture
+        run: npm run build
+        env:
+          AUTH_SECRET: ci-production-secret-with-more-than-32-characters
+          AUTH_URL: https://arqvia.example.com
+          NEXT_PUBLIC_SITE_URL: https://arqvia.example.com
+          NEXT_PUBLIC_WHATSAPP_NUMBER: "5493517778899"
+          ARQVIA_STRICT_PUBLIC_URL: "true"
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E desktop tests
+        run: npm run e2e -- --project=chromium --workers=1
+
+      - name: E2E mobile tests
+        run: npm run e2e -- --project=mobile --workers=1
+
+      - name: Verify E2E fixture cleanup
+        run: npm run test:e2e-residue
+
+      - name: Upload Playwright evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: arqvia
+          POSTGRES_PASSWORD: arqvia
+          POSTGRES_USER: arqvia
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U arqvia -d arqvia"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://arqvia:arqvia@localhost:5432/arqvia
+      AUTH_SECRET: ci-postgres-secret-with-more-than-32-characters
+      AUTH_URL: http://localhost:3200
+      NEXT_PUBLIC_SITE_URL: http://localhost:3200
+      NEXT_PUBLIC_WHATSAPP_NUMBER: "5493517778899"
+      NEXT_PUBLIC_WHATSAPP_MESSAGE: "Hola, quiero consultar por un proyecto."
+      ADMIN_EMAIL: admin@arqvia.local
+      ADMIN_PASSWORD: ChangeMe123!
+      RATE_LIMIT_STORE: database
+      TRUST_PROXY_PROVIDER: generic
+      ARQVIA_ALLOW_PRODUCTION_SEED: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Deploy PostgreSQL migrations
+        run: npm run db:postgres:deploy
+
+      - name: Scan repository for committed secrets
+        run: npm run security:scan
+
+      - name: Seed PostgreSQL
+        run: npx prisma db seed --schema prisma/postgresql/schema.prisma
+
+      - name: Verify PostgreSQL content
+        run: npm run content:check
+
+      - name: Build with PostgreSQL client
+        run: npm run build:postgres

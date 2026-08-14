@@ -37,10 +37,10 @@ jobs:
       NEXT_PUBLIC_SITE_URL: http://localhost:3100
       NEXT_PUBLIC_WHATSAPP_MESSAGE: Hola, quiero consultar por un proyecto.
       NEXT_PUBLIC_WHATSAPP_NUMBER: "5493517778899"
-      ADMIN_EMAIL: admin@arqvia.local
-      ADMIN_PASSWORD: ChangeMe123!
+      ADMIN_EMAIL: ci-release-admin@arqvia.test
+      ADMIN_PASSWORD: ci-release-admin-password
       RATE_LIMIT_STORE: database
-      TRUST_PROXY_PROVIDER: generic
+      TRUST_PROXY_PROVIDER: vercel
     steps:
       - name: Checkout
         uses: actions/checkout@v4

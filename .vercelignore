@@ -1,0 +1,17 @@
+.env*
+.git
+.vercel
+.agents
+.next
+node_modules
+coverage
+playwright-report
+test-results
+artifacts
+backups
+storage
+prisma/dev.db*
+*.log
+tests
+public/uploads/media/*
+!public/uploads/media/.gitkeep

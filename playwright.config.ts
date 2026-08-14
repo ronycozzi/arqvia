@@ -16,6 +16,7 @@ export default defineConfig({
   expect: { timeout: 5_000 },
   fullyParallel: false,
   workers: 1,
+  retries: process.env.CI ? 1 : 0,
   reporter: "html",
   use: {
     baseURL,

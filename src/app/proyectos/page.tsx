@@ -83,7 +83,7 @@ export default async function ProjectsPage({
               {visibleProjects.map((project, index) => (
                 <ProjectCard
                   key={project.slug}
-                  priority={index < 3}
+                  priority={index < 4}
                   project={project}
                 />
               ))}

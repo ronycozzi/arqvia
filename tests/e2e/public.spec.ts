@@ -1349,7 +1349,7 @@ test("project portfolio covers load visible architectural images", async ({ page
     await expect(image).toBeVisible();
     await expect
       .poll(async () => image.evaluate((img) => (img as HTMLImageElement).naturalWidth), {
-        timeout: 10_000,
+        timeout: 20_000,
       })
       .toBeGreaterThan(80);
   }

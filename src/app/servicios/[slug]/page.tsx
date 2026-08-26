@@ -36,15 +36,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     if (destination) permanentRedirect(destination);
     notFound();
   }
+  const resolvedTitle = metadataTitle(service.seoTitle, config.companyName);
+  const socialTitle = resolvedTitle.absolute;
 
   return {
-    title: metadataTitle(service.seoTitle, config.companyName),
+    title: resolvedTitle,
     description: service.seoDescription,
     alternates: {
       canonical: `/servicios/${service.slug}`,
     },
     openGraph: {
-      title: service.seoTitle,
+      title: socialTitle,
       description: service.seoDescription,
       url: `/servicios/${service.slug}`,
       locale: "es_AR",
@@ -53,7 +55,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: {
       card: "summary_large_image",
-      title: service.seoTitle,
+      title: socialTitle,
       description: service.seoDescription,
       images: [service.coverImage],
     },

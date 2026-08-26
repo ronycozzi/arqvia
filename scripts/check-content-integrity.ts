@@ -7,6 +7,7 @@ import {
   institutionalPageSlugs,
   toPublicInstitutionalPage,
 } from "../src/lib/institutional-content";
+import { publicContactQualityIssues } from "../src/lib/public-contact-quality";
 
 const prisma = new PrismaClient();
 const publicDir = resolve("public");
@@ -105,6 +106,9 @@ async function main() {
     checkText("ClientConfig.heroSubtitle", config.heroSubtitle, 30);
     checkImage("ClientConfig.heroImage", config.heroImage);
     if (config.logoUrl) checkImage("ClientConfig.logoUrl", config.logoUrl);
+    for (const issue of publicContactQualityIssues(config)) {
+      addError("ClientConfig.contact", issue);
+    }
   }
 
   if (!projects.length) addError("Project", "at least one project is required");

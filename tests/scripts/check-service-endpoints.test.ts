@@ -1,4 +1,5 @@
 import {
+  resolveServiceCheckTimeout,
   resolveServiceOrigin,
   serviceOrigin,
   validateServiceResponse,
@@ -34,6 +35,13 @@ describe("service endpoint checks", () => {
   it("accepts the expected health and readiness contracts", () => {
     expect(validateServiceResponse("health", response(200, { status: "ok" }), { status: "ok" }).ok).toBe(true);
     expect(validateServiceResponse("ready", response(200, { status: "ready" }), { status: "ready" }).ok).toBe(true);
+  });
+
+  it("allows a realistic cold-start window by default", () => {
+    expect(resolveServiceCheckTimeout()).toBe(15_000);
+    expect(resolveServiceCheckTimeout("30000")).toBe(30_000);
+    expect(() => resolveServiceCheckTimeout("99")).toThrow();
+    expect(() => resolveServiceCheckTimeout("invalid")).toThrow();
   });
 
   it("blocks non-200, non-JSON, and wrong-status responses", () => {

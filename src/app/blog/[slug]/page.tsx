@@ -41,15 +41,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     if (destination) permanentRedirect(destination);
     notFound();
   }
+  const resolvedTitle = metadataTitle(post.seoTitle, config.companyName);
+  const socialTitle = resolvedTitle.absolute;
 
   return {
-    title: metadataTitle(post.seoTitle, config.companyName),
+    title: resolvedTitle,
     description: post.seoDescription,
     alternates: {
       canonical: `/blog/${post.slug}`,
     },
     openGraph: {
-      title: post.seoTitle,
+      title: socialTitle,
       description: post.seoDescription,
       url: `/blog/${post.slug}`,
       images: [{ url: post.coverImage, alt: post.title }],
@@ -59,7 +61,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: {
       card: "summary_large_image",
-      title: post.seoTitle,
+      title: socialTitle,
       description: post.seoDescription,
       images: [post.coverImage],
     },

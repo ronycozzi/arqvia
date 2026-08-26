@@ -98,7 +98,7 @@ export function ArqviaArchitecturalHero({
             </Link>
           </div>
 
-          <div className="hero-reveal mt-5 hidden flex-wrap gap-x-5 gap-y-3 text-sm font-semibold text-paper/78 [animation-delay:480ms] sm:flex">
+          <div className="hero-reveal mt-5 hidden flex-wrap gap-x-5 gap-y-3 text-sm font-semibold text-paper/90 [animation-delay:480ms] sm:flex">
             {trustItems.map(
               (badge) => (
                 <span key={badge} className="inline-flex items-center gap-2">

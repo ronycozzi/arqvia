@@ -104,6 +104,19 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Audit public routes and metadata
+        run: |
+          npm run start -- -p 3100 > /tmp/arqvia-public-audit.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://localhost:3100/api/ready > /dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          npm run audit:public -- --url http://localhost:3100
+
       - name: Strict public configuration build with SQLite fixture
         run: npm run build
         env:

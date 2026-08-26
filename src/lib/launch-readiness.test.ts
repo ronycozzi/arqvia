@@ -54,4 +54,19 @@ describe("buildLaunchReadiness", () => {
       ]),
     );
   });
+
+  it("rejects reserved example domains in the public email", () => {
+    const result = buildLaunchReadiness({
+      config: {
+        ...fallbackClientConfig,
+        email: "contacto@arqvia.example",
+        whatsapp: "5493517778899",
+      },
+      siteUrl: "https://arqvia.com.ar",
+    });
+
+    expect(
+      result.checks.find((item) => item.label === "Email de contacto")?.ok,
+    ).toBe(false);
+  });
 });

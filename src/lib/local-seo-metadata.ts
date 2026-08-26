@@ -4,6 +4,7 @@ import { getClientConfig } from "@/lib/client-config";
 import type { LocalSeoPage } from "@/lib/local-seo";
 import { defaultOgImage } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
+import { metadataTitle } from "@/lib/utils";
 
 export function buildLocalSeoMetadata(
   page: LocalSeoPage,
@@ -13,15 +14,17 @@ export function buildLocalSeoMetadata(
   const ogImage = brand?.heroImage
     ? { url: brand.heroImage, alt: `Proyecto de arquitectura de ${companyName}` }
     : defaultOgImage;
+  const resolvedTitle = metadataTitle(page.title, companyName);
+  const socialTitle = resolvedTitle.absolute;
 
   return {
-    title: page.title,
+    title: resolvedTitle,
     description: page.description,
     alternates: {
       canonical: `/${page.slug}`,
     },
     openGraph: {
-      title: page.title,
+      title: socialTitle,
       description: page.description,
       url: `/${page.slug}`,
       type: "website",
@@ -31,7 +34,7 @@ export function buildLocalSeoMetadata(
     },
     twitter: {
       card: "summary_large_image",
-      title: page.title,
+      title: socialTitle,
       description: page.description,
       images: [ogImage.url],
     },

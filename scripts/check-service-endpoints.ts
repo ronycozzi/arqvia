@@ -83,12 +83,26 @@ export function resolveServiceOrigin(
   );
 }
 
+export function resolveServiceCheckTimeout(value?: string) {
+  const configuredTimeout = Number(value || 15_000);
+  if (
+    !Number.isFinite(configuredTimeout) ||
+    configuredTimeout < 100 ||
+    configuredTimeout > 30_000
+  ) {
+    throw new Error(
+      "SERVICE_CHECK_TIMEOUT_MS must be between 100 and 30000 milliseconds.",
+    );
+  }
+
+  return configuredTimeout;
+}
+
 async function checkEndpoint(origin: string, endpoint: ServiceEndpoint) {
   const controller = new AbortController();
-  const configuredTimeout = Number(process.env.SERVICE_CHECK_TIMEOUT_MS || 5_000);
-  if (!Number.isFinite(configuredTimeout) || configuredTimeout < 100 || configuredTimeout > 30_000) {
-    throw new Error("SERVICE_CHECK_TIMEOUT_MS must be between 100 and 30000 milliseconds.");
-  }
+  const configuredTimeout = resolveServiceCheckTimeout(
+    process.env.SERVICE_CHECK_TIMEOUT_MS,
+  );
   const timeout = setTimeout(
     () => controller.abort(),
     configuredTimeout,

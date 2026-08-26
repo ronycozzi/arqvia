@@ -9,18 +9,21 @@
   },
   "scripts": {
     "dev": "next dev",
+    "prebuild": "npm run db:generate",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "verify": "npm run security:scan && npm run lint && npm run typecheck && npm run test && npm run content:check && npm run build",
     "verify:e2e": "playwright test --project=chromium --project=mobile && npm run test:e2e-residue",
+    "pretest": "npm run db:generate",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e-residue": "tsx scripts/check-e2e-residue.ts",
     "e2e": "playwright test",
     "assets:pwa": "node scripts/generate-pwa-icons.mjs",
     "audit:critical": "npm audit --omit=dev --audit-level=critical",
+    "audit:public": "tsx scripts/audit-public-site.ts",
     "audit:production": "npm audit --omit=dev --audit-level=high",
     "security:scan": "tsx scripts/check-secrets.ts",
     "db:generate": "prisma generate",
@@ -37,7 +40,7 @@
     "db:postgres:generate": "npm run db:postgres:schema && prisma generate --schema prisma/postgresql/schema.prisma",
     "db:postgres:migrate": "npm run db:postgres:schema && prisma migrate dev --schema prisma/postgresql/schema.prisma",
     "db:postgres:deploy": "npm run db:postgres:generate && prisma migrate deploy --schema prisma/postgresql/schema.prisma && npm run db:backfill:activity && npm run db:backfill:leads && npm run db:backfill:visits",
-    "build:postgres": "npm run db:postgres:generate && next build",
+    "build:postgres": "npm run db:postgres:generate && npm run content:check && next build",
     "db:push": "prisma db push",
     "db:init": "node scripts/init-sqlite.mjs",
     "db:seed": "prisma db seed",
@@ -86,6 +89,7 @@
     "vitest": "^4.1.9"
   },
   "overrides": {
+    "deepmerge-ts": "8.0.2",
     "next": {
       "postcss": "8.5.26"
     }

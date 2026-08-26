@@ -71,7 +71,7 @@ function isCommercialEmail(value: string) {
   return (
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
     !email.endsWith(".local") &&
-    !email.includes("example.") &&
+    !email.includes("example") &&
     !email.includes("test@")
   );
 }

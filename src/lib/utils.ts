@@ -87,5 +87,5 @@ export function metadataTitle(title: string, companyName = "Arqvia") {
     return { absolute: `${title.slice(0, separatorIndex)} | ${companyName}` };
   }
 
-  return title;
+  return { absolute: `${title} | ${companyName}` };
 }

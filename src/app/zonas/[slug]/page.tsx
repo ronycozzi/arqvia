@@ -12,6 +12,7 @@ import { getPublicProjects } from "@/lib/project-data";
 import { defaultOgImage } from "@/lib/seo";
 import { getPublicServices } from "@/lib/service-data";
 import { breadcrumbJsonLd } from "@/lib/structured-data";
+import { metadataTitle } from "@/lib/utils";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -38,14 +39,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     if (destination) permanentRedirect(destination);
     notFound();
   }
+  const resolvedTitle = metadataTitle(area.seoTitle, config.companyName);
+  const socialTitle = resolvedTitle.absolute;
   return {
-    title: area.seoTitle,
+    title: resolvedTitle,
     description: area.seoDescription,
     alternates: {
       canonical: `/zonas/${area.slug}`,
     },
     openGraph: {
-      title: area.seoTitle,
+      title: socialTitle,
       description: area.seoDescription,
       url: `/zonas/${area.slug}`,
       type: "website",
@@ -60,7 +63,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: {
       card: "summary_large_image",
-      title: area.seoTitle,
+      title: socialTitle,
       description: area.seoDescription,
       images: [config.heroImage || defaultOgImage.url],
     },

@@ -26,15 +26,15 @@ export function PublicPageLoading({
   title?: string;
 }) {
   return (
-    <div aria-busy="true" aria-live="polite">
+    <div aria-busy="true" aria-live="polite" role="status">
       <section className="mx-auto grid min-h-[72vh] max-w-7xl gap-10 px-5 py-16 md:px-8 lg:grid-cols-[0.92fr_1.08fr] lg:items-end">
         <div className="pb-4">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-bronze">
             {eyebrow}
           </p>
-          <h1 className="mt-5 max-w-3xl font-serif text-5xl leading-none text-ink md:text-7xl">
+          <p className="mt-5 max-w-3xl font-serif text-5xl leading-none text-ink md:text-7xl">
             {title}
-          </h1>
+          </p>
           <div className="mt-8 max-w-2xl space-y-3">
             <SkeletonBlock className="h-4 w-full" />
             <SkeletonBlock className="h-4 w-10/12" />
@@ -66,13 +66,18 @@ export function ListingLoading({
   title: string;
 }) {
   return (
-    <section aria-busy="true" aria-live="polite" className="mx-auto max-w-7xl px-5 py-16 md:px-8">
+    <section
+      aria-busy="true"
+      aria-live="polite"
+      className="mx-auto max-w-7xl px-5 py-16 md:px-8"
+      role="status"
+    >
       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-bronze">
         {eyebrow}
       </p>
-      <h1 className="mt-4 max-w-4xl font-serif text-5xl leading-tight text-ink md:text-7xl">
+      <p className="mt-4 max-w-4xl font-serif text-5xl leading-tight text-ink md:text-7xl">
         {title}
-      </h1>
+      </p>
       <div className="mt-8 flex flex-wrap gap-3">
         {Array.from({ length: 6 }).map((_, index) => (
           <SkeletonBlock key={index} className="h-10 w-28" />

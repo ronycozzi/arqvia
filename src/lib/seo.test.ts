@@ -2,15 +2,15 @@ import { describe, expect, it } from "vitest";
 import { buildPageMetadata } from "@/lib/seo";
 
 describe("buildPageMetadata", () => {
-  it("keeps an unbranded title inside the global metadata template", () => {
+  it("brands an unbranded title explicitly for every route", () => {
     const metadata = buildPageMetadata({
       canonical: "/proceso",
       description: "Proceso de trabajo de Arqvia para proyectos en Córdoba.",
       title: "Cómo trabajamos",
     });
 
-    expect(metadata.title).toBe("Cómo trabajamos");
-    expect(metadata.openGraph?.title).toBe("Cómo trabajamos");
+    expect(metadata.title).toEqual({ absolute: "Cómo trabajamos | Arqvia" });
+    expect(metadata.openGraph?.title).toBe("Cómo trabajamos | Arqvia");
   });
 
   it("marks an already branded title as absolute and aligns social metadata", () => {

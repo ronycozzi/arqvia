@@ -39,15 +39,17 @@ export async function generateMetadata({
     if (destination) permanentRedirect(destination);
     notFound();
   }
+  const resolvedTitle = metadataTitle(project.seoTitle, config.companyName);
+  const socialTitle = resolvedTitle.absolute;
 
   return {
-    title: metadataTitle(project.seoTitle, config.companyName),
+    title: resolvedTitle,
     description: project.seoDescription,
     alternates: {
       canonical: `/proyectos/${project.slug}`,
     },
     openGraph: {
-      title: project.seoTitle,
+      title: socialTitle,
       description: project.seoDescription,
       url: `/proyectos/${project.slug}`,
       locale: "es_AR",
@@ -56,7 +58,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: project.seoTitle,
+      title: socialTitle,
       description: project.seoDescription,
       images: [project.coverImage],
     },

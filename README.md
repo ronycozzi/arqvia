@@ -689,22 +689,23 @@ aprobaciones de contenido, derechos visuales y revisión legal.
 
 Última pasada completa: 2026-08-26.
 
-- `npm run verify`: PASS. Incluye escaneo de secretos sobre 478 archivos de texto, lint, TypeScript, 96 archivos Vitest y 466 pruebas aprobadas. También incluye control de integridad de contenido y build de producción con 82 páginas/rutas generadas.
-- `npm run verify:e2e`: PASS. Playwright ejecutó 292 casos en Chromium y mobile: 254 aprobados, 38 omitidos de forma intencional por rol/proyecto para evitar escrituras duplicadas y 0 fallidos; el control posterior confirmó base y uploads sin residuos E2E.
+- `npm run verify`: PASS. Incluye escaneo de secretos sobre 506 archivos de texto, lint, TypeScript, 108 archivos Vitest y 544 pruebas aprobadas. También incluye control de integridad de contenido y build de producción con 82 páginas/rutas generadas.
+- `npm run verify:e2e`: PASS. Playwright ejecutó 302 casos en Chromium y mobile: 264 aprobados, 38 omitidos de forma intencional por rol/proyecto para evitar escrituras duplicadas y 0 fallidos; el control posterior confirmó base y uploads sin residuos E2E. Luego se repitieron 24 casos de regresión de portfolio y Axe sobre ambos viewports, también aprobados.
 - Accesibilidad automatizada: cubre superficies públicas y los módulos de Home, páginas institucionales, proyectos, servicios, imágenes, áreas, FAQ, blog, categorías, equipo, testimonios, legales, usuarios, automatizaciones, configuración, actividad y Estado por rol, además de validaciones y diálogos en desktop y mobile.
 - Exportación de leads: PASS con 1.005 registros, sin truncamiento y sobre un snapshot estable de identificadores.
 - Exportación de actividad: PASS con filtros completos, auditoría y snapshot temporal privado; el archivo de identificadores se elimina al completar, cancelar o fallar el stream.
 - Verificación visual local: PASS en home, portfolio, proyecto, servicios, contacto y acceso administrativo a 1440 px y 390 px, además de las 21 rutas principales del panel y cinco superficies administrativas móviles. Sin overflow horizontal, errores de consola, imágenes rotas, títulos sin marca, H1 duplicados ni solapamiento en el comparador.
 - Auditor público: PASS sobre 55 rutas, sitemap y 404 tanto en local como en el preview; valida estado HTTP, HTML, title, H1, canonical, enlaces internos, contacto visible, copy interno y duplicados SEO.
-- Backup y restore SQLite: PASS sobre una copia de 1.368.064 bytes; checksum, `PRAGMA integrity_check`, tablas esenciales y 19 conjuntos indexados coincidieron.
-- Schema PostgreSQL generado: PASS con `prisma validate` usando una URL PostgreSQL de validación, sin conexión ni despliegue real.
+- Backup y restore SQLite: PASS sobre una copia de 1.396.736 bytes; checksum, `PRAGMA integrity_check`, tablas esenciales y 22 conjuntos indexados coincidieron.
+- Schema PostgreSQL generado y validado: PASS. Las 20 migraciones están aplicadas en Preview; la base productiva continúa sin promoverse.
 - `npm run audit:production`: PASS. `npm audit --omit=dev --audit-level=high` informa 0 vulnerabilidades.
 - `npm run security:scan`: PASS sobre los archivos de texto versionables; no se imprimen valores sensibles durante el control.
-- `npm run ops:check -- --url http://localhost:3110`: PASS. Health y readiness devolvieron HTTP 200 con JSON esperado; `--url` tiene validación y ya no puede consultar silenciosamente otro puerto.
-- `npm run release:check`: BLOCKED por 11 controles únicos externos pendientes. El comando completó tanto ambiente como contenido y operación: dominio, secretos/bootstrap final, contacto real, PostgreSQL, S3, analítica, antiabuso distribuido, contenido, derechos individuales de medios, publicación y aprobación legal, y evidencia operativa. El estimador deshabilitado y las automatizaciones en modo captura segura pasan sus controles.
+- `npm run ops:check`: PASS en local y en el Preview HTTPS. Health y readiness devolvieron HTTP 200 con JSON esperado; `--url` tiene validación y ya no puede consultar silenciosamente otro puerto.
+- Login de Preview: PASS con el administrador canónico, dashboard, ruta protegida de Estado y viewport móvil sin overflow.
+- `npm run release:check`: BLOCKED por 13 controles externos pendientes. El comando completó tanto ambiente como contenido y operación: dominio, secretos/bootstrap final, contacto real, PostgreSQL, S3 y borrado privado, analítica, antiabuso distribuido, contenido, derechos individuales de medios, publicación y aprobación legal, retención y evidencia operativa. El estimador deshabilitado y las automatizaciones en modo captura segura pasan sus controles.
 - Retención programada: `NOT ENABLED`. El código y las pruebas están completos, pero faltan política legal, aprobación, scheduler y ensayo monitoreado en staging.
 - Lighthouse local sobre el build final: desktop 99 Performance y 100 en Accessibility, Best Practices y SEO; móvil, mediana de tres corridas, 85 Performance y 100 en las otras tres categorías. En móvil se midieron FCP 1,25 s, LCP 4,22 s, TBT 121 ms y CLS 0 bajo throttling simulado.
-- Lighthouse móvil sobre el preview HTTPS: Performance 87, Accessibility 100, Best Practices 100 y SEO 100; FCP 1,1 s, LCP 3,4 s, TBT 270 ms y CLS 0.
+- Lighthouse móvil sobre el preview HTTPS actualizado: Performance 92, Accessibility 100, Best Practices 100 y SEO 100; FCP 1,0 s, LCP 3,1 s, TBT 130 ms y CLS 0.
 - Preview técnico: `https://arqvia-preview.vercel.app`. Producción comercial: `NOT DEPLOYED` por los bloqueos explícitos del release gate.
 - Informe detallado de esta pasada: `docs/INTEGRAL_AUDIT_2026-08-26.md`.
 

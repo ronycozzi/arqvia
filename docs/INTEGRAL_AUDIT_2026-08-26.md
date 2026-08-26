@@ -67,14 +67,18 @@ Superficies verificadas:
 ## Evidencia de verificación
 
 - `npm run verify`: PASS.
-- Secret scan: 478 archivos de texto, PASS.
-- Vitest: 96 archivos, 466 pruebas, PASS.
+- Secret scan: 506 archivos de texto, PASS.
+- Vitest: 108 archivos, 544 pruebas, PASS.
 - Integridad editorial: 4 proyectos, 11 servicios, 10 guías y 19 medios, PASS.
 - Build Next.js: 82 páginas/rutas, PASS.
-- Playwright: 292 escenarios; 254 PASS, 38 SKIP intencionales, 0 FAIL.
+- Playwright: 302 escenarios; 264 PASS, 38 SKIP intencionales, 0 FAIL. Luego se
+  repitieron 24 casos de regresión de portfolio y Axe en desktop y mobile,
+  también aprobados.
 - Residuo E2E en base y uploads: PASS.
 - Auditor público local: 55 rutas, sitemap y 404, PASS.
 - Health y readiness locales: HTTP 200 y contrato JSON, PASS.
+- Health, readiness y login administrativo en Preview: PASS; se verificaron el
+  dashboard, la ruta protegida de Estado y el viewport móvil sin overflow.
 - `npm audit --omit=dev --audit-level=high`: 0 vulnerabilidades.
 - Navegador a 1440 px y 390 px: 0 overflow, 0 imágenes rotas, 0 errores de
   consola, un H1 por ruta y títulos con Arqvia.
@@ -83,12 +87,14 @@ Superficies verificadas:
 - Lighthouse móvil, mediana de tres corridas: Performance 85, Accessibility
   100, Best Practices 100, SEO 100; FCP 1,25 s, LCP 4,22 s, TBT 121 ms, CLS 0.
 - Lighthouse móvil sobre el preview HTTPS, sin la Toolbar externa de Vercel:
-  Performance 87, Accessibility 100, Best Practices 100, SEO 100; FCP 1,1 s,
-  LCP 3,4 s, TBT 270 ms, CLS 0.
-- Restore SQLite: integridad, checksum, tablas y conteos, PASS.
-- Schema PostgreSQL generado y validado, sin migración productiva aplicada.
+  Performance 92, Accessibility 100, Best Practices 100, SEO 100; FCP 1,0 s,
+  LCP 3,1 s, TBT 130 ms, CLS 0.
+- Restore SQLite: integridad, checksum, tablas y 22 conteos sobre una copia de
+  1.396.736 bytes, PASS.
+- Schema PostgreSQL generado y validado. Las 20 migraciones están aplicadas en
+  Preview; la base productiva continúa sin promoverse.
 
-Durante la navegación automatizada, Next 16.3.0 registró cierres tempranos de
+Durante la navegación automatizada, Next 16.3.3 registró cierres tempranos de
 streams RSC cuando Playwright canceló navegaciones. No hubo respuesta fallida,
 error de cliente, prueba fallida ni residuo. El comportamiento coincide con el
 bug abierto de Next.js `vercel/next.js#96704`; no se silenció ni se trató como
@@ -97,19 +103,21 @@ un fallo de aplicación.
 ## Estado de lanzamiento
 
 El preview técnico está disponible en `https://arqvia-preview.vercel.app`.
-Producción comercial permanece bloqueada por 11 controles reales:
+Producción comercial permanece bloqueada por 13 controles reales:
 
 1. Dominio HTTPS final y orígenes coincidentes.
 2. Secretos finales y retiro del bootstrap administrativo.
 3. WhatsApp y datos comerciales definitivos con aprobación.
 4. PostgreSQL productivo y migraciones aplicadas.
 5. Storage persistente S3 compatible y prueba de ciclo completo.
-6. Analítica GA4 o GTM configurada bajo consentimiento.
-7. Rate limiting distribuido y proveedor de proxy confiable.
-8. Aprobación editorial del contenido definitivo.
-9. Derechos y trazabilidad de cada recurso visual.
-10. Publicación y revisión profesional de documentos legales.
-11. Evidencia operativa de restore y PWA sobre HTTPS/dispositivos reales.
+6. Worker protegido para borrado físico de objetos privados.
+7. Analítica GA4 o GTM configurada bajo consentimiento.
+8. Rate limiting distribuido y proveedor de proxy confiable.
+9. Aprobación editorial del contenido definitivo.
+10. Derechos y trazabilidad de cada recurso visual.
+11. Publicación y revisión profesional de documentos legales.
+12. Política y scheduler de retención aprobados.
+13. Evidencia operativa de restore y PWA sobre HTTPS/dispositivos reales.
 
 Estos bloqueos no indican funciones faltantes del código. Evitan presentar como
 producción una instalación que todavía usa datos comerciales genéricos y no

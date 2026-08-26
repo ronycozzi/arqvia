@@ -44,6 +44,7 @@ describe("validateServerEnv", () => {
       ...baseEnv,
       ARQVIA_STRICT_PUBLIC_URL: "true",
       AUTH_SECRET: strongSecret,
+      RATE_LIMIT_STORE: "database",
     });
 
     expect(env.AUTH_SECRET).toBe(strongSecret);
@@ -60,16 +61,51 @@ describe("validateServerEnv", () => {
     ).toThrow(/RATE_LIMIT_STORE/);
   });
 
-  it("enables strict secret validation whenever NODE_ENV is production", async () => {
+  it("allows a local Next production build outside a release context", async () => {
+    const validateServerEnv = await loadValidator();
+
+    expect(
+      validateServerEnv({ ...baseEnv, NODE_ENV: "production" }).AUTH_SECRET,
+    ).toBe(baseEnv.AUTH_SECRET);
+  });
+
+  it("enables strict validation for an explicit production release", async () => {
     const validateServerEnv = await loadValidator();
 
     expect(() =>
       validateServerEnv({
         ...baseEnv,
+        ARQVIA_PRODUCTION_RELEASE: "true",
         AUTH_SECRET: "replace-with-a-long-random-secret",
-        NODE_ENV: "production",
       }),
     ).toThrow(/AUTH_SECRET must be a unique production secret/);
+  });
+
+  it("rejects memory-only rate limiting in production", async () => {
+    const validateServerEnv = await loadValidator();
+
+    expect(() =>
+      validateServerEnv({
+        ...baseEnv,
+        AUTH_SECRET: "arqvia-production-secret-64-characters-minimum-value-2026",
+        ARQVIA_PRODUCTION_RELEASE: "true",
+        RATE_LIMIT_STORE: "memory",
+      }),
+    ).toThrow(/RATE_LIMIT_STORE must be database in production/);
+  });
+
+  it("rejects known default admin credentials in production", async () => {
+    const validateServerEnv = await loadValidator();
+
+    expect(() =>
+      validateServerEnv({
+        ...baseEnv,
+        ADMIN_EMAIL: "admin@arqvia.local",
+        AUTH_SECRET: "arqvia-production-secret-64-characters-minimum-value-2026",
+        ARQVIA_PRODUCTION_RELEASE: "true",
+        RATE_LIMIT_STORE: "database",
+      }),
+    ).toThrow(/Known default admin credentials/);
   });
 
   it("rejects unknown trusted proxy modes", async () => {

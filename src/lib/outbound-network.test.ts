@@ -3,6 +3,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   assertPublicWebhookDestination,
+  createPinnedLookup,
   isPublicIpAddress,
   UnsafeOutboundDestinationError,
 } from "./outbound-network";
@@ -17,6 +18,11 @@ describe("outbound network policy", () => {
     "::1",
     "fe80::1",
     "fd00::1",
+    "64:ff9b::c0a8:101",
+    "64:ff9b:1::a00:1",
+    "2001::1",
+    "2002:c0a8:101::",
+    "fec0::1",
   ])("rejects non-public address %s", (address) => {
     expect(isPublicIpAddress(address)).toBe(false);
   });
@@ -58,5 +64,38 @@ describe("outbound network policy", () => {
         allowDevelopmentLocalhost: true,
       }),
     ).resolves.toBeUndefined();
+  });
+
+  it("pins socket lookups to the already validated address set", () => {
+    const lookup = createPinnedLookup([
+      { address: "8.8.8.8", family: 4 },
+      { address: "2606:4700:4700::1111", family: 6 },
+    ]);
+    const callback = vi.fn();
+
+    lookup("crm.example.com", {}, callback);
+    lookup("crm.example.com", {}, callback);
+
+    expect(callback.mock.calls).toEqual([
+      [null, "8.8.8.8", 4],
+      [null, "2606:4700:4700::1111", 6],
+    ]);
+  });
+
+  it("aborts DNS resolution with the same request signal", async () => {
+    const controller = new AbortController();
+    const pendingResolver = vi.fn(
+      () => new Promise<never>(() => undefined),
+    );
+    const validation = assertPublicWebhookDestination(
+      "https://crm.example.com/hook",
+      { resolver: pendingResolver, signal: controller.signal },
+    );
+
+    controller.abort();
+
+    await expect(validation).rejects.toBeInstanceOf(
+      UnsafeOutboundDestinationError,
+    );
   });
 });

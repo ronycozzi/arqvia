@@ -7,8 +7,8 @@ import {
 } from "@/lib/admin-auth";
 import {
   eraseLeadForPrivacy,
+  LeadPrivacyAutomationBusyError,
   LeadPrivacyNotFoundError,
-  LeadPrivacyStorageError,
 } from "@/lib/lead-privacy";
 import { logServerError } from "@/lib/logger";
 import { revalidateLeadSurfaces } from "@/lib/revalidation";
@@ -62,9 +62,10 @@ export async function DELETE(
   }
 
   const { id } = await params;
+  let result;
 
   try {
-    await eraseLeadForPrivacy({
+    result = await eraseLeadForPrivacy({
       actorUserId: session.user.id,
       leadId: id,
     });
@@ -80,13 +81,13 @@ export async function DELETE(
       userId: session.user.id,
     });
 
-    if (error instanceof LeadPrivacyStorageError) {
+    if (error instanceof LeadPrivacyAutomationBusyError) {
       return NextResponse.json(
         {
           message:
-            "No se pudieron eliminar todos los adjuntos privados. No se modificó la consulta; reintentá.",
+            "Hay una automatización terminando de procesarse. El lead quedó bloqueado para nuevos envíos; reintentá en unos minutos.",
         },
-        { status: 503 },
+        { status: 409 },
       );
     }
 
@@ -100,5 +101,11 @@ export async function DELETE(
   }
 
   revalidateLeadSurfaces(id);
-  return NextResponse.json({ ok: true });
+  return NextResponse.json(
+    {
+      ok: true,
+      pendingObjectDeletions: result.pendingObjectDeletions,
+    },
+    { status: result.pendingObjectDeletions > 0 ? 202 : 200 },
+  );
 }

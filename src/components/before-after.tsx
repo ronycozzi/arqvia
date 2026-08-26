@@ -48,7 +48,7 @@ export function BeforeAfter({
           src={comparison.afterImage}
           alt={comparison.afterAlt}
           fill
-          sizes="(min-width: 1024px) 58vw, 100vw"
+          sizes="(min-width: 1280px) 680px, (min-width: 1024px) 55vw, calc(100vw - 40px)"
           className="object-cover"
           data-testid="before-after-image-after"
         />
@@ -60,8 +60,8 @@ export function BeforeAfter({
             src={comparison.beforeImage}
             alt={comparison.beforeAlt}
             fill
-            sizes="(min-width: 1024px) 58vw, 100vw"
-            className="object-cover grayscale-[0.18]"
+            sizes="(min-width: 1280px) 680px, (min-width: 1024px) 55vw, calc(100vw - 40px)"
+            className="object-cover"
             data-testid="before-after-image-before"
           />
         </div>

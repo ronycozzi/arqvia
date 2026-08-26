@@ -88,8 +88,11 @@ export const leadSchema = z.object({
     .trim()
     .regex(phoneRegex, "Ingresá un WhatsApp válido")
     .refine(
-      (value) => value.replace(/\D/g, "").length >= 7,
-      "Ingresá un WhatsApp con al menos 7 números",
+      (value) => {
+        const digits = value.replace(/\D/g, "");
+        return digits.length >= 10 && digits.length <= 15;
+      },
+      "Ingresá un WhatsApp con código de área (10 a 15 números)",
     ),
   city: z.string().trim().min(2, "Indicá ciudad o zona").max(120),
   clientType: z.string().trim().max(80).optional().or(z.literal("")),
@@ -349,8 +352,13 @@ export const clientConfigSchema = z.object({
   primaryColor: hexColor,
   secondaryColor: hexColor,
   accentColor: hexColor,
-  fontHeading: z.enum(["Newsreader", "Cormorant Garamond", "Georgia", "Times New Roman"]),
-  fontBody: z.enum(["Manrope", "Inter", "System UI", "Arial"]),
+  fontHeading: z.enum([
+    "Newsreader",
+    "Georgia",
+    "Times New Roman",
+    "Cormorant Garamond",
+  ]),
+  fontBody: z.enum(["Manrope", "System UI", "Arial", "Inter"]),
   whatsapp: whatsappNumber,
   phone: z.string().trim().min(6, "Ingresá un teléfono").max(60),
   email: z.string().trim().email("Ingresá un email válido").max(160),

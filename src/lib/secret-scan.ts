@@ -46,12 +46,13 @@ const highConfidenceRules: SecretRule[] = [
 ];
 
 const sensitiveAssignment =
-  /\b(AUTH_SECRET|JWT_SECRET|ADMIN_PASSWORD|LEAD_WEBHOOK_SECRET|AUTOMATION_CRON_SECRET|S3_SECRET_ACCESS_KEY)\b\s*[:=]\s*["']?([^\s"'#}]+)/gi;
+  /\b(AUTH_SECRET|JWT_SECRET|ADMIN_PASSWORD|LEAD_WEBHOOK_SECRET|AUTOMATION_CRON_SECRET|DATA_RETENTION_CRON_SECRET|PRIVATE_OBJECT_DELETION_CRON_SECRET|S3_SECRET_ACCESS_KEY|DATABASE_URL|DIRECT_URL|POSTGRES_URL)\b\s*[:=]\s*["']?([^\s"'#}]+)/gi;
 
 const placeholderFragments = [
   "change",
   "ci-",
   "example",
+  "file:./dev.db",
   "local-",
   "placeholder",
   "release-verification",

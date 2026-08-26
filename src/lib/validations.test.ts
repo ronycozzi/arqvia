@@ -1,10 +1,40 @@
 import { describe, expect, it } from "vitest";
 import {
   adminUserFormSchema,
+  clientConfigSchema,
   leadCommercialProfileSchema,
   leadSchema,
   loginSchema,
 } from "./validations";
+
+describe("clientConfigSchema", () => {
+  const config = {
+    accentColor: "#b8864b",
+    address: "Córdoba, Argentina",
+    businessHours: "Lunes a viernes de 9 a 18",
+    companyName: "Arqvia",
+    email: "estudio@arqvia.com.ar",
+    fontBody: "Inter",
+    fontHeading: "Cormorant Garamond",
+    heroImage: "/images/hero.webp",
+    heroSubtitle: "Diseñamos y construimos espacios con una dirección clara.",
+    heroTitle: "Arquitectura pensada para construirse bien.",
+    logoUrl: "/images/logo.svg",
+    phone: "+54 351 555 1234",
+    primaryColor: "#181815",
+    primaryCtaLabel: "Solicitar presupuesto",
+    secondaryColor: "#f4f0e8",
+    secondaryCtaLabel: "Ver proyectos",
+    whatsapp: "5493515551234",
+  };
+
+  it("preserves supported legacy fonts until an explicit migration", () => {
+    const parsed = clientConfigSchema.parse(config);
+
+    expect(parsed.fontHeading).toBe("Cormorant Garamond");
+    expect(parsed.fontBody).toBe("Inter");
+  });
+});
 
 describe("leadCommercialProfileSchema", () => {
   it("normalizes optional USD amounts and a local follow-up date", () => {
@@ -149,6 +179,25 @@ describe("leadSchema", () => {
     if (result.success) return;
     expect(result.error.issues.map((issue) => issue.path[0])).toContain("phone");
   });
+
+  it.each(["351555121", "+54 351 555 1212 9999"])(
+    "rejects a phone outside the supported international length: %s",
+    (phone) => {
+      const result = leadSchema.safeParse({
+        name: "Cliente Demo",
+        email: "cliente@example.com",
+        phone,
+        city: "Cordoba Capital",
+        projectType: "Remodelacion",
+        message: "Quiero remodelar una cocina y necesito orientacion inicial.",
+        sourcePage: "/contacto",
+      });
+
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.error.issues.map((issue) => issue.path[0])).toContain("phone");
+    },
+  );
 
   it("accepts complete estimator metadata and normalizes numeric fields", () => {
     const result = leadSchema.safeParse({

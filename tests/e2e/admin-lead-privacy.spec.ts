@@ -18,6 +18,9 @@ const privateStorageDir = path.join(
 );
 
 async function cleanupPrivacyFixtures() {
+  await prisma.privateObjectDeletion.deleteMany({
+    where: { storageKey: { startsWith: "local:privacy-" } },
+  });
   const users = await prisma.user.findMany({
     where: { email: { startsWith: "privacy-" } },
     select: { id: true },

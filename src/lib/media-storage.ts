@@ -179,9 +179,8 @@ export async function deleteStoredMediaObject(url: string) {
 export async function storePrivateMediaObject({
   bytes,
   contentType,
-  filename,
 }: StorageInput) {
-  const uniqueFilename = `${Date.now()}-${randomUUID().slice(0, 8)}-${filename}`;
+  const uniqueFilename = `${randomUUID()}${privateObjectExtension(contentType)}`;
 
   if (getStorageProvider() === "local") {
     await mkdir(privateUploadDir, { recursive: true });
@@ -219,6 +218,15 @@ export async function storePrivateMediaObject({
     },
     storageKey: `${s3PrivatePrefix}${key}`,
   };
+}
+
+function privateObjectExtension(contentType: string) {
+  if (contentType === "application/pdf") return ".pdf";
+  if (contentType === "image/webp") return ".webp";
+  if (contentType === "image/jpeg") return ".jpg";
+  if (contentType === "image/png") return ".png";
+  if (contentType === "image/avif") return ".avif";
+  return ".bin";
 }
 
 export async function readPrivateMediaObject(storageKey: string) {
@@ -267,7 +275,12 @@ export async function deletePrivateMediaObject(storageKey: string) {
   }
 
   const key = safeS3PrivateKey(storageKey);
-  if (!key || getStorageProvider() !== "s3") return;
+  if (!key) {
+    throw new Error("Private media key has an unsupported format.");
+  }
+  if (getStorageProvider() !== "s3") {
+    throw new Error("Private S3 media cannot be deleted by the active provider.");
+  }
 
   const config = createS3Config();
   await config.client.send(

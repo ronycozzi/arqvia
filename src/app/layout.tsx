@@ -20,7 +20,7 @@ const newsreader = Newsreader({
   variable: "--font-newsreader",
   subsets: ["latin"],
   display: "swap",
-  axes: ["opsz"],
+  preload: false,
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -82,12 +82,9 @@ export async function generateViewport(): Promise<Viewport> {
   const theme = buildBrandTheme(config);
 
   return {
-    colorScheme: "light dark",
+    colorScheme: "light",
     viewportFit: "cover",
-    themeColor: [
-      { media: "(prefers-color-scheme: light)", color: theme.background },
-      { media: "(prefers-color-scheme: dark)", color: theme.graphite },
-    ],
+    themeColor: theme.background,
   };
 }
 

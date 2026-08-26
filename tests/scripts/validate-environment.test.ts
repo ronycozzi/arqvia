@@ -9,11 +9,17 @@ const validEnvironment: Environment = {
   AUTH_SECRET: "a-private-production-secret-with-more-than-32-characters-2026",
   AUTH_URL: "https://arqvia.com.ar",
   DATABASE_URL: "postgresql://user:password@db.example.net:5432/arqvia",
+  DATA_RETENTION_CRON_SECRET: "",
+  LEAD_RETENTION_BATCH_SIZE: "25",
+  LEAD_RETENTION_DAYS: "730",
+  LEAD_RETENTION_ENABLED: "false",
   MEDIA_STORAGE_PROVIDER: "s3",
   NEXT_PUBLIC_ANALYTICS_ID: "G-ABCD1234",
   NEXT_PUBLIC_ANALYTICS_PROVIDER: "ga4",
   NEXT_PUBLIC_SITE_URL: "https://arqvia.com.ar",
   NEXT_PUBLIC_WHATSAPP_NUMBER: "5493517778899",
+  PRIVATE_OBJECT_DELETION_CRON_SECRET:
+    "private-object-deletion-worker-secret-2026",
   RATE_LIMIT_STORE: "database",
   S3_ACCESS_KEY_ID: "access-key",
   S3_BUCKET: "arqvia-media",
@@ -69,5 +75,15 @@ describe("production environment validation", () => {
     });
 
     expect(checks.find((item) => item.id === "ENV-URL-001")?.ok).toBe(false);
+  });
+
+  it("requires an explicit retention policy even when retention is disabled", () => {
+    const missingRetentionDays = { ...validEnvironment };
+    delete missingRetentionDays.LEAD_RETENTION_DAYS;
+    const checks = validateProductionEnvironment(missingRetentionDays);
+
+    expect(checks.find((item) => item.id === "ENV-RETENTION-001")?.ok).toBe(
+      false,
+    );
   });
 });

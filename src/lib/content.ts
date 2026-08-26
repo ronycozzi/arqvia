@@ -13,6 +13,8 @@ import {
 
 export const imageKit = {
   hero: "/images/arqvia-hero-concrete-pool-generated-3840x2160.webp",
+  heroMobile:
+    "/images/arqvia-hero-concrete-pool-mobile-generated-v1-1122x1402.webp",
   house: "/images/arqvia-casa-patio-norte.webp",
   houseDetail: "/images/arqvia-casa-patio-norte-gallery.webp",
   office: "/images/arqvia-oficina-umbral.webp",

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getPublicAreas } from "@/lib/area-data";
 import { getPublicBlogPosts } from "@/lib/blog-data";
+import { getApprovedPublicLegalPages } from "@/lib/legal-data";
 import { localSeoPages } from "@/lib/local-seo";
 import { getPublicProjects } from "@/lib/project-data";
 import { getPublicServices } from "@/lib/service-data";
@@ -9,9 +10,10 @@ import { siteConfig } from "@/lib/site-config";
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [areas, blogPosts, projects, services] = await Promise.all([
+  const [areas, blogPosts, legalPages, projects, services] = await Promise.all([
     getPublicAreas(),
     getPublicBlogPosts(),
+    getApprovedPublicLegalPages(),
     getPublicProjects(),
     getPublicServices(),
   ]);
@@ -41,15 +43,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ["/contacto", 0.92, "monthly"],
     ["/faq", 0.62, "monthly"],
     ["/blog", 0.74, "weekly"],
-    ["/privacidad", 0.2, "yearly"],
-    ["/terminos", 0.2, "yearly"],
-    ["/cookies", 0.2, "yearly"],
-    ["/aviso-presupuestos", 0.2, "yearly"],
   ];
 
   return [
     ...staticRoutes.map(([path, priority, frequency]) =>
       route(`${base}${path}`, priority, frequency),
+    ),
+    ...legalPages.map((page) =>
+      route(
+        `${base}/${page.slug}`,
+        0.2,
+        "yearly",
+        page.updatedAt || staticLastModified,
+      ),
     ),
     ...projects.map((project) =>
       route(

@@ -31,7 +31,7 @@ Para una instalación de Arqvia con PostgreSQL administrado:
 - Retención mínima: 14 días de backups diarios y 3 copias mensuales.
 - Ensayo de restauración: trimestral y antes de una campaña que aumente considerablemente el tráfico.
 
-SQLite es solo para desarrollo local. `npm run db:backup:sqlite` crea una copia consistente mediante `VACUUM INTO`, ejecuta `PRAGMA integrity_check`, abre la copia con Prisma, cuenta entidades críticas y genera un manifiesto con SHA-256. No usar SQLite como base de producción distribuida.
+SQLite es solo para desarrollo local. `npm run db:backup:sqlite` crea una copia consistente mediante `VACUUM INTO`, ejecuta `PRAGMA integrity_check`, abre la copia con Prisma, cuenta entidades críticas, copia los adjuntos locales a un directorio asociado y genera un manifiesto con SHA-256 para la base y cada archivo. No usar SQLite como base de producción distribuida.
 
 ## Operación de automatizaciones de leads
 
@@ -298,12 +298,19 @@ Variables:
 - `LEAD_RETENTION_DAYS=730`: plazo entre 90 y 3.650 días.
 - `LEAD_RETENTION_BATCH_SIZE=25`: lote entre 1 y 100 expedientes.
 - `DATA_RETENTION_CRON_SECRET`: secreto dedicado de al menos 32 caracteres.
+- `PRIVATE_OBJECT_DELETION_CRON_SECRET`: secreto dedicado de al menos 32 caracteres para la cola de archivos privados.
 
 El scheduler autorizado llama `GET` o `POST /api/cron/retention` con
 `Authorization: Bearer <DATA_RETENTION_CRON_SECRET>`. Cada eliminación reutiliza
 el flujo de privacidad: borra adjuntos privados, relaciones y PII, y deja una
 constancia mínima `RETENTION_ERASURE` sin identificar a la persona. Los fallos
 se contabilizan por lote y no detienen el resto.
+
+La eliminación de adjuntos usa un outbox independiente. Configurar otro
+scheduler contra `GET` o `POST /api/cron/private-object-deletions` con
+`Authorization: Bearer <PRIVATE_OBJECT_DELETION_CRON_SECRET>`. La metadata del
+lead se retira transaccionalmente y el objeto se elimina con reintentos; alertar
+si el panel muestra trabajos `FAILED` o pendientes durante más de una ejecución.
 
 Antes de activarla:
 
@@ -328,6 +335,8 @@ Antes de activarla:
    Confirmar también `20260715210000_add_lead_last_activity` y
    `20260715220000_add_media_rights_provenance`; ejecutar el backfill de
    actividad y revisar derechos recurso por recurso.
+   Confirmar `20260826230000_add_private_object_deletion_outbox` y configurar
+   su worker antes de recibir adjuntos reales.
    Confirmar `20260716170000_add_admin_concurrency_and_operational_indexes` y
    `20260716180000_isolate_possible_lead_duplicates` antes de abrir formularios
    y administración al equipo.
@@ -366,7 +375,7 @@ Si aparecen páginas antiguas, respuestas privadas en Cache Storage o reenvíos
 automáticos, tratarlo como incidente: detener el rollout, restaurar el worker
 estable y comprobar tanto una sesión nueva como una instalación existente.
 
-El seed de producción está deshabilitado. Sólo para una carga inicial deliberada se puede usar `ARQVIA_ALLOW_PRODUCTION_SEED=true`; retirar la variable inmediatamente después. El seed no actualiza rangos existentes y nunca reemplaza la validación comercial.
+El seed de producción está deshabilitado. Sólo para una carga inicial deliberada se puede usar `ARQVIA_ALLOW_PRODUCTION_SEED=true`; retirar la variable inmediatamente después. PostgreSQL exige credenciales admin explícitas de al menos 16 caracteres, rechaza valores conocidos o placeholder y se detiene si encuentra activa la cuenta `admin@arqvia.local`. En una carga productiva autorizada, la contraseña del admin indicado se reemplaza por el valor explícito para no conservar un hash bootstrap anterior. El seed no actualiza rangos existentes y nunca reemplaza la validación comercial.
 
 ## Rollback
 
@@ -406,7 +415,7 @@ npm run db:verify-restore:sqlite
 
 El primer comando crea una copia consistente con `VACUUM INTO`, ejecuta
 `PRAGMA integrity_check` y escribe un manifiesto con SHA-256 y conteos críticos.
-El segundo copia el backup más reciente a un directorio aislado, vuelve a
+El segundo copia el backup más reciente y sus adjuntos a un directorio aislado, vuelve a
 validar checksum, integridad, tablas y conteos, y elimina el restore temporal.
 También acepta la ruta explícita de un manifiesto como argumento.
 
@@ -441,12 +450,13 @@ npm run release:env
 El control no imprime valores de variables. Bloquea origenes no HTTPS o
 desparejos, secretos debiles, `ADMIN_PASSWORD` en runtime, seed productivo,
 SQLite, storage local, analytics sin identificador valido, rate limiting en
-memoria y proxy no declarado. Un resultado local bloqueado es esperado cuando
+memoria, proxy no declarado y una política de retención no declarada de forma
+explícita. Un resultado local bloqueado es esperado cuando
 se usa `.env.example`; no completar valores con datos inventados.
 
 En SQLite, el manifiesto es evidencia de integridad y consistencia local, no
 una firma criptografica ni prueba de autenticidad frente a un atacante con
 acceso al directorio. El restore rechaza manifiestos sin evidencia `ok`,
 archivos que no sean regulares, enlaces simbolicos y rutas fuera de
-`backups/`. Conservar el par `.db`/`.db.json` como una unidad y registrar
+`backups/`. Conservar `.db`, `.db.json` y `.db.attachments/` como una unidad y registrar
 fecha, operador, tamano y resultado.

@@ -126,7 +126,7 @@ describe("POST /api/leads rate-limit compensation", () => {
     expect(mocks.releaseRateLimitReservation).not.toHaveBeenCalled();
   });
 
-  it("releases accepted reservations on estimator version conflict", async () => {
+  it("rejects stale estimator values before storing files and keeps abuse reservations", async () => {
     mocks.transaction.mockImplementation(
       (callback: (tx: object) => Promise<unknown>) =>
         callback({
@@ -150,8 +150,9 @@ describe("POST /api/leads rate-limit compensation", () => {
     );
 
     expect(response.status).toBe(409);
-    expectAllAcceptedReservationsReleased();
-    expect(mocks.removeStoredLeadAttachments).toHaveBeenCalledWith([]);
+    expect(mocks.releaseRateLimitReservation).not.toHaveBeenCalled();
+    expect(mocks.storeLeadAttachmentFiles).not.toHaveBeenCalled();
+    expect(mocks.removeStoredLeadAttachments).not.toHaveBeenCalled();
   });
 
   it("releases accepted reservations after a terminal persistence failure", async () => {

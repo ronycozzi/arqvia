@@ -1,7 +1,14 @@
 import "dotenv/config";
 import { createHash } from "node:crypto";
-import { chmod, mkdir, readFile, stat, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import {
+  chmod,
+  copyFile,
+  mkdir,
+  readFile,
+  stat,
+  writeFile,
+} from "node:fs/promises";
+import { basename, resolve } from "node:path";
 import { PrismaClient } from "@prisma/client";
 import {
   assertInsideDirectory,
@@ -25,9 +32,17 @@ assertInsideDirectory(
 const backupDir = resolve("backups");
 const stamp = new Date().toISOString().replace(/[:.]/g, "-");
 const backupPath = resolve(backupDir, `arqvia-${stamp}.db`);
+const attachmentBackupDir = `${backupPath}.attachments`;
+const privateAttachmentDir = resolve("storage", "lead-attachments");
 assertInsideDirectory(backupPath, backupDir, "Refusing to write a backup outside backups/.");
+assertInsideDirectory(
+  attachmentBackupDir,
+  backupDir,
+  "Refusing to write attachment backups outside backups/.",
+);
 
 await mkdir(backupDir, { recursive: true });
+await mkdir(attachmentBackupDir, { recursive: true });
 
 const prisma = new PrismaClient();
 try {
@@ -39,15 +54,25 @@ try {
   const verifier = new PrismaClient({ datasources: { db: { url: backupUrl } } });
   let counts;
   let integrity;
+  let attachmentRows;
   try {
     integrity = await verifier.$queryRawUnsafe("PRAGMA integrity_check");
     counts = {
       automationDeliveries: await verifier.leadAutomationDelivery.count(),
+      leadActivities: await verifier.leadActivity.count(),
+      leadAttachments: await verifier.leadAttachment.count(),
+      leadEstimates: await verifier.leadEstimate.count(),
+      leadNotes: await verifier.leadNote.count(),
       leads: await verifier.lead.count(),
+      privateObjectDeletions: await verifier.privateObjectDeletion.count(),
       projects: await verifier.project.count(),
       services: await verifier.service.count(),
+      technicalVisits: await verifier.technicalVisit.count(),
       users: await verifier.user.count(),
     };
+    attachmentRows = await verifier.leadAttachment.findMany({
+      select: { sizeBytes: true, storageKey: true },
+    });
   } finally {
     await verifier.$disconnect();
   }
@@ -64,6 +89,50 @@ try {
   const checksum = createHash("sha256")
     .update(await readFile(backupPath))
     .digest("hex");
+  const localAttachments = [];
+  let externalAttachmentCount = 0;
+  for (const attachment of attachmentRows) {
+    if (!attachment.storageKey.startsWith("local:")) {
+      externalAttachmentCount += 1;
+      continue;
+    }
+
+    const rawFilename = attachment.storageKey.slice("local:".length);
+    const filename = basename(rawFilename);
+    if (!filename || rawFilename !== filename) {
+      throw new Error("A local attachment has an unsafe storage key.");
+    }
+
+    const sourcePath = resolve(privateAttachmentDir, filename);
+    const destinationPath = resolve(attachmentBackupDir, filename);
+    assertInsideDirectory(
+      sourcePath,
+      privateAttachmentDir,
+      "Refusing to read an attachment outside private storage.",
+    );
+    assertInsideDirectory(
+      destinationPath,
+      attachmentBackupDir,
+      "Refusing to write an attachment outside its backup directory.",
+    );
+    const sourceStat = await assertRegularFile(
+      sourcePath,
+      "A local attachment referenced by the database is missing.",
+    );
+    if (sourceStat.size !== attachment.sizeBytes) {
+      throw new Error("A local attachment size does not match database metadata.");
+    }
+    const bytes = await readFile(sourcePath);
+    const attachmentChecksum = createHash("sha256").update(bytes).digest("hex");
+    await copyFile(sourcePath, destinationPath);
+    await chmod(destinationPath, 0o600);
+    localAttachments.push({
+      filename,
+      sha256: attachmentChecksum,
+      sizeBytes: sourceStat.size,
+      storageKey: attachment.storageKey,
+    });
+  }
   const manifestPath = `${backupPath}.json`;
   await writeFile(
     manifestPath,
@@ -77,6 +146,11 @@ try {
         verified: true,
         integrityCheck: integrityResult,
         counts,
+        attachments: {
+          directory: attachmentBackupDir,
+          externalCount: externalAttachmentCount,
+          files: localAttachments,
+        },
       },
       null,
       2,

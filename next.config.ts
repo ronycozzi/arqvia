@@ -63,8 +63,10 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  images: mediaPublicUrl
-    ? {
+  images: {
+    qualities: [75, 88],
+    ...(mediaPublicUrl
+      ? {
         remotePatterns: [
           {
             hostname: mediaPublicUrl.hostname,
@@ -74,7 +76,8 @@ const nextConfig: NextConfig = {
           },
         ],
       }
-    : undefined,
+      : {}),
+  },
   async headers() {
     return [
       {

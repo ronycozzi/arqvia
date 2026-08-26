@@ -6,15 +6,19 @@ const database = vi.hoisted(() => ({
   findUnique: vi.fn(),
   updateMany: vi.fn(),
 }));
+const network = vi.hoisted(() => ({ post: vi.fn() }));
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/db", () => ({
   prisma: {
+    $transaction: (
+      callback: (tx: { leadAutomationDelivery: typeof database }) => unknown,
+    ) => callback({ leadAutomationDelivery: database }),
     leadAutomationDelivery: database,
   },
 }));
 vi.mock("@/lib/outbound-network", () => ({
-  assertPublicWebhookDestination: vi.fn().mockResolvedValue(undefined),
+  postJsonToPublicWebhook: network.post,
   UnsafeOutboundDestinationError: class UnsafeOutboundDestinationError extends Error {},
 }));
 
@@ -53,6 +57,7 @@ describe("lead automation dispatcher", () => {
     enableAutomation();
     database.findUnique.mockReset();
     database.updateMany.mockReset();
+    network.post.mockReset();
   });
 
   afterEach(() => {
@@ -70,10 +75,7 @@ describe("lead automation dispatcher", () => {
         schemaVersion: 999,
       }),
     );
-    const response = new Response("accepted", { status: 200 });
-    const cancelBody = vi.spyOn(response.body!, "cancel");
-    const fetchMock = vi.fn().mockResolvedValue(response);
-    vi.stubGlobal("fetch", fetchMock);
+    network.post.mockResolvedValue({ ok: true, status: 200 });
 
     const result = await dispatchLeadAutomationDelivery(deliveryId);
 
@@ -82,7 +84,7 @@ describe("lead automation dispatcher", () => {
       outcome: "delivered",
       responseStatus: 200,
     });
-    const [url, request] = fetchMock.mock.calls[0];
+    const [url, request] = network.post.mock.calls[0];
     const body = JSON.parse(String(request.body));
     expect(url).toBe("https://crm.example.com/arqvia");
     expect(body).toMatchObject({
@@ -97,8 +99,12 @@ describe("lead automation dispatcher", () => {
     expect(request.headers["x-arqvia-signature"]).toMatch(
       /^t=\d+,v1=[a-f0-9]{64}$/,
     );
-    expect(request.redirect).toBe("manual");
-    expect(cancelBody).toHaveBeenCalledOnce();
+    expect(request.signal).toBeInstanceOf(AbortSignal);
+    expect(database.updateMany.mock.calls[0][0].where).toEqual(
+      expect.objectContaining({
+        lead: { privacyErasureRequestedAt: null },
+      }),
+    );
     expect(database.updateMany).toHaveBeenLastCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
@@ -143,10 +149,7 @@ describe("lead automation dispatcher", () => {
 
   it("records a sanitized retry after an HTTP failure", async () => {
     arrangeClaimedDelivery(JSON.stringify({ lead: { id: "lead-2" } }));
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(new Response(null, { status: 503 })),
-    );
+    network.post.mockResolvedValue({ ok: false, status: 503 });
     const before = Date.now();
 
     const result = await dispatchLeadAutomationDelivery(deliveryId);
@@ -176,10 +179,7 @@ describe("lead automation dispatcher", () => {
     database.updateMany
       .mockResolvedValueOnce({ count: 1 })
       .mockResolvedValueOnce({ count: 0 });
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(new Response(null, { status: 200 })),
-    );
+    network.post.mockResolvedValue({ ok: true, status: 200 });
 
     const result = await dispatchLeadAutomationDelivery(deliveryId);
 

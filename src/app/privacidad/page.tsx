@@ -1,21 +1,14 @@
 import { LegalPageView } from "@/components/legal-page-view";
 import { getClientConfig } from "@/lib/client-config";
 import { getPublicLegalPage } from "@/lib/legal-data";
-import { buildPageMetadata } from "@/lib/seo";
+import { buildLegalPageMetadata } from "@/lib/legal-seo";
 
 export async function generateMetadata() {
   const [page, config] = await Promise.all([
     getPublicLegalPage("privacidad"),
     getClientConfig(),
   ]);
-  return buildPageMetadata(
-    {
-      canonical: "/privacidad",
-      description: page.seoDescription,
-      title: page.seoTitle,
-    },
-    config,
-  );
+  return buildLegalPageMetadata(page, config);
 }
 
 export default async function PrivacyPage() {

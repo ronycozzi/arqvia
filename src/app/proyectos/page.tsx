@@ -55,6 +55,7 @@ export default async function ProjectsPage({
         />
         <nav
           aria-label="Filtros de proyectos"
+          data-horizontal-scroll="true"
           className="mt-7 flex max-w-full snap-x gap-2 overflow-x-auto pb-3 md:flex-wrap md:overflow-visible"
         >
           {projectCategories.map((category) => (
@@ -83,7 +84,7 @@ export default async function ProjectsPage({
               {visibleProjects.map((project, index) => (
                 <ProjectCard
                   key={project.slug}
-                  priority={index < 4}
+                  priority={index === 0}
                   project={project}
                 />
               ))}

@@ -2,6 +2,7 @@ import { getInfrastructureReadiness } from "@/lib/infrastructure-readiness";
 import { readLeadAutomationConfig } from "@/lib/lead-automation-config";
 import { readLeadRetentionConfig } from "@/lib/lead-retention-config";
 import { getMediaStorageStatus } from "@/lib/media-storage";
+import { readPrivateObjectDeletionConfig } from "@/lib/private-object-deletion-config";
 
 type Environment = Record<string, string | undefined>;
 
@@ -78,6 +79,7 @@ export function buildSystemReadiness({
 }): SystemReadiness {
   const infrastructure = getInfrastructureReadiness(env);
   const storage = getMediaStorageStatus(env);
+  const privateDeletion = readPrivateObjectDeletionConfig(env);
   const automation = readLeadAutomationConfig(env);
   const retention = readLeadRetentionConfig(env);
   const production = isDeployedProduction(env);
@@ -85,7 +87,6 @@ export function buildSystemReadiness({
   const analytics = analyticsState(env);
   const strictUrl = env.ARQVIA_STRICT_PUBLIC_URL === "true";
   const provider = databaseProvider(env);
-  const retentionApproved = approvalRecorded(env, "ARQVIA_RETENTION");
   const backupRestoreApproved = approvalRecorded(
     env,
     "ARQVIA_BACKUP_RESTORE",
@@ -113,10 +114,16 @@ export function buildSystemReadiness({
     {
       id: "media-storage",
       label: "Almacenamiento de imágenes",
-      state: infrastructure.persistentMediaStorageReady ? "ready" : "attention",
-      detail: infrastructure.persistentMediaStorageReady
-        ? "La biblioteca usa almacenamiento persistente compatible con S3."
-        : `El proveedor actual es ${storage.provider}; los archivos locales no sobreviven a todos los despliegues.`,
+      state:
+        infrastructure.persistentMediaStorageReady && privateDeletion.ready
+          ? "ready"
+          : "attention",
+      detail:
+        infrastructure.persistentMediaStorageReady && privateDeletion.ready
+          ? "La biblioteca usa S3 persistente y el borrado privado tiene reintentos durables."
+          : infrastructure.persistentMediaStorageReady
+            ? "El storage es persistente, pero falta configurar el worker de borrado privado."
+            : `El proveedor actual es ${storage.provider}; los archivos locales no sobreviven a todos los despliegues.`,
       href: "/admin/media",
     },
     {
@@ -176,14 +183,14 @@ export function buildSystemReadiness({
       id: "retention",
       label: "Retención de consultas",
       state: retention.enabled
-        ? retention.ready && retentionApproved
+        ? retention.ready
           ? "ready"
           : "attention"
         : "disabled",
       detail: retention.enabled
-        ? retention.ready && retentionApproved
+        ? retention.ready
           ? `La retención está aprobada y procesa hasta ${retention.batchSize} consultas LOST con más de ${retention.days} días.`
-          : "La retención está habilitada, pero falta secreto de cron o aprobación legal y operativa."
+          : retention.issues.join(" ")
         : "La eliminación programada está apagada, que es el estado seguro inicial.",
       href: "/admin/activity",
     },

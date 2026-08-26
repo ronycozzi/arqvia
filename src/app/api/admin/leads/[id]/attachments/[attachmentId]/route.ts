@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import {
   canViewLeadPII,
   commercialManagerRoles,
@@ -6,11 +7,14 @@ import {
 } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { logServerError } from "@/lib/logger";
-import { touchLeadActivity } from "@/lib/lead-activity";
+import { LeadPrivacyLockedError, touchLeadActivity } from "@/lib/lead-activity";
 import {
-  deletePrivateMediaObject,
   readPrivateMediaObject,
 } from "@/lib/media-storage";
+import {
+  dispatchPrivateObjectDeletion,
+  enqueuePrivateObjectDeletion,
+} from "@/lib/private-object-deletion";
 import { isSameOriginRequest } from "@/lib/request-security";
 import { revalidateLeadSurfaces } from "@/lib/revalidation";
 
@@ -50,6 +54,12 @@ export async function GET(_request: Request, { params }: AttachmentRouteContext)
       },
     });
   } catch (error) {
+    if (error instanceof LeadPrivacyLockedError) {
+      return NextResponse.json(
+        { message: "La consulta está bloqueada por una eliminación de privacidad." },
+        { status: 409 },
+      );
+    }
     logServerError("lead_attachment.read_failed", error, {
       attachmentId,
       leadId,
@@ -83,8 +93,13 @@ export async function DELETE(
     return NextResponse.json({ message: "Archivo no encontrado" }, { status: 404 });
   }
 
+  let deletionJobId: string;
   try {
-    await prisma.$transaction(async (tx) => {
+    deletionJobId = await prisma.$transaction(async (tx) => {
+      const deletionJob = await enqueuePrivateObjectDeletion(
+        tx,
+        attachment.storageKey,
+      );
       await tx.leadAttachment.delete({ where: { id: attachment.id } });
       await touchLeadActivity(tx, leadId, new Date());
       await tx.auditLog.create({
@@ -96,30 +111,42 @@ export async function DELETE(
           userId: session.user.id,
         },
       });
-    });
+      return deletionJob.id;
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   } catch (error) {
-    logServerError("lead_attachment.metadata_delete_failed", error, {
+    logServerError("lead_attachment.delete_failed", error, {
       attachmentId,
       leadId,
     });
     return NextResponse.json(
-      { message: "No pudimos actualizar la consulta. El archivo sigue disponible." },
+      {
+        message:
+          "No pudimos confirmar la eliminación completa. Reintentá en unos segundos.",
+      },
       { status: 503 },
     );
   }
 
+  let deletionOutcome: "deleted" | "failed" | "skipped" = "skipped";
   try {
-    await deletePrivateMediaObject(attachment.storageKey);
+    deletionOutcome = await dispatchPrivateObjectDeletion(deletionJobId);
   } catch (error) {
-    // The database no longer exposes the private object. Storage cleanup can
-    // be retried operationally without leaving a broken attachment reference.
-    logServerError("lead_attachment.storage_cleanup_failed", error, {
+    logServerError("lead_attachment.storage_delete_deferred", error, {
       attachmentId,
       leadId,
-      storageKey: attachment.storageKey,
     });
   }
-
   revalidateLeadSurfaces(leadId);
-  return NextResponse.json({ id: attachment.id, ok: true });
+  return NextResponse.json(
+    {
+      id: attachment.id,
+      message:
+        deletionOutcome === "deleted"
+          ? "Archivo eliminado"
+          : "Archivo retirado del lead; la eliminación física quedó en cola segura.",
+      ok: true,
+      storageDeletionPending: deletionOutcome !== "deleted",
+    },
+    { status: deletionOutcome === "deleted" ? 200 : 202 },
+  );
 }

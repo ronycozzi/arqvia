@@ -4,6 +4,7 @@ export default function Loading() {
   return (
     <ListingLoading
       eyebrow="Servicios"
+      grouped
       title="Cargando servicios de arquitectura, obra e interiores."
     />
   );

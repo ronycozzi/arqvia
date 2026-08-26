@@ -9,6 +9,7 @@ import {
   Paperclip,
   X,
 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cloneElement, type ReactElement, useId, useState } from "react";
 import {
@@ -39,6 +40,7 @@ const projectTypes = [
   "Remodelación",
   "Ampliación",
   "Diseño interior",
+  "Dirección y administración de obra",
   "Local comercial",
   "Oficina",
   "Otro",
@@ -203,7 +205,13 @@ export function QuoteForm({
           <input {...register("name")} autoComplete="name" required />
         </Field>
         <Field label="WhatsApp" error={errors.phone?.message}>
-          <input {...register("phone")} autoComplete="tel" required />
+          <input
+            type="tel"
+            inputMode="tel"
+            {...register("phone")}
+            autoComplete="tel"
+            required
+          />
         </Field>
         <Field label="Email" error={errors.email?.message}>
           <input
@@ -416,6 +424,17 @@ export function QuoteForm({
       <p className="mt-3 text-xs leading-5 text-ink/75">
         Cuanta más información nos compartas, mejor podremos orientarte sobre
         alcance, etapas y próximos pasos.
+      </p>
+      <p className="mt-2 text-xs leading-5 text-ink/75">
+        Usamos tus datos y archivos únicamente para evaluar y responder esta
+        consulta. Consultá la{" "}
+        <Link
+          href="/privacidad"
+          className="font-semibold text-ink underline decoration-bronze/55 underline-offset-2 transition hover:text-bronze"
+        >
+          política de privacidad
+        </Link>
+        .
       </p>
     </form>
   );
@@ -705,8 +724,8 @@ function Field({
         "aria-required": children.props.required || undefined,
         className:
           children.type === "textarea"
-          ? "min-h-28 w-full border border-ink/12 bg-white px-4 py-3 text-sm text-ink outline-none transition duration-300 placeholder:text-ink/35 hover:border-ink/25 focus:border-bronze focus:ring-2 focus:ring-bronze/20"
-            : "h-12 w-full border border-ink/12 bg-white px-4 text-sm text-ink outline-none transition duration-300 placeholder:text-ink/35 hover:border-ink/25 focus:border-bronze focus:ring-2 focus:ring-bronze/20",
+          ? "min-h-28 w-full border border-ink/12 bg-white px-4 py-3 text-sm text-ink outline-none transition duration-300 placeholder:text-ink/55 hover:border-ink/25 focus:border-bronze focus:ring-2 focus:ring-bronze/20"
+            : "h-12 w-full border border-ink/12 bg-white px-4 text-sm text-ink outline-none transition duration-300 placeholder:text-ink/55 hover:border-ink/25 focus:border-bronze focus:ring-2 focus:ring-bronze/20",
       })}
       {error ? (
         <span

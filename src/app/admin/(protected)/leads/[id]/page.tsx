@@ -122,6 +122,7 @@ export default async function LeadDetailPage({
         ? prisma.user.findMany({
             where: {
               active: true,
+              role: { in: ["ADMIN", "EDITOR"] },
             },
             orderBy: [{ name: "asc" }, { email: "asc" }],
             select: { id: true, name: true, email: true },
@@ -496,7 +497,9 @@ export default async function LeadDetailPage({
             <LeadCommercialForm
               assignees={visitAssignees.map((user) => ({
                 id: user.id,
-                label: user.name || user.email || "Usuario Arqvia",
+                label: user.name
+                  ? `${user.name} · ${user.email}`
+                  : user.email || "Usuario Arqvia",
               }))}
               leadId={lead.id}
               value={{
@@ -537,7 +540,9 @@ export default async function LeadDetailPage({
             <TechnicalVisitForm
               assignees={visitAssignees.map((user) => ({
                 id: user.id,
-                label: user.name || user.email || "Usuario Arqvia",
+                label: user.name
+                  ? `${user.name} · ${user.email}`
+                  : user.email || "Usuario Arqvia",
               }))}
               leadId={lead.id}
               preference={{

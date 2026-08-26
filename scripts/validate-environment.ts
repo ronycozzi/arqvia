@@ -1,6 +1,10 @@
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { loadEnvConfig } from "@next/env";
+import {
+  hasExplicitLeadRetentionEnvironment,
+  readLeadRetentionConfig,
+} from "../src/lib/lead-retention-config";
 
 export type Environment = Record<string, string | undefined>;
 
@@ -99,7 +103,13 @@ export function validateProductionEnvironment(env: Environment = process.env) {
     hasValue(env.S3_REGION) &&
     hasValue(env.S3_ACCESS_KEY_ID) &&
     isUsableSecret(env.S3_SECRET_ACCESS_KEY) &&
-    Boolean(publicStorageOrigin);
+    Boolean(publicStorageOrigin) &&
+    isUsableSecret(env.PRIVATE_OBJECT_DELETION_CRON_SECRET);
+  const retention = readLeadRetentionConfig(env);
+  const retentionReady =
+    hasExplicitLeadRetentionEnvironment(env) &&
+    retention.issues.length === 0 &&
+    (!retention.enabled || retention.ready);
 
   return [
     check(
@@ -134,7 +144,7 @@ export function validateProductionEnvironment(env: Environment = process.env) {
       "ENV-STORAGE-001",
       "Persistent media storage",
       storageReady,
-      "Configure S3-compatible storage, credentials, region, bucket, and an HTTPS public base URL.",
+      "Configure S3-compatible storage, credentials, region, bucket, an HTTPS public base URL, and the private-object deletion worker secret.",
     ),
     check(
       "ENV-ANALYTICS-001",
@@ -148,6 +158,12 @@ export function validateProductionEnvironment(env: Environment = process.env) {
       env.RATE_LIMIT_STORE === "database" &&
         ["cloudflare", "vercel"].includes(env.TRUST_PROXY_PROVIDER || ""),
       "Use database-backed rate limiting and declare a supported trusted proxy provider.",
+    ),
+    check(
+      "ENV-RETENTION-001",
+      "Explicit retention policy",
+      retentionReady,
+      "Set LEAD_RETENTION_ENABLED, LEAD_RETENTION_DAYS, LEAD_RETENTION_BATCH_SIZE, and DATA_RETENTION_CRON_SECRET explicitly; enabled retention also requires a strong cron secret and recorded approval.",
     ),
   ] satisfies EnvironmentCheck[];
 }

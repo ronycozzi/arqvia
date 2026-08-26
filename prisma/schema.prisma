@@ -76,6 +76,13 @@ enum LeadAutomationStatus {
   DEAD
 }
 
+enum PrivateObjectDeletionStatus {
+  PENDING
+  PROCESSING
+  FAILED
+  DELETED
+}
+
 enum ProjectImageType {
   BEFORE
   PROCESS
@@ -292,48 +299,50 @@ model Service {
 }
 
 model Lead {
-  id                    String                   @id @default(cuid())
-  name                  String
-  email                 String
-  phone                 String
-  normalizedEmail       String?
-  normalizedPhone       String?
-  city                  String
-  clientType            String?
-  projectType           String
-  currentStatus         String?
-  areaM2                String?
-  budgetRange           String?
-  startDate             String?
-  needsVisit            Boolean                  @default(false)
-  hasPlans              Boolean                  @default(false)
-  referenceLinks        String?
-  message               String
-  sourcePage            String
-  status                LeadStatus               @default(NEW)
-  assignedUserId        String?
-  nextFollowUpAt        DateTime?
-  quotedAmountUsd       Int?
-  wonAmountUsd          Int?
-  lostReason            String?
-  createdAt             DateTime                 @default(now())
-  updatedAt             DateTime                 @updatedAt
-  lastActivityAt        DateTime                 @default(now())
-  possibleDuplicateOfId String?
-  possibleDuplicateOf   Lead?                    @relation("LeadPossibleDuplicates", fields: [possibleDuplicateOfId], references: [id], onDelete: SetNull)
-  possibleDuplicates    Lead[]                   @relation("LeadPossibleDuplicates")
-  assignedUser          User?                    @relation("LeadAssignments", fields: [assignedUserId], references: [id], onDelete: SetNull)
-  commercialActivities  LeadActivity[]
-  notes                 LeadNote[]
-  attachments           LeadAttachment[]
-  technicalVisit        TechnicalVisit?
-  estimate              LeadEstimate?
-  automationDeliveries  LeadAutomationDelivery[]
+  id                        String                   @id @default(cuid())
+  name                      String
+  email                     String
+  phone                     String
+  normalizedEmail           String?
+  normalizedPhone           String?
+  city                      String
+  clientType                String?
+  projectType               String
+  currentStatus             String?
+  areaM2                    String?
+  budgetRange               String?
+  startDate                 String?
+  needsVisit                Boolean                  @default(false)
+  hasPlans                  Boolean                  @default(false)
+  referenceLinks            String?
+  message                   String
+  sourcePage                String
+  status                    LeadStatus               @default(NEW)
+  assignedUserId            String?
+  nextFollowUpAt            DateTime?
+  quotedAmountUsd           Int?
+  wonAmountUsd              Int?
+  lostReason                String?
+  createdAt                 DateTime                 @default(now())
+  updatedAt                 DateTime                 @updatedAt
+  lastActivityAt            DateTime                 @default(now())
+  privacyErasureRequestedAt DateTime?
+  possibleDuplicateOfId     String?
+  possibleDuplicateOf       Lead?                    @relation("LeadPossibleDuplicates", fields: [possibleDuplicateOfId], references: [id], onDelete: SetNull)
+  possibleDuplicates        Lead[]                   @relation("LeadPossibleDuplicates")
+  assignedUser              User?                    @relation("LeadAssignments", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  commercialActivities      LeadActivity[]
+  notes                     LeadNote[]
+  attachments               LeadAttachment[]
+  technicalVisit            TechnicalVisit?
+  estimate                  LeadEstimate?
+  automationDeliveries      LeadAutomationDelivery[]
 
   @@index([status])
   @@index([createdAt])
   @@index([updatedAt])
   @@index([status, lastActivityAt])
+  @@index([privacyErasureRequestedAt])
   @@index([assignedUserId, status])
   @@index([nextFollowUpAt, status])
   @@index([normalizedEmail, createdAt])
@@ -455,6 +464,23 @@ model LeadAttachment {
   lead         Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
 
   @@index([leadId, createdAt])
+}
+
+model PrivateObjectDeletion {
+  id            String                      @id @default(cuid())
+  storageKey    String                      @unique
+  status        PrivateObjectDeletionStatus @default(PENDING)
+  claimToken    String?
+  attempts      Int                         @default(0)
+  nextAttemptAt DateTime                    @default(now())
+  lastAttemptAt DateTime?
+  deletedAt     DateTime?
+  lastErrorCode String?
+  createdAt     DateTime                    @default(now())
+  updatedAt     DateTime                    @updatedAt
+
+  @@index([status, nextAttemptAt])
+  @@index([createdAt])
 }
 
 model RateLimitBucket {

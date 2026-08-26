@@ -4,6 +4,7 @@ import {
   buildLeadInactivityWhere,
   getLatestLeadActivityAt,
   touchLeadActivity,
+  LeadPrivacyLockedError,
 } from "./lead-activity";
 
 describe("lead activity", () => {
@@ -33,18 +34,27 @@ describe("lead activity", () => {
   });
 
   it("touches the lead through the supplied transaction client", async () => {
-    const update = vi.fn().mockResolvedValue({ id: "lead-1" });
+    const updateMany = vi.fn().mockResolvedValue({ count: 1 });
     const tx = {
-      lead: { update },
+      lead: { updateMany },
     } as unknown as Pick<Prisma.TransactionClient, "lead">;
     const lastActivityAt = new Date("2026-07-15T14:30:00.000Z");
 
     await touchLeadActivity(tx, "lead-1", lastActivityAt);
 
-    expect(update).toHaveBeenCalledWith({
-      where: { id: "lead-1" },
+    expect(updateMany).toHaveBeenCalledWith({
+      where: { id: "lead-1", privacyErasureRequestedAt: null },
       data: { lastActivityAt },
-      select: { id: true },
     });
+  });
+
+  it("rejects activity writes after a privacy erasure fence is active", async () => {
+    const tx = {
+      lead: { updateMany: vi.fn().mockResolvedValue({ count: 0 }) },
+    } as unknown as Pick<Prisma.TransactionClient, "lead">;
+
+    await expect(
+      touchLeadActivity(tx, "lead-1", new Date()),
+    ).rejects.toBeInstanceOf(LeadPrivacyLockedError);
   });
 });

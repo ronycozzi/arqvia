@@ -19,6 +19,7 @@ vi.mock("@/lib/db", () => ({
   prisma: { $transaction: mocks.transaction },
 }));
 vi.mock("@/lib/lead-activity", () => ({
+  LeadPrivacyLockedError: class LeadPrivacyLockedError extends Error {},
   touchLeadActivity: mocks.touchLeadActivity,
 }));
 vi.mock("@/lib/logger", () => ({ logServerError: mocks.logServerError }));

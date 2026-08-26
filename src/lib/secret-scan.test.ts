@@ -32,4 +32,27 @@ describe("scanTextForSecrets", () => {
 
     expect(scanTextForSecrets(".env.example", content)).toEqual([]);
   });
+
+  it("covers destructive cron secrets and credential-bearing database URLs", () => {
+    const content = [
+      "DATA_RETENTION_CRON_SECRET: a-real-random-retention-value-2026-keep-private",
+      "PRIVATE_OBJECT_DELETION_CRON_SECRET: a-real-private-deletion-value-2026-keep-private",
+      "DATABASE_URL: postgresql://arqvia:private-password@db.internal/arqvia",
+    ].join("\n");
+
+    expect(scanTextForSecrets("deployment.yml", content)).toEqual([
+      expect.objectContaining({
+        line: 1,
+        rule: "sensitive-assignment:DATA_RETENTION_CRON_SECRET",
+      }),
+      expect.objectContaining({
+        line: 2,
+        rule: "sensitive-assignment:PRIVATE_OBJECT_DELETION_CRON_SECRET",
+      }),
+      expect.objectContaining({
+        line: 3,
+        rule: "sensitive-assignment:DATABASE_URL",
+      }),
+    ]);
+  });
 });

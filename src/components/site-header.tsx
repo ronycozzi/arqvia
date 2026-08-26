@@ -212,7 +212,7 @@ export function SiteHeader({
       >
         <div
           className={cn(
-            "overflow-hidden transition duration-300 motion-reduce:transition-none",
+            "max-h-[calc(100dvh-5rem-env(safe-area-inset-top))] overflow-x-hidden overflow-y-auto overscroll-contain transition duration-300 motion-reduce:transform-none motion-reduce:transition-none",
             open
               ? "translate-y-0 opacity-100"
               : "-translate-y-2 opacity-0",

@@ -162,9 +162,10 @@ export function LeadPrivacyEraser({
                     id={descriptionId}
                     className="mt-2 text-sm leading-6 text-ink/72"
                   >
-                    Primero se borrarán los archivos privados. Después se
-                    eliminarán en una transacción la consulta, notas, visita,
-                    estimación, entregas y registros de actividad relacionados.
+                    Primero se bloquean nuevos envíos externos. Luego se
+                    eliminan en una transacción la consulta, notas, visita,
+                    estimación y actividad; los archivos privados quedan en una
+                    cola durable hasta confirmar su borrado físico.
                   </p>
                 </div>
               </div>

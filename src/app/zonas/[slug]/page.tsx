@@ -7,7 +7,7 @@ import { ProjectCard } from "@/components/project-card";
 import { getPublicArea, getPublicAreas } from "@/lib/area-data";
 import { getClientConfig } from "@/lib/client-config";
 import { getContentRedirectDestination } from "@/lib/content-redirects";
-import { getPublicFaqs } from "@/lib/faq-data";
+import { locationMatchesArea } from "@/lib/local-proof";
 import { getPublicProjects } from "@/lib/project-data";
 import { defaultOgImage } from "@/lib/seo";
 import { getPublicServices } from "@/lib/service-data";
@@ -81,17 +81,15 @@ export default async function AreaPage({ params }: PageProps) {
     if (destination) permanentRedirect(destination);
     notFound();
   }
-  const [projects, services, localFaqs] = await Promise.all([
+  const [projects, services] = await Promise.all([
     getPublicProjects(),
     getPublicServices(),
-    getPublicFaqs(4),
   ]);
+  const localFaqs = buildAreaFaqs(area.name);
   const contactHref = `/contacto?origen=${encodeURIComponent(`/zonas/${area.slug}`)}`;
-  const areaProjects = projects.filter((project) => {
-    const location = project.location.toLocaleLowerCase("es-AR");
-    const areaName = area.name.toLocaleLowerCase("es-AR");
-    return location.includes(areaName) || areaName.includes(location);
-  });
+  const areaProjects = projects.filter((project) =>
+    locationMatchesArea(project.location, area.name),
+  );
 
   return (
     <>
@@ -172,4 +170,28 @@ export default async function AreaPage({ params }: PageProps) {
       </section>
     </>
   );
+}
+
+function buildAreaFaqs(areaName: string) {
+  return [
+    {
+      question: `¿Arqvia evalúa proyectos en ${areaName}?`,
+      answer: `Sí. Primero revisamos ubicación, tipo de proyecto, superficie, etapa actual y alcance para confirmar disponibilidad de trabajo en ${areaName}.`,
+    },
+    {
+      question: `¿Cómo empieza una consulta para una obra en ${areaName}?`,
+      answer:
+        "Podés enviar ubicación, fotos, planos disponibles, superficie aproximada y objetivo. Con esos datos definimos si conviene una consulta inicial o una visita técnica.",
+    },
+    {
+      question: "¿La visita técnica se coordina antes del presupuesto?",
+      answer:
+        "Depende del alcance. En remodelaciones y obras existentes suele ser necesaria para confirmar medidas, estado e instalaciones antes de cerrar una propuesta.",
+    },
+    {
+      question: "¿Trabajan con presupuesto y ejecución por etapas?",
+      answer:
+        "Sí, cuando el proyecto lo permite. Se define alcance, documentación, rubros y prioridades para ordenar decisiones y compras antes de ejecutar.",
+    },
+  ];
 }

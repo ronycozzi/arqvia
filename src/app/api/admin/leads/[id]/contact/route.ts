@@ -3,6 +3,10 @@ import { NextResponse } from "next/server";
 import { readBoundedJson } from "@/lib/bounded-request";
 import { commercialManagerRoles, getVerifiedAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
+import {
+  LeadPrivacyLockedError,
+  updateLeadUnlessPrivacyLocked,
+} from "@/lib/lead-activity";
 import { logServerError } from "@/lib/logger";
 import { revalidateLeadSurfaces } from "@/lib/revalidation";
 import { isJsonRequest, isSameOriginRequest } from "@/lib/request-security";
@@ -58,10 +62,8 @@ export async function POST(
         if (!lead) throw new ContactLeadNotFoundError();
 
         const contactedAt = new Date();
-        await tx.lead.update({
-          where: { id: lead.id },
-          data: { lastActivityAt: contactedAt },
-          select: { id: true },
+        await updateLeadUnlessPrivacyLocked(tx, lead.id, {
+          lastActivityAt: contactedAt,
         });
         await tx.leadActivity.create({
           data: {
@@ -89,6 +91,12 @@ export async function POST(
       return NextResponse.json(
         { message: "Consulta no encontrada" },
         { status: 404 },
+      );
+    }
+    if (error instanceof LeadPrivacyLockedError) {
+      return NextResponse.json(
+        { message: "La consulta está bloqueada por una eliminación de privacidad." },
+        { status: 409 },
       );
     }
     logServerError("admin.lead_contact_record_failed", error, {

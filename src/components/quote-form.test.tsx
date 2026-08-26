@@ -23,6 +23,15 @@ describe("QuoteForm", () => {
       expect(field).toBeRequired();
       expect(field).toHaveAttribute("aria-required", "true");
     }
+
+    expect(screen.getByRole("textbox", { name: "WhatsApp" })).toHaveAttribute(
+      "type",
+      "tel",
+    );
+    expect(screen.getByRole("link", { name: /política de privacidad/i })).toHaveAttribute(
+      "href",
+      "/privacidad",
+    );
   });
 
   it("links validation errors to the corresponding controls", async () => {

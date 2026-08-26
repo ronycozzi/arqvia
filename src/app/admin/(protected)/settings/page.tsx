@@ -9,6 +9,7 @@ import { getAdminMediaOptions } from "@/lib/admin-media-options";
 import { CLIENT_CONFIG_ID, getClientConfig } from "@/lib/client-config";
 import { prisma } from "@/lib/db";
 import { getInfrastructureReadiness } from "@/lib/infrastructure-readiness";
+import { hasApprovedLegalReview } from "@/lib/legal-approval";
 import { buildLaunchReadiness } from "@/lib/launch-readiness";
 import { siteConfig } from "@/lib/site-config";
 import { buildWhatsAppUrl } from "@/lib/utils";
@@ -26,7 +27,7 @@ export default async function SettingsPage() {
     config,
     mediaAssets,
     configVersion,
-    legalPageCount,
+    legalPages,
     homeContentCount,
     institutionalPageCount,
   ] = await Promise.all([
@@ -36,7 +37,10 @@ export default async function SettingsPage() {
       where: { id: CLIENT_CONFIG_ID },
       select: { updatedAt: true },
     }),
-    prisma.legalPage.count({ where: { status: "PUBLISHED" } }),
+    prisma.legalPage.findMany({
+      where: { status: "PUBLISHED" },
+      select: { reviewedAt: true, reviewedBy: true, status: true },
+    }),
     prisma.homeContent.count(),
     prisma.institutionalPage.count(),
   ]);
@@ -47,7 +51,7 @@ export default async function SettingsPage() {
     ...infrastructure,
     homeContentReady: homeContentCount === 1,
     institutionalPagesReady: institutionalPageCount === 2,
-    legalPagesReady: legalPageCount === 4,
+    legalPagesReady: legalPages.filter(hasApprovedLegalReview).length === 4,
     siteUrl: siteConfig.url,
     strictPublicUrlEnabled: process.env.ARQVIA_STRICT_PUBLIC_URL === "true",
   });

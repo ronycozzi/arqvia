@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => {
   const transactionClient = {
     auditLog: { create: vi.fn() },
     user: {
+      count: vi.fn(),
       create: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
@@ -15,6 +16,8 @@ const mocks = vi.hoisted(() => {
   };
 
   return {
+    getSession: vi.fn(),
+    redirect: vi.fn(),
     revalidatePath: vi.fn(),
     safeParse: vi.fn(),
     transaction: vi.fn(),
@@ -24,15 +27,13 @@ const mocks = vi.hoisted(() => {
 
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
 vi.mock("next/navigation", () => ({
-  redirect: vi.fn(),
+  redirect: mocks.redirect,
   RedirectType: { replace: "replace" },
 }));
 vi.mock("bcryptjs", () => ({ hash: vi.fn().mockResolvedValue("hash") }));
 vi.mock("@/lib/admin-auth", () => ({
   adminOnlyRoles: ["ADMIN"],
-  getVerifiedAdminSession: vi.fn().mockResolvedValue({
-    user: { id: "admin-1" },
-  }),
+  getVerifiedAdminSession: mocks.getSession,
 }));
 vi.mock("@/lib/db", () => ({
   prisma: { $transaction: mocks.transaction },
@@ -59,6 +60,7 @@ const baseUser = {
 describe("admin user actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.getSession.mockResolvedValue({ user: { id: "admin-1" } });
     mocks.transaction.mockImplementation(
       (callback: (tx: typeof mocks.transactionClient) => Promise<unknown>) =>
         callback(mocks.transactionClient),
@@ -86,6 +88,26 @@ describe("admin user actions", () => {
       ok: true,
       resource: { email: "editor@arqvia.com" },
     });
+    expect(mocks.transaction).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({ isolationLevel: "Serializable" }),
+    );
+  });
+
+  it("preserves Admin-only RBAC before validating or mutating", async () => {
+    mocks.getSession.mockResolvedValue(null);
+
+    const result = await saveAdminUser(
+      { ok: false, message: "" },
+      new FormData(),
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      message: "Solo un Admin puede gestionar usuarios.",
+    });
+    expect(mocks.safeParse).not.toHaveBeenCalled();
+    expect(mocks.transaction).not.toHaveBeenCalled();
   });
 
   it("canonicalizes email before updating a user", async () => {
@@ -148,10 +170,102 @@ describe("admin user actions", () => {
     expect(mocks.transactionClient.auditLog.create).not.toHaveBeenCalled();
   });
 
+  it.each([
+    { active: false, role: "ADMIN" as const },
+    { active: true, role: "EDITOR" as const },
+  ])("protects the last active Admin from update: %o", async (change) => {
+    mocks.safeParse.mockReturnValue({
+      success: true,
+      data: {
+        ...baseUser,
+        ...change,
+        id: "admin-2",
+        updatedAt: "2026-07-16T12:00:00.000Z",
+      },
+    });
+    mocks.transactionClient.user.findUnique.mockResolvedValue({
+      active: true,
+      role: "ADMIN",
+    });
+    mocks.transactionClient.user.count.mockResolvedValue(1);
+
+    const result = await saveAdminUser(
+      { ok: false, message: "" },
+      new FormData(),
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      message: "Debe quedar al menos un Admin activo.",
+    });
+    expect(mocks.transactionClient.user.updateMany).not.toHaveBeenCalled();
+    expect(mocks.transactionClient.auditLog.create).not.toHaveBeenCalled();
+  });
+
+  it("allows demotion when another active Admin remains", async () => {
+    mocks.safeParse.mockReturnValue({
+      success: true,
+      data: {
+        ...baseUser,
+        active: true,
+        id: "admin-2",
+        role: "EDITOR",
+        updatedAt: "2026-07-16T12:00:00.000Z",
+      },
+    });
+    mocks.transactionClient.user.findUnique
+      .mockResolvedValueOnce({ active: true, role: "ADMIN" })
+      .mockResolvedValueOnce({
+        active: true,
+        email: "admin2@arqvia.com",
+        id: "admin-2",
+        name: "Admin dos",
+        role: "EDITOR",
+        updatedAt: new Date("2026-07-16T12:01:00.000Z"),
+      });
+    mocks.transactionClient.user.count.mockResolvedValue(2);
+    mocks.transactionClient.user.updateMany.mockResolvedValue({ count: 1 });
+
+    const result = await saveAdminUser(
+      { ok: false, message: "" },
+      new FormData(),
+    );
+
+    expect(result.ok).toBe(true);
+    expect(mocks.transactionClient.user.updateMany).toHaveBeenCalledOnce();
+    expect(mocks.transactionClient.auditLog.create).toHaveBeenCalledOnce();
+  });
+
+  it("rejects self-disable before opening a transaction", async () => {
+    mocks.safeParse.mockReturnValue({
+      success: true,
+      data: {
+        ...baseUser,
+        active: false,
+        id: "admin-1",
+        role: "ADMIN",
+        updatedAt: "2026-07-16T12:00:00.000Z",
+      },
+    });
+
+    const result = await saveAdminUser(
+      { ok: false, message: "" },
+      new FormData(),
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      message: "No podés quitarte el acceso Admin desde tu propia sesión.",
+    });
+    expect(mocks.transaction).not.toHaveBeenCalled();
+  });
+
   it("revokes access and sessions without deleting the user", async () => {
     mocks.transactionClient.user.findUnique.mockResolvedValue({
+      active: true,
       email: "editor@arqvia.com",
       id: "user-1",
+      role: "EDITOR",
     });
     mocks.transactionClient.user.update.mockResolvedValue({
       active: false,
@@ -181,10 +295,47 @@ describe("admin user actions", () => {
     });
   });
 
+  it("protects the last active Admin from access revocation", async () => {
+    mocks.transactionClient.user.findUnique.mockResolvedValue({
+      active: true,
+      email: "admin2@arqvia.com",
+      id: "admin-2",
+      role: "ADMIN",
+    });
+    mocks.transactionClient.user.count.mockResolvedValue(1);
+    const formData = new FormData();
+    formData.set("id", "admin-2");
+
+    await revokeAdminUserAccess(formData);
+
+    expect(mocks.redirect).toHaveBeenCalledWith(
+      "/admin/users?error=last-admin",
+      "replace",
+    );
+    expect(mocks.transactionClient.user.update).not.toHaveBeenCalled();
+    expect(mocks.transactionClient.session.deleteMany).not.toHaveBeenCalled();
+    expect(mocks.transactionClient.auditLog.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects self-revocation before opening a transaction", async () => {
+    const formData = new FormData();
+    formData.set("id", "admin-1");
+
+    await revokeAdminUserAccess(formData);
+
+    expect(mocks.redirect).toHaveBeenCalledWith(
+      "/admin/users?error=self-delete",
+      "replace",
+    );
+    expect(mocks.transaction).not.toHaveBeenCalled();
+  });
+
   it("closes active sessions without disabling the account", async () => {
     mocks.transactionClient.user.findUnique.mockResolvedValue({
+      active: true,
       email: "editor@arqvia.com",
       id: "user-1",
+      role: "EDITOR",
     });
     mocks.transactionClient.user.update.mockResolvedValue({
       active: true,

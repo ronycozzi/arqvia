@@ -3,6 +3,10 @@
 import { Prisma } from "@prisma/client";
 import { commercialManagerRoles, getVerifiedAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
+import {
+  LeadPrivacyLockedError,
+  updateLeadUnlessPrivacyLocked,
+} from "@/lib/lead-activity";
 import { revalidateLeadSurfaces } from "@/lib/revalidation";
 import {
   parseCordobaDateTime,
@@ -142,9 +146,9 @@ export async function saveTechnicalVisit(
         },
       });
 
-      await tx.lead.update({
-        where: { id: lead.id },
-        data: { lastActivityAt: new Date(), needsVisit: true },
+      await updateLeadUnlessPrivacyLocked(tx, lead.id, {
+        lastActivityAt: new Date(),
+        needsVisit: true,
       });
 
       await tx.auditLog.create({
@@ -161,6 +165,12 @@ export async function saveTechnicalVisit(
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
 
   } catch (error) {
+    if (error instanceof LeadPrivacyLockedError) {
+      return {
+        ok: false,
+        message: "La consulta está bloqueada por una eliminación de privacidad.",
+      };
+    }
     if (error instanceof VisitScheduleConflictError) {
       return {
         ok: false,

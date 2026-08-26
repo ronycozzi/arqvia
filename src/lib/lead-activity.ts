@@ -1,5 +1,12 @@
 import type { Prisma } from "@prisma/client";
 
+export class LeadPrivacyLockedError extends Error {
+  constructor() {
+    super("Lead is locked for privacy erasure.");
+    this.name = "LeadPrivacyLockedError";
+  }
+}
+
 export function getLatestLeadActivityAt(
   dates: Array<Date | null | undefined>,
 ) {
@@ -25,9 +32,18 @@ export async function touchLeadActivity(
   leadId: string,
   lastActivityAt: Date,
 ) {
-  return tx.lead.update({
-    where: { id: leadId },
-    data: { lastActivityAt },
-    select: { id: true },
+  return updateLeadUnlessPrivacyLocked(tx, leadId, { lastActivityAt });
+}
+
+export async function updateLeadUnlessPrivacyLocked(
+  tx: Pick<Prisma.TransactionClient, "lead">,
+  leadId: string,
+  data: Prisma.LeadUpdateManyMutationInput,
+) {
+  const updated = await tx.lead.updateMany({
+    where: { id: leadId, privacyErasureRequestedAt: null },
+    data,
   });
+  if (updated.count !== 1) throw new LeadPrivacyLockedError();
+  return { id: leadId };
 }

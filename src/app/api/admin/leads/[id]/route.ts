@@ -4,6 +4,10 @@ import { readBoundedJson } from "@/lib/bounded-request";
 import { commercialManagerRoles, getVerifiedAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { leadStatusLabels } from "@/lib/lead-utils";
+import {
+  LeadPrivacyLockedError,
+  updateLeadUnlessPrivacyLocked,
+} from "@/lib/lead-activity";
 import { logServerError } from "@/lib/logger";
 import { revalidateLeadSurfaces } from "@/lib/revalidation";
 import { isJsonRequest, isSameOriginRequest } from "@/lib/request-security";
@@ -48,11 +52,11 @@ export async function PATCH(
   }
 
   const { id } = await params;
-  let updated = false;
+  let changed: boolean | null = null;
 
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     try {
-      await prisma.$transaction(
+      changed = await prisma.$transaction(
         async (tx) => {
           const currentLead = await tx.lead.findUnique({
             where: { id },
@@ -66,6 +70,7 @@ export async function PATCH(
             },
           });
           if (!currentLead) throw new LeadNotFoundError();
+          if (currentLead.status === parsed.data.status) return false;
 
           if (parsed.data.status === "QUOTED" && !currentLead.quotedAmountUsd) {
             throw new LeadTransitionRequirementError(
@@ -83,9 +88,7 @@ export async function PATCH(
             );
           }
 
-          await tx.lead.update({
-            where: { id },
-            data: {
+          await updateLeadUnlessPrivacyLocked(tx, id, {
               lastActivityAt: new Date(),
               status: parsed.data.status,
               ...(parsed.data.status === "WON" || parsed.data.status === "LOST"
@@ -93,23 +96,19 @@ export async function PATCH(
                 : {}),
               ...(parsed.data.status !== "WON" ? { wonAmountUsd: null } : {}),
               ...(parsed.data.status !== "LOST" ? { lostReason: null } : {}),
-            },
-            select: { id: true },
           });
-          if (currentLead.status !== parsed.data.status) {
-            await tx.leadActivity.create({
-              data: {
-                leadId: id,
-                type: "STATUS_CHANGED",
-                summary: `Cambió el estado de ${leadStatusLabels[currentLead.status]} a ${leadStatusLabels[parsed.data.status]}.`,
-                metadataJson: JSON.stringify({
-                  from: currentLead.status,
-                  to: parsed.data.status,
-                }),
-                userId: session.user.id,
-              },
-            });
-          }
+          await tx.leadActivity.create({
+            data: {
+              leadId: id,
+              type: "STATUS_CHANGED",
+              summary: `Cambió el estado de ${leadStatusLabels[currentLead.status]} a ${leadStatusLabels[parsed.data.status]}.`,
+              metadataJson: JSON.stringify({
+                from: currentLead.status,
+                to: parsed.data.status,
+              }),
+              userId: session.user.id,
+            },
+          });
           await tx.auditLog.create({
             data: {
               action: "UPDATE",
@@ -119,10 +118,10 @@ export async function PATCH(
               userId: session.user.id,
             },
           });
+          return true;
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
       );
-      updated = true;
       break;
     } catch (error) {
       if (error instanceof LeadNotFoundError) {
@@ -133,6 +132,12 @@ export async function PATCH(
       }
       if (error instanceof LeadTransitionRequirementError) {
         return NextResponse.json({ message: error.message }, { status: 409 });
+      }
+      if (error instanceof LeadPrivacyLockedError) {
+        return NextResponse.json(
+          { message: "La consulta está bloqueada por una eliminación de privacidad." },
+          { status: 409 },
+        );
       }
 
       const canRetry =
@@ -152,14 +157,14 @@ export async function PATCH(
     }
   }
 
-  if (!updated) {
+  if (changed === null) {
     return NextResponse.json(
       { message: "No se pudo actualizar el estado. Reintentá." },
       { status: 503 },
     );
   }
 
-  revalidateLeadSurfaces(id);
+  if (changed) revalidateLeadSurfaces(id);
 
   return NextResponse.json({ ok: true, id, status: parsed.data.status });
 }

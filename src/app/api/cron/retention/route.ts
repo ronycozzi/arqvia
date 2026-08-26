@@ -18,7 +18,10 @@ async function run(request: Request) {
   }
 
   const result = await processLeadRetentionBatch();
-  return NextResponse.json(result);
+  return NextResponse.json(result, {
+    headers: { "Cache-Control": "no-store" },
+    status: result.failed > 0 ? 503 : 200,
+  });
 }
 
 export const GET = run;

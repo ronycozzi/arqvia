@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { readBoundedJson } from "@/lib/bounded-request";
 import { commercialManagerRoles, getVerifiedAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
-import { touchLeadActivity } from "@/lib/lead-activity";
+import { LeadPrivacyLockedError, touchLeadActivity } from "@/lib/lead-activity";
 import { logServerError } from "@/lib/logger";
 import { revalidateLeadSurfaces } from "@/lib/revalidation";
 import { isJsonRequest, isSameOriginRequest } from "@/lib/request-security";
@@ -95,6 +95,12 @@ export async function POST(
       return NextResponse.json(
         { message: "Consulta no encontrada" },
         { status: 404 },
+      );
+    }
+    if (error instanceof LeadPrivacyLockedError) {
+      return NextResponse.json(
+        { message: "La consulta está bloqueada por una eliminación de privacidad." },
+        { status: 409 },
       );
     }
 

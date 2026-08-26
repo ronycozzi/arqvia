@@ -16,7 +16,11 @@ Este procedimiento se usa únicamente ante un pedido de eliminación del titular
 3. Confirmar que se verificó el pedido, escribir `ELIMINAR` y ejecutar la acción.
 4. Esperar la redirección a la lista de consultas. No cerrar la pestaña mientras se muestra `Eliminando datos...`.
 
-El servidor borra primero cada objeto privado de adjuntos. Sólo después elimina el `Lead` dentro de una transacción serializable; las relaciones existentes se eliminan por cascada, se purgan los `AuditLog` vinculados y se crea esta constancia mínima:
+El servidor marca primero el lead para impedir nuevos despachos externos. Si ya
+existe un envío en curso, conserva el bloqueo y pide reintentar cuando termine.
+Después crea trabajos durables para cada adjunto y elimina el `Lead` dentro de
+una transacción serializable; las relaciones se eliminan por cascada, se purgan
+los `AuditLog` vinculados y se crea esta constancia mínima:
 
 - `action`: `PRIVACY_ERASURE`
 - `entity`: `PrivacyRequest`
@@ -27,17 +31,17 @@ La constancia conserva el usuario Admin que ejecutó la operación, pero no iden
 
 ## Errores y reintentos
 
-- Si falla un objeto privado, la base no se modifica. Corregir la disponibilidad o credenciales del storage y reintentar desde el mismo detalle.
-- Si falla la transacción después de borrar archivos, la metadata puede seguir visible. Reintentar es seguro: la eliminación local tolera `ENOENT` y `DeleteObject` de S3 es idempotente.
-- Si aparece un adjunto nuevo durante la operación, el servicio invalida el snapshot y repite el borrado antes de tocar la base.
-- No borrar manualmente el `Lead` ni sus adjuntos en la base. Hacerlo primero puede dejar objetos privados huérfanos.
+- Si hay una automatización `PROCESSING`, la API responde `409`; no admite nuevos envíos y el Admin puede reintentar cuando venza o termine la entrega.
+- Si falla el storage después del borrado transaccional, la API responde `202` y el objeto permanece en `PrivateObjectDeletion` con una clave opaca y reintentos acotados.
+- El scheduler llama `GET` o `POST /api/cron/private-object-deletions` con `Authorization: Bearer <PRIVATE_OBJECT_DELETION_CRON_SECRET>`.
+- No borrar manualmente jobs ni objetos: la eliminación es idempotente y el outbox es la evidencia operativa hasta llegar a `DELETED`.
 
 Tras tres conflictos consecutivos, revisar actividad concurrente sobre la consulta y volver a ejecutar cuando haya cesado. Escalar errores persistentes con el evento `admin.lead_privacy_erasure_failed`; ese log técnico no incluye el ID ni PII del titular.
 
 ## Verificación y cierre
 
 1. Confirmar que la consulta ya no aparece en Admin y que su URL devuelve no encontrado.
-2. Verificar en storage que no queden las claves privadas incluidas en el caso operativo.
+2. Verificar en storage que no queden las claves privadas y que el panel de sistema muestre cero borrados privados pendientes.
 3. Verificar que no existan registros hijos ni auditorías antiguas vinculadas y que haya una única constancia mínima `PRIVACY_ERASURE` para la ejecución.
 4. Solicitar y documentar la eliminación en cada sistema externo que haya recibido el payload.
 5. Cerrar el caso sólo cuando terminen las acciones sobre sistemas externos y quede registrada la fecha de expiración de backups aplicable.
@@ -47,6 +51,6 @@ Si se restaura un backup anterior, el pedido debe reaplicarse antes de habilitar
 ## Prueba focalizada
 
 ```bash
-npx vitest run src/lib/lead-privacy.test.ts tests/admin-lead-privacy-route.test.ts
+npx vitest run src/lib/lead-privacy.test.ts src/lib/private-object-deletion.test.ts tests/admin-lead-privacy-route.test.ts tests/private-object-deletion-route.test.ts
 npx playwright test tests/e2e/admin-lead-privacy.spec.ts --project=chromium
 ```

@@ -45,6 +45,10 @@ export async function processLeadRetentionBatch(now = new Date()) {
       await eraseLeadData({
         actorUserId: null,
         audit: leadRetentionAudit,
+        eligibility: {
+          lastActivityBefore: cutoff,
+          status: "LOST",
+        },
         leadId: candidate.id,
       });
       deleted += 1;

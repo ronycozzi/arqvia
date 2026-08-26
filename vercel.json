@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build:postgres",
+  "buildCommand": "npm run build:release",
   "git": {
     "deploymentEnabled": {
       "main": false

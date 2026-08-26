@@ -23,9 +23,12 @@ const placeholderSecrets = new Set([
   "secret",
 ]);
 
+const knownDefaultAdminEmails = new Set(["admin@arqvia.local"]);
+const knownDefaultAdminPasswords = new Set(["changeme123!"]);
+
 function isStrictServerEnvContext(env: ServerEnvRaw) {
   return (
-    env.NODE_ENV === "production" ||
+    env.ARQVIA_PRODUCTION_RELEASE === "true" ||
     env.ARQVIA_STRICT_PUBLIC_URL === "true" ||
     env.VERCEL_ENV === "production" ||
     env.RENDER === "true" ||
@@ -61,6 +64,23 @@ export function validateServerEnv(env: ServerEnvRaw = process.env) {
     ) {
       throw new Error(
         "AUTH_SECRET must be a unique production secret with at least 32 characters before deployment.",
+      );
+    }
+
+    if (parsed.data.RATE_LIMIT_STORE !== "database") {
+      throw new Error(
+        "RATE_LIMIT_STORE must be database in production; memory-only rate limiting is not deployment-safe.",
+      );
+    }
+
+    if (
+      knownDefaultAdminEmails.has(env.ADMIN_EMAIL?.trim().toLowerCase() || "") ||
+      knownDefaultAdminPasswords.has(
+        env.ADMIN_PASSWORD?.trim().toLowerCase() || "",
+      )
+    ) {
+      throw new Error(
+        "Known default admin credentials are forbidden in production.",
       );
     }
   }

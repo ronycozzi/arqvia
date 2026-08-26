@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect, RedirectType } from "next/navigation";
-import { UserRole } from "@prisma/client";
+import { Prisma, UserRole } from "@prisma/client";
 import { hash } from "bcryptjs";
 import { adminOnlyRoles, getVerifiedAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
@@ -22,6 +22,7 @@ export type AdminUserActionState = {
 };
 
 class UserVersionConflictError extends Error {}
+class LastActiveAdminError extends Error {}
 
 const initialUserState: AdminUserActionState = {
   ok: false,
@@ -30,6 +31,44 @@ const initialUserState: AdminUserActionState = {
 
 async function assertCanManageUsers() {
   return getVerifiedAdminSession(adminOnlyRoles);
+}
+
+async function runSerializableUserTransaction<T>(
+  mutation: (tx: Prisma.TransactionClient) => Promise<T>,
+) {
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      return await prisma.$transaction(mutation, {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      });
+    } catch (error) {
+      const canRetry =
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2034" &&
+        attempt < 3;
+      if (!canRetry) throw error;
+    }
+  }
+
+  throw new Error("User transaction retry limit reached");
+}
+
+async function assertActiveAdminWillRemain(
+  tx: Prisma.TransactionClient,
+  currentUser: { active: boolean; role: UserRole },
+  nextUser: { active: boolean; role: UserRole },
+) {
+  const removesActiveAdmin =
+    currentUser.active &&
+    currentUser.role === UserRole.ADMIN &&
+    (!nextUser.active || nextUser.role !== UserRole.ADMIN);
+
+  if (!removesActiveAdmin) return;
+
+  const activeAdminCount = await tx.user.count({
+    where: { active: true, role: UserRole.ADMIN },
+  });
+  if (activeAdminCount <= 1) throw new LastActiveAdminError();
 }
 
 function revalidateUserSurfaces() {
@@ -79,9 +118,20 @@ export async function saveAdminUser(
 
   let user;
   try {
-    user = await prisma.$transaction(async (tx) => {
+    user = await runSerializableUserTransaction(async (tx) => {
       let savedUser;
       if (isUpdate) {
+        const currentUser = await tx.user.findUnique({
+          where: { id: input.id },
+          select: { active: true, role: true },
+        });
+        if (!currentUser) throw new UserVersionConflictError();
+
+        await assertActiveAdminWillRemain(tx, currentUser, {
+          active: input.active,
+          role: input.role as UserRole,
+        });
+
         const updated = await tx.user.updateMany({
           where: {
             id: input.id,
@@ -130,6 +180,12 @@ export async function saveAdminUser(
     });
 
   } catch (error) {
+    if (error instanceof LastActiveAdminError) {
+      return {
+        ok: false,
+        message: "Debe quedar al menos un Admin activo.",
+      };
+    }
     if (error instanceof UserVersionConflictError) {
       return {
         ok: false,
@@ -166,20 +222,27 @@ export async function revokeAdminUserAccess(formData: FormData) {
   const session = await assertCanManageUsers();
   const id = String(formData.get("id") || "");
 
-  if (!session || !id) redirect("/admin/users", RedirectType.replace);
+  if (!session || !id) {
+    return redirect("/admin/users", RedirectType.replace);
+  }
 
   if (id === session.user.id) {
-    redirect("/admin/users?error=self-delete", RedirectType.replace);
+    return redirect("/admin/users?error=self-delete", RedirectType.replace);
   }
 
   let user;
   try {
-    user = await prisma.$transaction(async (tx) => {
+    user = await runSerializableUserTransaction(async (tx) => {
       const existingUser = await tx.user.findUnique({
         where: { id },
-        select: { email: true, id: true },
+        select: { active: true, email: true, id: true, role: true },
       });
       if (!existingUser) throw new Error("User not found");
+
+      await assertActiveAdminWillRemain(tx, existingUser, {
+        active: false,
+        role: existingUser.role,
+      });
 
       const revokedUser = await tx.user.update({
         where: { id },
@@ -203,6 +266,9 @@ export async function revokeAdminUserAccess(formData: FormData) {
       return revokedUser;
     });
   } catch (error) {
+    if (error instanceof LastActiveAdminError) {
+      return redirect("/admin/users?error=last-admin", RedirectType.replace);
+    }
     logServerError("admin.user.revoke_failed", error, {
       revokedUserId: id,
       userId: session.user.id,
@@ -210,7 +276,7 @@ export async function revokeAdminUserAccess(formData: FormData) {
   }
 
   if (!user) {
-    redirect("/admin/users?error=delete-failed", RedirectType.replace);
+    return redirect("/admin/users?error=delete-failed", RedirectType.replace);
   }
 
   revalidateUserSurfaces();

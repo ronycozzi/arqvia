@@ -30,6 +30,9 @@ describe("private local media deletion", () => {
       filename: "delete-retry-test.txt",
     });
 
+    expect(stored.storageKey).not.toContain("delete-retry-test");
+    expect(stored.storageKey).toMatch(/^local:[a-f0-9-]+\.bin$/i);
+
     await expect(readPrivateMediaObject(stored.storageKey)).resolves.toEqual(
       Buffer.from("private-plan-reference"),
     );
@@ -55,5 +58,16 @@ describe("private local media deletion", () => {
     await expect(deleteStoredMediaObject(stored.url)).resolves.toBeUndefined();
     await expect(readFile(diskPath)).rejects.toMatchObject({ code: "ENOENT" });
     await expect(deleteStoredMediaObject(stored.url)).resolves.toBeUndefined();
+  });
+
+  it("fails closed for unsupported or provider-mismatched private keys", async () => {
+    process.env.MEDIA_STORAGE_PROVIDER = "local";
+
+    await expect(
+      deletePrivateMediaObject("invalid:lead-attachments/plan.pdf"),
+    ).rejects.toThrow(/unsupported format/i);
+    await expect(
+      deletePrivateMediaObject("s3:lead-attachments/plan.pdf"),
+    ).rejects.toThrow(/active provider/i);
   });
 });

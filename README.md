@@ -104,7 +104,7 @@ Credenciales iniciales configurables por entorno:
 - `ADMIN_PASSWORD`
 - `AUTH_SECRET`
 
-Para desarrollo local, `.env.example` incluye credenciales de arranque. En producción, `prisma/seed.ts` se bloquea por completo salvo que una carga inicial controlada habilite explícitamente `ARQVIA_ALLOW_PRODUCTION_SEED=true`. El seed no reemplaza la contraseña de un administrador existente.
+Para desarrollo local, `.env.example` incluye credenciales de arranque. En producción, `prisma/seed.ts` se bloquea por completo salvo que una carga inicial controlada habilite explícitamente `ARQVIA_ALLOW_PRODUCTION_SEED=true`. PostgreSQL exige credenciales explícitas fuertes, rechaza los valores bootstrap conocidos y no continúa si la cuenta local predeterminada está activa. Una carga productiva autorizada reemplaza el hash del administrador indicado por la contraseña explícita.
 
 Rutas:
 
@@ -344,9 +344,10 @@ los PDF se validan por firma. En local se guardan fuera de `public`, dentro de
 `storage/lead-attachments`. En S3/R2 se crean como objetos privados y solo se
 pueden descargar desde la ruta autenticada del lead. Solo Admin puede ver,
 descargar y borrar adjuntos; Editor y Viewer no acceden a su contenido ni metadatos.
-El borrado elimina primero el objeto privado y luego confirma, en una transacción,
-sus metadatos y auditoría. Si el proveedor de almacenamiento falla, la API devuelve
-un error reintentable y conserva el registro para evitar archivos sensibles huérfanos.
+El borrado retira los metadatos en una transacción y crea, en la misma operación,
+un trabajo durable para eliminar el objeto privado. El worker reintenta fallos del
+proveedor sin dejar archivos sensibles fuera de seguimiento ni referencias rotas
+en el lead.
 
 ## Environment Variables
 
@@ -383,6 +384,7 @@ Requeridas:
 - `LEAD_RETENTION_DAYS`: antigüedad mínima de la última actividad de una consulta `LOST`, entre 90 y 3.650 días; default `730`.
 - `LEAD_RETENTION_BATCH_SIZE`: máximo de consultas por ejecución, entre 1 y 100; default `25`.
 - `DATA_RETENTION_CRON_SECRET`: secreto privado de al menos 32 caracteres para `GET` o `POST /api/cron/retention`.
+- `PRIVATE_OBJECT_DELETION_CRON_SECRET`: secreto privado de al menos 32 caracteres para `GET` o `POST /api/cron/private-object-deletions`.
 
 `NEXT_PUBLIC_SITE_URL` alimenta canonical URLs, Open Graph, JSON-LD y sitemap. En local puede usar `http://localhost:3000`; antes de publicar debe usar el dominio final del cliente, por ejemplo `https://arqvia.com.ar`.
 
@@ -410,6 +412,7 @@ npm run test:e2e-residue
 npm run content:check
 npm run verify
 npm run release:check
+npm run build:release
 npm run audit:critical
 npm run audit:production
 npm run audit:public -- --url http://localhost:3110
@@ -434,6 +437,7 @@ npm run db:backup:sqlite
 npm run db:verify-restore:sqlite
 npm run db:cleanup:rate-limits
 npm run build:postgres
+npm run build:release
 npm run db:push
 npm run db:init
 npm run db:seed
@@ -658,12 +662,12 @@ Pasos:
 7. Mantener `LEAD_AUTOMATION_ENABLED=false` hasta configurar y validar los dos secretos, la URL HTTPS y el cron protegido; después de verificar el outbox, `LEAD_AUTOMATION_CAPTURE_ENABLED=true` permite conservar eventos durante esa pausa.
 8. Ejecutar `npm run db:postgres:deploy`.
 9. Cargar contenido.
-10. Completar las aprobaciones de `.env.example` y ejecutar `npm run release:check`. El procedimiento y cada bloqueo están en `docs/RELEASE_GATE.md`.
+10. Completar las aprobaciones de `.env.example`; declarar explícitamente las cuatro variables `LEAD_RETENTION_*`/`DATA_RETENTION_CRON_SECRET`; y ejecutar `npm run release:check`. El procedimiento y cada bloqueo están en `docs/RELEASE_GATE.md`.
 11. Probar manifest, instalación y fallback offline sobre HTTPS según `docs/PWA.md`.
-12. Build con cliente PostgreSQL:
+12. Build productivo obligatorio, ligado al SHA y al estado aprobado de PostgreSQL:
 
 ```bash
-npm run build:postgres
+npm run build:release
 ```
 
 13. Start:

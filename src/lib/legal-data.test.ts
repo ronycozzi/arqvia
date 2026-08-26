@@ -28,8 +28,11 @@ describe("legal data", () => {
 
   it("serves only a published CMS document", async () => {
     const updatedAt = new Date("2026-07-20T12:00:00.000Z");
+    const reviewedAt = new Date("2026-07-21T12:00:00.000Z");
     mocks.findUnique.mockResolvedValue({
       content: "Contenido aprobado y publicado desde el panel.",
+      reviewedAt,
+      reviewedBy: "Estudio legal externo",
       seoDescription: "Descripción publicada para buscadores.",
       seoTitle: "Privacidad publicada | Arqvia",
       slug: "privacidad",
@@ -41,6 +44,8 @@ describe("legal data", () => {
 
     await expect(getPublicLegalPage("privacidad")).resolves.toEqual({
       content: "Contenido aprobado y publicado desde el panel.",
+      contentSource: "approved",
+      isApproved: true,
       seoDescription: "Descripción publicada para buscadores.",
       seoTitle: "Privacidad publicada | Arqvia",
       slug: "privacidad",
@@ -48,6 +53,21 @@ describe("legal data", () => {
       title: "Privacidad publicada",
       updatedAt,
     });
+  });
+
+  it("keeps an unreviewed published document out of the public surface", async () => {
+    mocks.findUnique.mockResolvedValue({
+      content: "Contenido marcado como publicado pero sin revisión legal.",
+      reviewedAt: null,
+      reviewedBy: null,
+      slug: "privacidad",
+      status: "PUBLISHED",
+    });
+
+    const page = await getPublicLegalPage("privacidad");
+    expect(page.contentSource).toBe("fallback");
+    expect(page.isApproved).toBe(false);
+    expect(page.content).not.toContain("sin revisión legal");
   });
 
   it("keeps the protected baseline when the CMS row is a draft", async () => {

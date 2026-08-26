@@ -60,9 +60,13 @@ export function PublicPageLoading({
 
 export function ListingLoading({
   eyebrow,
+  filterCount = 0,
+  grouped = false,
   title,
 }: {
   eyebrow: string;
+  filterCount?: number;
+  grouped?: boolean;
   title: string;
 }) {
   return (
@@ -78,23 +82,44 @@ export function ListingLoading({
       <p className="mt-4 max-w-4xl font-serif text-5xl leading-tight text-ink md:text-7xl">
         {title}
       </p>
-      <div className="mt-8 flex flex-wrap gap-3">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <SkeletonBlock key={index} className="h-10 w-28" />
-        ))}
-      </div>
-      <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <article key={index} className="premium-panel p-4">
-            <SkeletonBlock className="h-56 w-full" />
-            <SkeletonBlock className="mt-5 h-4 w-24" />
-            <SkeletonBlock className="mt-4 h-8 w-10/12" />
-            <SkeletonBlock className="mt-4 h-4 w-full" />
-            <SkeletonBlock className="mt-3 h-4 w-8/12" />
-          </article>
-        ))}
-      </div>
+      {filterCount > 0 ? (
+        <div className="mt-8 flex flex-wrap gap-3">
+          {Array.from({ length: filterCount }).map((_, index) => (
+            <SkeletonBlock key={index} className="h-10 w-28" />
+          ))}
+        </div>
+      ) : null}
+      {grouped ? (
+        <div className="mt-10 space-y-12">
+          {Array.from({ length: 2 }).map((_, groupIndex) => (
+            <section key={groupIndex}>
+              <SkeletonBlock className="mb-4 h-8 w-64 max-w-full" />
+              <LoadingCardGrid count={3} />
+            </section>
+          ))}
+        </div>
+      ) : (
+        <div className="mt-10">
+          <LoadingCardGrid count={6} />
+        </div>
+      )}
     </section>
+  );
+}
+
+function LoadingCardGrid({ count }: { count: number }) {
+  return (
+    <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: count }).map((_, index) => (
+        <article key={index} className="premium-panel p-4">
+          <SkeletonBlock className="h-56 w-full" />
+          <SkeletonBlock className="mt-5 h-4 w-24" />
+          <SkeletonBlock className="mt-4 h-8 w-10/12" />
+          <SkeletonBlock className="mt-4 h-4 w-full" />
+          <SkeletonBlock className="mt-3 h-4 w-8/12" />
+        </article>
+      ))}
+    </div>
   );
 }
 

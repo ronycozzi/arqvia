@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { readFile, readdir, stat } from "node:fs/promises";
-import { resolve } from "node:path";
-import type { LeadAutomationStatus } from "@prisma/client";
+import type {
+  LeadAutomationStatus,
+  PrivateObjectDeletionStatus,
+} from "@prisma/client";
 import {
   Activity,
   AlertTriangle,
@@ -19,6 +20,7 @@ import {
 import { adminOnlyRoles, getVerifiedAdminSession } from "@/lib/admin-auth";
 import { readLeadAutomationConfig } from "@/lib/lead-automation-config";
 import { readLeadRetentionConfig } from "@/lib/lead-retention-config";
+import { getLatestVerifiedLocalBackup } from "@/lib/local-backup-status";
 import { getMediaStorageStatus } from "@/lib/media-storage";
 import { prisma } from "@/lib/db";
 import {
@@ -95,48 +97,6 @@ const operationalLinks = [
   },
 ];
 
-type LocalBackupSummary = {
-  createdAt: Date;
-  sizeBytes: number;
-};
-
-async function getLatestLocalBackup(): Promise<LocalBackupSummary | null> {
-  const backupDirectory = resolve("backups");
-
-  try {
-    const manifests = (await readdir(backupDirectory, { withFileTypes: true }))
-      .filter((entry) => entry.isFile() && entry.name.endsWith(".db.json"))
-      .map((entry) => resolve(backupDirectory, entry.name));
-    if (!manifests.length) return null;
-
-    const ranked = await Promise.all(
-      manifests.map(async (path) => ({ path, stats: await stat(path) })),
-    );
-    ranked.sort((left, right) => right.stats.mtimeMs - left.stats.mtimeMs);
-    const latest = ranked[0];
-    if (!latest.stats.isFile() || latest.stats.size > 1_000_000) return null;
-
-    const parsed = JSON.parse(await readFile(latest.path, "utf8")) as {
-      createdAt?: unknown;
-      sizeBytes?: unknown;
-      verified?: unknown;
-    };
-    const createdAt = new Date(String(parsed.createdAt || ""));
-    if (
-      parsed.verified !== true ||
-      !Number.isFinite(createdAt.getTime()) ||
-      typeof parsed.sizeBytes !== "number" ||
-      parsed.sizeBytes <= 0
-    ) {
-      return null;
-    }
-
-    return { createdAt, sizeBytes: parsed.sizeBytes };
-  } catch {
-    return null;
-  }
-}
-
 export default async function AdminSystemPage() {
   const session = await getVerifiedAdminSession(adminOnlyRoles);
   if (!session) redirect("/admin");
@@ -149,7 +109,14 @@ export default async function AdminSystemPage() {
     databaseConnected = false;
   }
 
-  const [leadCount, activeUserCount, mediaCount, automationGroups, lastAudit] =
+  const [
+    leadCount,
+    activeUserCount,
+    mediaCount,
+    automationGroups,
+    privateDeletionGroups,
+    lastAudit,
+  ] =
     databaseConnected
       ? await Promise.all([
           prisma.lead.count(),
@@ -159,21 +126,32 @@ export default async function AdminSystemPage() {
             by: ["status"],
             _count: { _all: true },
           }),
+          prisma.privateObjectDeletion.groupBy({
+            by: ["status"],
+            _count: { _all: true },
+          }),
           prisma.auditLog.findFirst({
             orderBy: { createdAt: "desc" },
             select: { createdAt: true, summary: true },
           }),
         ])
-      : [0, 0, 0, [], null];
+      : [0, 0, 0, [], [], null];
 
   const readiness = buildSystemReadiness({ databaseConnected });
   const storage = getMediaStorageStatus();
   const automation = readLeadAutomationConfig();
   const retention = readLeadRetentionConfig();
-  const latestLocalBackup = await getLatestLocalBackup();
+  const latestLocalBackup = await getLatestVerifiedLocalBackup();
   const automationCounts = new Map<LeadAutomationStatus, number>(
     automationGroups.map((item) => [item.status, item._count._all]),
   );
+  const privateDeletionCounts = new Map<PrivateObjectDeletionStatus, number>(
+    privateDeletionGroups.map((item) => [item.status, item._count._all]),
+  );
+  const pendingPrivateDeletions =
+    (privateDeletionCounts.get("PENDING") || 0) +
+    (privateDeletionCounts.get("PROCESSING") || 0) +
+    (privateDeletionCounts.get("FAILED") || 0);
   const databaseUrl = process.env.DATABASE_URL?.trim().toLowerCase() || "";
   const databaseLocation = databaseUrl.startsWith("file:")
     ? "Archivo local"
@@ -353,6 +331,10 @@ export default async function AdminSystemPage() {
             <SystemDatum label="Consultas guardadas" value={String(leadCount)} />
             <SystemDatum label="Usuarios activos" value={String(activeUserCount)} />
             <SystemDatum label="Recursos visuales" value={String(mediaCount)} />
+            <SystemDatum
+              label="Borrados privados pendientes"
+              value={String(pendingPrivateDeletions)}
+            />
             <SystemDatum label="Base de datos" value={databaseLocation} />
             <SystemDatum
               label="Almacenamiento"

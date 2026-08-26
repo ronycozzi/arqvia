@@ -11,7 +11,7 @@ aprobaciones finales.
 - `AUTH_SECRET` débil, bootstrap productivo habilitado o `ADMIN_PASSWORD` en runtime.
 - Datos de contacto provisionales o sin aprobación comercial.
 - Base distinta de PostgreSQL.
-- Medios sin storage S3 compatible, región, smoke test real o referencias locales en `/uploads/`.
+- Medios sin storage S3 compatible, región, worker de borrado privado, smoke test real o referencias locales en `/uploads/`.
 - Analítica sin proveedor/identificador válido. El frontend no carga medición antes del consentimiento.
 - Rate limiting no distribuido o proxy no declarado.
 - Menos de 3 proyectos, 4 servicios, 3 artículos, 5 FAQ, 1 área, 1 integrante o 1 testimonio publicados.
@@ -28,8 +28,12 @@ aprobaciones finales.
 - Despacho de automatizaciones encendido sin webhook, secretos, cron y smoke
   test aprobados. La captura durable puede permanecer activa con el despacho
   pausado.
+- Variables de retención omitidas o inválidas. Incluso apagada, la política debe
+  declarar explícitamente `LEAD_RETENTION_ENABLED`, `LEAD_RETENTION_DAYS`,
+  `LEAD_RETENTION_BATCH_SIZE` y `DATA_RETENTION_CRON_SECRET`; el secreto puede
+  quedar vacío mientras el switch esté en `false`.
 - Retención de datos encendida sin secreto de cron fuerte y aprobación legal y
-  operativa registrada. Puede permanecer apagada sin bloquear el release.
+  operativa registrada.
 - Falta de ensayo de restauración o validación PWA real.
 
 ## Evidencia de aprobación
@@ -49,6 +53,8 @@ fecha no futura. Los recursos sin uso público pueden permanecer pendientes. Ver
 `ARQVIA_ESTIMATOR_APPROVED_VERSION` debe coincidir con la versión activa del
 estimador. Cada edición incrementa esa versión e invalida la aprobación previa.
 La evidencia de storage exige una operación real de subida, lectura y borrado;
+el entorno también debe incluir `PRIVATE_OBJECT_DELETION_CRON_SECRET` para que
+los fallos de borrado físico sigan siendo reintentables después de eliminar PII.
 la evidencia de automatización exige un evento firmado recibido por el destino
 antes de habilitar `LEAD_AUTOMATION_ENABLED`. La captura en outbox se controla
 por separado con `LEAD_AUTOMATION_CAPTURE_ENABLED`.
@@ -62,9 +68,18 @@ corrección jurídica del plazo: esa decisión sigue siendo humana y documentada
 
 ```bash
 npm run verify
-npm run release:check
-npm run build:postgres
+npm run build:release
 ```
+
+`build:release` es el único comando de build autorizado para publicación. Primero
+genera el cliente PostgreSQL para no depender del cliente Prisma creado durante
+la instalación, y luego valida
+el ambiente y el estado actual de PostgreSQL antes de compilar, vuelve a ejecutar
+el gate al terminar y rechaza el artefacto si el estado cambió. También exige que
+el SHA del proveedor coincida con el checkout (o un worktree Git limpio en una
+ejecución local) y escribe `.next/release-gate.json` con el SHA y la huella del
+estado aprobado. `build` y `build:postgres` siguen disponibles para pruebas y no
+constituyen autorización de despliegue.
 
 En desarrollo, `release:check` debe terminar bloqueado porque SQLite, localhost,
 medios seed y credenciales iniciales son deliberadamente insuficientes para
@@ -77,5 +92,7 @@ status`, el smoke test post-deploy, la revisión humana del contenido ni la
 prueba física de la PWA.
 
 El workflow manual verifica lint, tipos, tests, build y Playwright contra un
-PostgreSQL efímero. La base productiva se usa después únicamente para
-`prisma migrate status` y para las consultas de solo lectura del release gate.
+PostgreSQL efímero. Después consulta la base productiva sin escribir, construye
+el artefacto con `build:release` desde ese estado y conserva el recibo del gate.
+Vercel usa el mismo comando mediante `vercel.json`, de modo que su build no puede
+omitir estos controles.

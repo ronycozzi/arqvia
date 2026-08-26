@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import {
   copyFile,
+  mkdir,
   mkdtemp,
   readFile,
   readdir,
@@ -67,9 +68,15 @@ try {
 
   const counts = {
     automationDeliveries: await verifier.leadAutomationDelivery.count(),
+    leadActivities: await verifier.leadActivity.count(),
+    leadAttachments: await verifier.leadAttachment.count(),
+    leadEstimates: await verifier.leadEstimate.count(),
+    leadNotes: await verifier.leadNote.count(),
     leads: await verifier.lead.count(),
+    privateObjectDeletions: await verifier.privateObjectDeletion.count(),
     projects: await verifier.project.count(),
     services: await verifier.service.count(),
+    technicalVisits: await verifier.technicalVisit.count(),
     users: await verifier.user.count(),
   };
   if (JSON.stringify(counts) !== JSON.stringify(manifest.counts)) {
@@ -77,10 +84,69 @@ try {
   }
 
   const essentialTables = await verifier.$queryRawUnsafe(
-    "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('ClientConfig', 'Lead', 'User', 'AuditLog') ORDER BY name",
+    "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('ClientConfig', 'Lead', 'LeadActivity', 'LeadAttachment', 'LeadAutomationDelivery', 'LeadEstimate', 'LeadNote', 'PrivateObjectDeletion', 'TechnicalVisit', 'User', 'AuditLog') ORDER BY name",
   );
-  if (!Array.isArray(essentialTables) || essentialTables.length !== 4) {
+  if (!Array.isArray(essentialTables) || essentialTables.length !== 11) {
     throw new Error("Restored SQLite copy is missing an essential table.");
+  }
+
+  const restoredAttachmentDir = resolve(restoreDir, "lead-attachments");
+  await mkdir(restoredAttachmentDir, { recursive: true });
+  const restoredAttachmentRows = await verifier.leadAttachment.findMany({
+    select: { storageKey: true },
+  });
+  const localStorageKeys = new Set(
+    restoredAttachmentRows
+      .map(({ storageKey }) => storageKey)
+      .filter((storageKey) => storageKey.startsWith("local:")),
+  );
+  const externalCount = restoredAttachmentRows.length - localStorageKeys.size;
+  if (
+    externalCount !== manifest.attachments.externalCount ||
+    localStorageKeys.size !== manifest.attachments.files.length
+  ) {
+    throw new Error("Restored attachment references do not match the manifest.");
+  }
+
+  for (const attachment of manifest.attachments.files) {
+    if (!localStorageKeys.has(attachment.storageKey)) {
+      throw new Error("A restored local attachment is absent from the database.");
+    }
+    const sourcePath = resolve(manifest.attachments.directory, attachment.filename);
+    const restoredAttachmentPath = resolve(
+      restoredAttachmentDir,
+      attachment.filename,
+    );
+    assertInsideDirectory(
+      sourcePath,
+      manifest.attachments.directory,
+      "Refusing to read an attachment outside its backup directory.",
+    );
+    assertInsideDirectory(
+      restoredAttachmentPath,
+      restoredAttachmentDir,
+      "Refusing to restore an attachment outside the isolated directory.",
+    );
+    const attachmentStat = await assertRegularFile(
+      sourcePath,
+      "A backed-up attachment is missing or not a regular file.",
+    );
+    const attachmentChecksum = createHash("sha256")
+      .update(await readFile(sourcePath))
+      .digest("hex");
+    if (
+      attachmentStat.size !== attachment.sizeBytes ||
+      attachmentChecksum !== attachment.sha256
+    ) {
+      throw new Error("A backed-up attachment failed integrity verification.");
+    }
+    await copyFile(sourcePath, restoredAttachmentPath);
+    const restoredChecksum = createHash("sha256")
+      .update(await readFile(restoredAttachmentPath))
+      .digest("hex");
+    if (restoredChecksum !== attachment.sha256) {
+      throw new Error("A restored attachment failed checksum verification.");
+    }
   }
 
   console.log(`SQLite restore drill passed: ${manifestPath}`);

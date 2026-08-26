@@ -369,6 +369,44 @@ export async function POST(request: Request): Promise<NextResponse> {
     acceptedRateLimitReservations.push(phoneRateLimitKey);
   }
 
+  const hasEstimateInput = Boolean(
+    parsed.data.estimateRuleId &&
+      parsed.data.estimateTier &&
+      parsed.data.estimateAreaM2 &&
+      parsed.data.estimateConfigVersion,
+  );
+  if (hasEstimateInput) {
+    try {
+      await prisma.$transaction(
+        (tx) => resolveLeadEstimate(tx, parsed.data),
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      );
+    } catch (error) {
+      if (error instanceof EstimateVersionConflictError) {
+        return NextResponse.json(
+          {
+            message:
+              "Los valores del estimador se actualizaron. Volvé a calcular el rango antes de enviar la consulta.",
+          },
+          { status: 409 },
+        );
+      }
+
+      logServerError("lead.estimate_preflight_failed", error);
+      await releaseAcceptedRateLimitReservations(
+        acceptedRateLimitReservations,
+        "persistence_failed",
+      );
+      return NextResponse.json(
+        {
+          message:
+            "No pudimos validar la estimación en este momento. Reintentá en unos segundos.",
+        },
+        { status: 503 },
+      );
+    }
+  }
+
   const storedResult = await storeLeadAttachmentFiles(requestPayload.files);
   if (!storedResult.ok) {
     if (storedResult.status >= 500) {
@@ -523,10 +561,6 @@ export async function POST(request: Request): Promise<NextResponse> {
     } catch (error) {
       if (error instanceof EstimateVersionConflictError) {
         await removeStoredLeadAttachments(storedAttachments);
-        await releaseAcceptedRateLimitReservations(
-          acceptedRateLimitReservations,
-          "estimate_version_conflict",
-        );
         return NextResponse.json(
           {
             message:

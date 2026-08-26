@@ -16,8 +16,8 @@ vi.mock("@/lib/admin-auth", () => ({
 
 vi.mock("@/lib/lead-privacy", () => ({
   eraseLeadForPrivacy: mocks.eraseLeadForPrivacy,
+  LeadPrivacyAutomationBusyError: class LeadPrivacyAutomationBusyError extends Error {},
   LeadPrivacyNotFoundError: class LeadPrivacyNotFoundError extends Error {},
-  LeadPrivacyStorageError: class LeadPrivacyStorageError extends Error {},
 }));
 
 vi.mock("@/lib/logger", () => ({
@@ -56,7 +56,11 @@ describe("DELETE /api/admin/leads/[id]/privacy", () => {
     mocks.getVerifiedAdminSession.mockResolvedValue({
       user: { id: "admin-1", role: "ADMIN" },
     });
-    mocks.eraseLeadForPrivacy.mockResolvedValue(undefined);
+    mocks.eraseLeadForPrivacy.mockResolvedValue({
+      deletedObjects: 0,
+      pendingObjectDeletions: 0,
+      queuedObjectDeletions: 0,
+    });
   });
 
   it("requires a verified ADMIN session", async () => {
@@ -94,11 +98,30 @@ describe("DELETE /api/admin/leads/[id]/privacy", () => {
     const response = await DELETE(privacyRequest(), context);
 
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toEqual({ ok: true });
+    await expect(response.json()).resolves.toEqual({
+      ok: true,
+      pendingObjectDeletions: 0,
+    });
     expect(mocks.eraseLeadForPrivacy).toHaveBeenCalledWith({
       actorUserId: "admin-1",
       leadId: "lead-1",
     });
     expect(mocks.revalidateLeadSurfaces).toHaveBeenCalledWith("lead-1");
+  });
+
+  it("returns accepted when physical object deletion remains queued", async () => {
+    mocks.eraseLeadForPrivacy.mockResolvedValue({
+      deletedObjects: 1,
+      pendingObjectDeletions: 1,
+      queuedObjectDeletions: 2,
+    });
+
+    const response = await DELETE(privacyRequest(), context);
+
+    expect(response.status).toBe(202);
+    await expect(response.json()).resolves.toEqual({
+      ok: true,
+      pendingObjectDeletions: 1,
+    });
   });
 });

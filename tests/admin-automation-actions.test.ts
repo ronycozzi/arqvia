@@ -83,6 +83,7 @@ describe("automation admin actions", () => {
       expect.objectContaining({
         where: {
           id: "delivery-1",
+          lead: { privacyErasureRequestedAt: null },
           status: "FAILED",
         },
       }),
@@ -183,8 +184,13 @@ describe("automation admin actions", () => {
           { id: "asc" },
         ],
         where: {
-          nextAttemptAt: { lte: expect.any(Date) },
-          status: { in: ["FAILED", "DEAD"] },
+          AND: [
+            {
+              nextAttemptAt: { lte: expect.any(Date) },
+              status: { in: ["FAILED", "DEAD"] },
+            },
+            { lead: { privacyErasureRequestedAt: null } },
+          ],
         },
       }),
     );

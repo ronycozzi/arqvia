@@ -372,6 +372,10 @@ function SelectField({
   name: string;
   options: readonly string[];
 }) {
+  const renderedOptions = options.includes(defaultValue)
+    ? options
+    : [defaultValue, ...options];
+
   return (
     <label className="block">
       <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.14em] text-ink/75">
@@ -379,14 +383,15 @@ function SelectField({
       </span>
       <select
         name={name}
-        defaultValue={options.includes(defaultValue) ? defaultValue : options[0]}
+        defaultValue={defaultValue}
         disabled={disabled}
         aria-invalid={Boolean(error)}
         className="h-12 w-full border border-ink/12 bg-white px-4 text-sm text-ink outline-none transition focus:border-bronze focus:ring-2 focus:ring-bronze/20 disabled:cursor-not-allowed disabled:bg-mist disabled:text-ink/55"
       >
-        {options.map((option) => (
+        {renderedOptions.map((option) => (
           <option key={option} value={option}>
             {option}
+            {!options.includes(option) ? " (actual)" : ""}
           </option>
         ))}
       </select>

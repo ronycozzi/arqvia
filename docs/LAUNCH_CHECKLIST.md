@@ -110,6 +110,7 @@ Checklist para pasar de una versión con los módulos Premium de estimación y v
 - Importar el `.ics` en un calendario de prueba y revisar inicio, fin según duración, cliente, proyecto, ubicación y notas. Recordar que la exportación no sincroniza cambios posteriores.
 - Confirmar que Viewer no vea datos personales completos ni acciones de contacto/exportacion.
 - Configurar `MEDIA_STORAGE_PROVIDER=s3` y validar una subida/borrado real en el proveedor elegido.
+- Configurar `PRIVATE_OBJECT_DELETION_CRON_SECRET`, programar `/api/cron/private-object-deletions` y verificar un reintento controlado.
 - Buscar desde un formulario CMS una imagen aprobada que no esté entre las 80
   más recientes; confirmar que Admin, Editor y Viewer puedan obtener sus campos
   públicos mediante la búsqueda global, sin procedencia ni notas de derechos.

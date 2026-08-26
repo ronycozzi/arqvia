@@ -1,18 +1,18 @@
 "use server";
 
 import { Prisma } from "@prisma/client";
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { commercialManagerRoles, getVerifiedAdminSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { buildLeadCommercialActivities } from "@/lib/lead-commercial-profile";
-import { touchLeadActivity } from "@/lib/lead-activity";
+import {
+  LeadPrivacyLockedError,
+  updateLeadUnlessPrivacyLocked,
+} from "@/lib/lead-activity";
 import { logServerError } from "@/lib/logger";
 import { revalidateLeadSurfaces } from "@/lib/revalidation";
 import { parseCordobaDateTime } from "@/lib/technical-visit-config";
 import {
   leadCommercialProfileSchema,
-  leadNoteSchema,
 } from "@/lib/validations";
 
 export type LeadCommercialActionValues = {
@@ -171,10 +171,9 @@ export async function saveLeadCommercialProfile(
           next,
         });
 
-        await tx.lead.update({
-          where: { id: current.id },
-          data: { ...next, lastActivityAt: new Date() },
-          select: { id: true },
+        await updateLeadUnlessPrivacyLocked(tx, current.id, {
+          ...next,
+          lastActivityAt: new Date(),
         });
 
         if (activities.length) {
@@ -225,6 +224,14 @@ export async function saveLeadCommercialProfile(
         values: submittedValues,
       };
     }
+    if (error instanceof LeadPrivacyLockedError) {
+      return {
+        ok: false,
+        message: "La consulta está bloqueada por una eliminación de privacidad.",
+        revision,
+        values: submittedValues,
+      };
+    }
     logServerError("admin.lead_commercial_profile_update_failed", error, {
       leadId: input.leadId,
       userId: session.user.id,
@@ -245,60 +252,4 @@ export async function saveLeadCommercialProfile(
     revision,
     values: submittedValues,
   };
-}
-
-export async function addLeadNote(formData: FormData) {
-  const session = await getVerifiedAdminSession(commercialManagerRoles);
-  if (!session?.user) {
-    redirect("/admin/login");
-  }
-
-  const parsed = leadNoteSchema.safeParse({
-    leadId: formData.get("leadId"),
-    body: formData.get("body"),
-  });
-
-  if (!parsed.success) {
-    redirect(`/admin/leads/${formData.get("leadId")}?error=nota`);
-  }
-
-  const lead = await prisma.lead.findUnique({
-    where: { id: parsed.data.leadId },
-    select: { id: true, name: true },
-  });
-
-  if (!lead) {
-    redirect("/admin/leads");
-  }
-
-  await prisma.$transaction(async (tx) => {
-    await tx.leadNote.create({
-      data: {
-        leadId: lead.id,
-        body: parsed.data.body,
-        userId: session.user.id || undefined,
-      },
-    });
-    await tx.leadActivity.create({
-      data: {
-        leadId: lead.id,
-        type: "NOTE_ADDED",
-        summary: "Agregó una nota interna.",
-        userId: session.user.id || undefined,
-      },
-    });
-    await touchLeadActivity(tx, lead.id, new Date());
-    await tx.auditLog.create({
-      data: {
-        action: "CREATE",
-        entity: "LeadNote",
-        entityId: lead.id,
-        summary: `Agregó una nota interna a la consulta de ${lead.name}.`,
-        userId: session.user.id || undefined,
-      },
-    });
-  });
-
-  revalidatePath(`/admin/leads/${lead.id}`);
-  redirect(`/admin/leads/${lead.id}?saved=nota`);
 }

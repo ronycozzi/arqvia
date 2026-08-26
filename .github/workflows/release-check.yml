@@ -18,7 +18,7 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_DB: arqvia_release
+          POSTGRES_DB: arqvia_release_test
           POSTGRES_PASSWORD: arqvia
           POSTGRES_USER: arqvia
         ports:
@@ -32,7 +32,7 @@ jobs:
       ARQVIA_ALLOW_PRODUCTION_SEED: "true"
       AUTH_SECRET: release-verification-secret-with-more-than-32-characters
       AUTH_URL: http://localhost:3100
-      DATABASE_URL: postgresql://arqvia:arqvia@localhost:5432/arqvia_release
+      DATABASE_URL: postgresql://arqvia:arqvia@localhost:5432/arqvia_release_test
       NEXT_PUBLIC_ANALYTICS_PROVIDER: none
       NEXT_PUBLIC_SITE_URL: http://localhost:3100
       NEXT_PUBLIC_WHATSAPP_MESSAGE: Hola, quiero consultar por un proyecto.
@@ -133,8 +133,15 @@ jobs:
       LEAD_WEBHOOK_ALLOWED_HOSTS: ${{ vars.LEAD_WEBHOOK_ALLOWED_HOSTS }}
       LEAD_WEBHOOK_SECRET: ${{ secrets.LEAD_WEBHOOK_SECRET }}
       AUTOMATION_CRON_SECRET: ${{ secrets.AUTOMATION_CRON_SECRET }}
+      LEAD_RETENTION_ENABLED: ${{ vars.LEAD_RETENTION_ENABLED }}
+      LEAD_RETENTION_DAYS: ${{ vars.LEAD_RETENTION_DAYS }}
+      LEAD_RETENTION_BATCH_SIZE: ${{ vars.LEAD_RETENTION_BATCH_SIZE }}
+      DATA_RETENTION_CRON_SECRET: ${{ secrets.DATA_RETENTION_CRON_SECRET }}
+      PRIVATE_OBJECT_DELETION_CRON_SECRET: ${{ secrets.PRIVATE_OBJECT_DELETION_CRON_SECRET }}
       ARQVIA_AUTOMATION_APPROVED_BY: ${{ vars.ARQVIA_AUTOMATION_APPROVED_BY }}
       ARQVIA_AUTOMATION_APPROVED_AT: ${{ vars.ARQVIA_AUTOMATION_APPROVED_AT }}
+      ARQVIA_RETENTION_APPROVED_BY: ${{ vars.ARQVIA_RETENTION_APPROVED_BY }}
+      ARQVIA_RETENTION_APPROVED_AT: ${{ vars.ARQVIA_RETENTION_APPROVED_AT }}
       ARQVIA_CONTENT_APPROVED_BY: ${{ vars.ARQVIA_CONTENT_APPROVED_BY }}
       ARQVIA_CONTENT_APPROVED_AT: ${{ vars.ARQVIA_CONTENT_APPROVED_AT }}
       ARQVIA_MEDIA_RIGHTS_APPROVED_BY: ${{ vars.ARQVIA_MEDIA_RIGHTS_APPROVED_BY }}
@@ -181,3 +188,14 @@ jobs:
 
       - name: Run read-only deterministic production gate
         run: npm run release:check
+
+      - name: Build source-bound production artifact from current state
+        run: npm run build:release
+
+      - name: Upload production release receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-release-receipt-${{ github.sha }}
+          path: .next/release-gate.json
+          if-no-files-found: error
+          retention-days: 30

@@ -18,10 +18,21 @@ function validManifest() {
     verified: true,
     counts: {
       automationDeliveries: 0,
+      leadActivities: 0,
+      leadAttachments: 0,
+      leadEstimates: 0,
+      leadNotes: 0,
       leads: 1,
+      privateObjectDeletions: 0,
       projects: 2,
       services: 3,
+      technicalVisits: 0,
       users: 1,
+    },
+    attachments: {
+      directory: `${backupPath}.attachments`,
+      externalCount: 0,
+      files: [],
     },
   };
 }
@@ -36,6 +47,14 @@ describe("SQLite backup safety helpers", () => {
     const manifest = validManifest();
     manifest.integrityCheck = ["not ok"];
     expect(() => validateBackupManifest(manifest, backupPath)).toThrow(/invalid or incomplete/);
+  });
+
+  it("requires every attachment row to be accounted for", () => {
+    const manifest = validManifest();
+    manifest.counts.leadAttachments = 1;
+    expect(() => validateBackupManifest(manifest, backupPath)).toThrow(
+      /invalid or incomplete/,
+    );
   });
 
   it("rejects paths outside the backup directory", () => {

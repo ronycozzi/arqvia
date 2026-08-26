@@ -41,6 +41,7 @@ async function collectResidueChecks(): Promise<ResidueCheck[]> {
     redirects,
     auditLogs,
     rateLimitBuckets,
+    privateObjectDeletions,
     uploadedFiles,
   ] = await Promise.all([
     prisma.user.count({
@@ -206,6 +207,14 @@ async function collectResidueChecks(): Promise<ResidueCheck[]> {
         ],
       },
     }),
+    prisma.privateObjectDeletion.count({
+      where: {
+        OR: [
+          { storageKey: { contains: "privacy-" } },
+          { storageKey: { contains: "e2e" } },
+        ],
+      },
+    }),
     uploadedFixtureCount(),
   ]);
 
@@ -228,6 +237,7 @@ async function collectResidueChecks(): Promise<ResidueCheck[]> {
     { label: "redirecciones", count: redirects },
     { label: "auditoría", count: auditLogs },
     { label: "límites de solicitudes", count: rateLimitBuckets },
+    { label: "cola de borrado privado", count: privateObjectDeletions },
     { label: "archivos subidos", count: uploadedFiles },
   ];
 }

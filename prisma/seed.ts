@@ -23,10 +23,12 @@ import {
   institutionalPageSlugs,
   serializeInstitutionalPage,
 } from "../src/lib/institutional-content";
+import {
+  defaultAdminEmail,
+  resolveSeedAdminCredentials,
+} from "../src/lib/seed-safety";
 
 const prisma = new PrismaClient();
-const defaultAdminEmail = "admin@arqvia.local";
-const defaultAdminPassword = "ChangeMe123!";
 const seedPublishedAt = new Date("2026-07-01T12:00:00.000Z");
 
 // Initial commercial assumptions. Review these ranges before a production launch.
@@ -109,8 +111,9 @@ function slugify(value: string) {
 }
 
 async function main() {
-  const adminEmail = process.env.ADMIN_EMAIL || defaultAdminEmail;
-  const adminPassword = process.env.ADMIN_PASSWORD || defaultAdminPassword;
+  const adminCredentials = resolveSeedAdminCredentials();
+  const adminEmail = adminCredentials.email;
+  const adminPassword = adminCredentials.password;
   const configId = "arqvia-config";
   const genericWhatsapp =
     process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.trim() || "5493515551234";
@@ -120,28 +123,15 @@ async function main() {
     "cuanto-cuesta-remodelar-una-cocina",
   ];
 
-  const usesProductionDatabase = /^(postgresql|postgres):\/\//i.test(
-    process.env.DATABASE_URL || "",
-  );
-
-  if (
-    usesProductionDatabase &&
-    process.env.ARQVIA_ALLOW_PRODUCTION_SEED !== "true"
-  ) {
-    throw new Error(
-      "Production seeding is disabled. Set ARQVIA_ALLOW_PRODUCTION_SEED=true only for a reviewed first-time initialization.",
-    );
-  }
-
-  if (usesProductionDatabase) {
-    if (adminEmail === defaultAdminEmail || adminPassword === defaultAdminPassword) {
+  if (adminCredentials.production) {
+    const defaultAdmin = await prisma.user.findUnique({
+      where: { email: defaultAdminEmail },
+      select: { active: true },
+    });
+    if (defaultAdmin?.active) {
       throw new Error(
-        "Set ADMIN_EMAIL and ADMIN_PASSWORD to production-safe values before seeding.",
+        "Production seeding refused because the known default admin account is active.",
       );
-    }
-
-    if (adminPassword.length < 12) {
-      throw new Error("ADMIN_PASSWORD must be at least 12 characters in production.");
     }
   }
 
@@ -150,6 +140,7 @@ async function main() {
     where: { email: adminEmail },
     update: {
       name: "Admin Arqvia",
+      ...(adminCredentials.production ? { passwordHash: adminPasswordHash } : {}),
       role: UserRole.ADMIN,
       active: true,
     },

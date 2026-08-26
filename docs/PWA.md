@@ -16,6 +16,7 @@ datos obsoletos, duplicados o información personal persistida en el dispositivo
 `public/sw.js` precarga exclusivamente:
 
 - `public/offline.html`.
+- `public/offline-recovery.js`, que reintenta la navegación sin guardar datos del formulario.
 - Iconos Arqvia de 180, 192 y 512 px, incluida la variante maskable.
 
 Las navegaciones usan siempre la red. Ante una falla de conexión reciben la

@@ -33,6 +33,7 @@ export function revalidateFaqSurfaces() {
 export function revalidateLegalSurfaces(slug: string) {
   revalidatePath(`/${slug}`);
   revalidatePath(`/legal/${slug}`);
+  revalidatePath("/sitemap.xml");
   revalidatePath("/admin");
   revalidatePath("/admin/legal");
   revalidatePath(`/admin/legal/${slug}`);

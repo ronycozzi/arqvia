@@ -2391,20 +2391,21 @@ test("public technical visit request can be coordinated and downloaded from the 
   await expect(visitSection.getByText(requestNotes, { exact: true })).toBeVisible();
   await expect(visitSection.getByLabel(/direcci.n/i)).toHaveValue(address);
 
+  const admin = await prisma.user.findUniqueOrThrow({
+    where: { email: "admin@arqvia.local" },
+  });
+
   await visitSection.getByLabel(/estado/i).selectOption("CONFIRMED");
   await visitSection.getByLabel(/fecha confirmada/i).fill(scheduledDate);
   await visitSection.getByLabel(/horario/i).fill(scheduledTime);
   await visitSection.getByLabel(/duraci.n/i).selectOption("90");
-  await visitSection.getByLabel(/responsable/i).selectOption({ label: "Admin Arqvia" });
+  await visitSection.getByLabel(/responsable/i).selectOption(admin.id);
   await visitSection.getByLabel(/notas internas/i).fill(internalNotes);
   await visitSection.getByRole("button", { name: /guardar coordinaci.n/i }).click();
 
   const expectedScheduledAt = new Date(
     `${scheduledDate}T${scheduledTime}:00-03:00`,
   );
-  const admin = await prisma.user.findUniqueOrThrow({
-    where: { email: "admin@arqvia.local" },
-  });
   await expect
     .poll(async () => {
       const visit = await prisma.technicalVisit.findUniqueOrThrow({
@@ -2496,7 +2497,7 @@ test("public technical visit request can be coordinated and downloaded from the 
   await conflictSection.getByLabel(/duraci.n/i).selectOption("60");
   await conflictSection
     .getByLabel(/responsable/i)
-    .selectOption({ label: "Admin Arqvia" });
+    .selectOption(admin.id);
   await conflictSection
     .getByRole("button", { name: /guardar coordinaci.n/i })
     .click();

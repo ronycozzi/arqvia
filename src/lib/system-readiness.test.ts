@@ -12,6 +12,8 @@ const productionEnv = {
   S3_ACCESS_KEY_ID: "access-key",
   S3_SECRET_ACCESS_KEY: "secret-key",
   RATE_LIMIT_STORE: "database",
+  PRIVATE_OBJECT_DELETION_CRON_SECRET:
+    "private-object-deletion-worker-secret-2026",
   TRUST_PROXY_PROVIDER: "vercel",
   ARQVIA_STRICT_PUBLIC_URL: "true",
   NEXT_PUBLIC_ANALYTICS_PROVIDER: "ga4",

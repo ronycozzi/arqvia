@@ -14,7 +14,6 @@ export function ProjectCard({
     <article className="group h-full border border-ink/12 bg-paper shadow-[0_10px_30px_rgba(28,33,29,0.06)] transition-[transform,border-color,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:border-bronze/45 hover:shadow-[0_18px_42px_rgba(28,33,29,0.1)] focus-within:-translate-y-1 focus-within:border-bronze/45 focus-within:shadow-[0_18px_42px_rgba(28,33,29,0.1)] motion-reduce:transform-none motion-reduce:transition-none">
       <Link
         href={`/proyectos/${project.slug}`}
-        aria-label={`Ver proyecto: ${project.title}`}
         className="flex h-full flex-col focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-bronze"
       >
         <div className="relative aspect-[3/2] overflow-hidden bg-stone">
@@ -24,7 +23,7 @@ export function ProjectCard({
             fill
             preload={priority}
             loading={priority ? undefined : "lazy"}
-            sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+            sizes="(min-width: 1280px) 292px, (min-width: 1024px) 309px, (min-width: 768px) calc(50vw - 40px), calc(100vw - 48px)"
             className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035] group-focus-within:scale-[1.035] motion-reduce:transform-none motion-reduce:transition-none"
           />
           <div className="absolute left-3 top-3 border border-paper/15 bg-graphite/90 px-3 py-2 text-xs font-semibold uppercase leading-none text-paper backdrop-blur-sm md:left-4 md:top-4">
@@ -34,6 +33,7 @@ export function ProjectCard({
         <div className="flex flex-1 flex-col p-5">
           <div className="mb-3 flex items-start justify-between gap-4">
             <h3 className="font-serif text-2xl font-medium leading-[1.12] text-ink md:text-[1.7rem]">
+              <span className="sr-only">Ver proyecto: </span>
               {project.title}
             </h3>
             <ArrowUpRight

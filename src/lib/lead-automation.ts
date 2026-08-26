@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { LeadAutomationEvent } from "@prisma/client";
+import { Prisma, type LeadAutomationEvent } from "@prisma/client";
 import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/db";
 import {
@@ -9,11 +9,10 @@ import {
   readLeadAutomationConfig,
 } from "@/lib/lead-automation-config";
 import {
-  assertPublicWebhookDestination,
+  postJsonToPublicWebhook,
   UnsafeOutboundDestinationError,
 } from "@/lib/outbound-network";
-
-const processingLeaseMs = 10 * 60_000;
+import { leadAutomationProcessingLeaseMs } from "@/lib/lead-automation-policy";
 
 type DeliveryOutcome =
   | "configuration_error"
@@ -39,6 +38,51 @@ function safeErrorCode(error: unknown) {
     return "TIMEOUT";
   }
   return "NETWORK_ERROR";
+}
+
+function isSerializableConflict(error: unknown) {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2034"
+  );
+}
+
+async function claimDelivery(
+  deliveryId: string,
+  claimToken: string,
+  maxAttempts: number,
+  now: Date,
+) {
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      return await prisma.$transaction(
+        (tx) =>
+          tx.leadAutomationDelivery.updateMany({
+            where: {
+              attempts: { lt: maxAttempts },
+              id: deliveryId,
+              lead: { privacyErasureRequestedAt: null },
+              nextAttemptAt: { lte: now },
+              status: { in: ["PENDING", "FAILED"] },
+            },
+            data: {
+              attempts: { increment: 1 },
+              claimToken,
+              lastAttemptAt: now,
+              lastErrorCode: null,
+              responseStatus: null,
+              status: "PROCESSING",
+            },
+          }),
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      );
+    } catch (error) {
+      if (attempt < 3 && isSerializableConflict(error)) continue;
+      if (isSerializableConflict(error)) return { count: 0 };
+      throw error;
+    }
+  }
+  return { count: 0 };
 }
 
 async function loadDeliveryPayload(deliveryId: string) {
@@ -109,22 +153,12 @@ export async function dispatchLeadAutomationDelivery(
 
   const now = new Date();
   const claimToken = randomUUID();
-  const claimed = await prisma.leadAutomationDelivery.updateMany({
-    where: {
-      id: deliveryId,
-      status: { in: ["PENDING", "FAILED"] },
-      nextAttemptAt: { lte: now },
-      attempts: { lt: config.maxAttempts },
-    },
-    data: {
-      attempts: { increment: 1 },
-      claimToken,
-      lastAttemptAt: now,
-      lastErrorCode: null,
-      responseStatus: null,
-      status: "PROCESSING",
-    },
-  });
+  const claimed = await claimDelivery(
+    deliveryId,
+    claimToken,
+    config.maxAttempts,
+    now,
+  );
   if (claimed.count !== 1) return { deliveryId, outcome: "skipped" };
 
   const loaded = await loadDeliveryPayload(deliveryId);
@@ -145,17 +179,12 @@ export async function dispatchLeadAutomationDelivery(
   const timestamp = Math.floor(Date.now() / 1_000);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), config.timeoutMs);
-  let response: Response | undefined;
+  let response: { ok: boolean; status: number } | undefined;
 
   try {
-    await assertPublicWebhookDestination(config.webhookUrl, {
+    response = await postJsonToPublicWebhook(config.webhookUrl, {
       allowDevelopmentLocalhost: process.env.NODE_ENV !== "production",
-    });
-    response = await fetch(config.webhookUrl, {
-      method: "POST",
       body,
-      cache: "no-store",
-      redirect: "manual",
       headers: {
         "content-type": "application/json",
         "user-agent": "Arqvia-Lead-Automation/1.0",
@@ -213,12 +242,13 @@ export async function dispatchLeadAutomationDelivery(
     return { deliveryId, outcome: failed ? "failed" : "skipped" };
   } finally {
     clearTimeout(timeout);
-    await response?.body?.cancel().catch(() => undefined);
   }
 }
 
 async function recoverExpiredProcessingLeases() {
-  const expiredBefore = new Date(Date.now() - processingLeaseMs);
+  const expiredBefore = new Date(
+    Date.now() - leadAutomationProcessingLeaseMs,
+  );
   const config = readLeadAutomationConfig();
   await prisma.leadAutomationDelivery.updateMany({
     where: {
@@ -262,6 +292,7 @@ export async function processLeadAutomationBatch(limit = 10) {
 
   const deliveries = await prisma.leadAutomationDelivery.findMany({
     where: {
+      lead: { privacyErasureRequestedAt: null },
       status: { in: ["PENDING", "FAILED"] },
       nextAttemptAt: { lte: new Date() },
       attempts: { lt: config.maxAttempts },
@@ -287,7 +318,11 @@ export async function processLeadAutomationBatch(limit = 10) {
 
 export async function retryLeadAutomationDelivery(deliveryId: string) {
   const reset = await prisma.leadAutomationDelivery.updateMany({
-    where: { id: deliveryId, status: { in: ["FAILED", "DEAD"] } },
+    where: {
+      id: deliveryId,
+      lead: { privacyErasureRequestedAt: null },
+      status: { in: ["FAILED", "DEAD"] },
+    },
     data: {
       attempts: 0,
       claimToken: null,
@@ -302,14 +337,20 @@ export async function retryLeadAutomationDelivery(deliveryId: string) {
 
 export async function requeueFailedLeadAutomationBatch(limit = 25) {
   const deliveries = await prisma.leadAutomationDelivery.findMany({
-    where: { status: { in: ["FAILED", "DEAD"] } },
+    where: {
+      lead: { privacyErasureRequestedAt: null },
+      status: { in: ["FAILED", "DEAD"] },
+    },
     orderBy: { updatedAt: "asc" },
     take: Math.min(100, Math.max(1, limit)),
     select: { id: true },
   });
   if (!deliveries.length) return 0;
   const result = await prisma.leadAutomationDelivery.updateMany({
-    where: { id: { in: deliveries.map((delivery) => delivery.id) } },
+    where: {
+      id: { in: deliveries.map((delivery) => delivery.id) },
+      lead: { privacyErasureRequestedAt: null },
+    },
     data: {
       attempts: 0,
       claimToken: null,

@@ -202,6 +202,11 @@ export default async function UsersPage({ searchParams }: PageProps) {
             No podés revocar tu propio acceso desde la sesión activa.
           </p>
         ) : null}
+        {params.error === "last-admin" ? (
+          <p className="mt-4 border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+            Debe quedar al menos un Admin activo.
+          </p>
+        ) : null}
       </div>
 
       {params.error === "delete-failed" ? (

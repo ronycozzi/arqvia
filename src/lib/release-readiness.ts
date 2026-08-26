@@ -1,5 +1,9 @@
 import type { PublicClientConfig } from "@/lib/client-config";
 import { readLeadAutomationConfig } from "@/lib/lead-automation-config";
+import {
+  hasExplicitLeadRetentionEnvironment,
+  readLeadRetentionConfig,
+} from "@/lib/lead-retention-config";
 
 type Environment = Record<string, string | undefined>;
 
@@ -10,14 +14,20 @@ export type ReleaseContentSnapshot = {
   faqs: number;
   homeContents: number;
   institutionalPages: number;
+  leadIdentityBacklog: number;
+  privateObjectDeletionBacklog: number;
+  privacyErasureBacklog: number;
   localMedia: number;
+  legalLatestUpdatedAt: string | null;
   legalPages: number;
+  legalPageSlugs: string[];
   projects: number;
   publicMedia: number;
   seedMedia: number;
   services: number;
   teamMembers: number;
   testimonials: number;
+  technicalVisitBacklog: number;
   unapprovedPublicMedia: number;
   untrackedPublicMedia: number;
 };
@@ -109,6 +119,17 @@ function approved(env: Environment, prefix: string) {
   return by.length >= 3 && Number.isFinite(timestamp) && timestamp <= Date.now();
 }
 
+function approvedAfter(
+  env: Environment,
+  prefix: string,
+  latestChange: string | null,
+) {
+  if (!approved(env, prefix) || !latestChange) return false;
+  const approvedAt = Date.parse(env[`${prefix}_APPROVED_AT`]?.trim() || "");
+  const changedAt = Date.parse(latestChange);
+  return Number.isFinite(changedAt) && approvedAt >= changedAt;
+}
+
 function check(
   id: string,
   label: string,
@@ -131,7 +152,7 @@ export function buildReleaseGate({
   const databaseUrl = env.DATABASE_URL?.trim().toLowerCase() || "";
   const publicMediaUrl = finalOrigin(env.S3_PUBLIC_BASE_URL);
   const automation = readLeadAutomationConfig(env);
-  const retentionEnabled = env.LEAD_RETENTION_ENABLED === "true";
+  const retention = readLeadRetentionConfig(env);
   const analyticsProvider = env.NEXT_PUBLIC_ANALYTICS_PROVIDER?.trim() || "none";
   const analyticsId = env.NEXT_PUBLIC_ANALYTICS_ID?.trim() || "";
   const analyticsReady =
@@ -158,6 +179,15 @@ export function buildReleaseGate({
     config.address.trim().length >= 8 &&
     config.businessHours.trim().length >= 8;
   const mediaRightsApproved = approved(env, "ARQVIA_MEDIA_RIGHTS");
+  const requiredLegalSlugs = [
+    "aviso-presupuestos",
+    "cookies",
+    "privacidad",
+    "terminos",
+  ];
+  const legalSlugsReady = requiredLegalSlugs.every((slug) =>
+    content.legalPageSlugs.includes(slug),
+  );
   const mediaRightsDetail = [
     content.unapprovedPublicMedia > 0
       ? `${content.unapprovedPublicMedia} de ${content.publicMedia} recurso(s) visual(es) público(s) no tienen aprobación válida.`
@@ -202,6 +232,15 @@ export function buildReleaseGate({
       "Configura DATABASE_URL con PostgreSQL y aplica las migraciones revisadas.",
     ),
     check(
+      "RG-DATA-001",
+      "Backfills operativos",
+      content.leadIdentityBacklog === 0 &&
+        content.technicalVisitBacklog === 0 &&
+        content.privateObjectDeletionBacklog === 0 &&
+        content.privacyErasureBacklog === 0,
+      `Completá los trabajos de datos antes de publicar: ${content.leadIdentityBacklog} identidad(es), ${content.technicalVisitBacklog} visita(s), ${content.privacyErasureBacklog} borrado(s) de lead y ${content.privateObjectDeletionBacklog} objeto(s) privado(s) pendientes.`,
+    ),
+    check(
       "RG-STORAGE-001",
       "Medios persistentes",
       env.MEDIA_STORAGE_PROVIDER === "s3" &&
@@ -209,10 +248,11 @@ export function buildReleaseGate({
         Boolean(env.S3_REGION?.trim()) &&
         Boolean(env.S3_ACCESS_KEY_ID?.trim()) &&
         Boolean(env.S3_SECRET_ACCESS_KEY?.trim()) &&
+        strongSecret(env.PRIVATE_OBJECT_DELETION_CRON_SECRET) &&
         Boolean(publicMediaUrl) &&
         content.localMedia === 0 &&
         approved(env, "ARQVIA_STORAGE"),
-      "Configura storage S3 compatible, elimina uploads locales y registra un smoke test real de subida, lectura y borrado.",
+      "Configura storage S3 compatible, el worker de borrado privado, elimina uploads locales y registra un smoke test real de subida, lectura y borrado.",
     ),
     check(
       "RG-ANALYTICS-001",
@@ -252,8 +292,10 @@ export function buildReleaseGate({
     check(
       "RG-LEGAL-001",
       "Revisión legal",
-      content.legalPages === 4 && approved(env, "ARQVIA_LEGAL"),
-      "Publicá los cuatro documentos desde el CMS y registrá quién y cuándo fueron aprobados para producción.",
+      content.legalPages === requiredLegalSlugs.length &&
+        legalSlugsReady &&
+        approvedAfter(env, "ARQVIA_LEGAL", content.legalLatestUpdatedAt),
+      "Publicá exactamente privacidad, términos, cookies y aviso de presupuestos; la aprobación debe ser posterior a la última modificación legal.",
     ),
     check(
       "RG-EST-001",
@@ -273,10 +315,14 @@ export function buildReleaseGate({
     check(
       "RG-RETENTION-001",
       "Retención de datos",
-      !retentionEnabled ||
-        (strongSecret(env.DATA_RETENTION_CRON_SECRET) &&
-          approved(env, "ARQVIA_RETENTION")),
-      "La retención puede permanecer apagada; para habilitarla exige un secreto de cron robusto y aprobación legal y operativa registrada.",
+      hasExplicitLeadRetentionEnvironment(env) &&
+        retention.issues.length === 0 &&
+        (!retention.enabled || retention.ready),
+      !hasExplicitLeadRetentionEnvironment(env)
+        ? "Declará explícitamente LEAD_RETENTION_ENABLED, LEAD_RETENTION_DAYS, LEAD_RETENTION_BATCH_SIZE y DATA_RETENTION_CRON_SECRET en el entorno de despliegue."
+        : retention.enabled && retention.issues.length
+        ? retention.issues.join(" ")
+        : "La retención puede permanecer apagada; para habilitarla exige parámetros válidos, un secreto de cron robusto y aprobación legal y operativa registrada.",
     ),
     check(
       "RG-OPS-001",

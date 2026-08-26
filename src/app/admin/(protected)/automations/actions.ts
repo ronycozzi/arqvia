@@ -35,8 +35,14 @@ export async function requeueAutomationBatch(
     requeuedCount = await prisma.$transaction(async (tx) => {
       const now = new Date();
       const eligibleWhere = buildManualAutomationBatchWhere(now);
+      const privacySafeWhere = {
+        AND: [
+          eligibleWhere,
+          { lead: { privacyErasureRequestedAt: null } },
+        ],
+      };
       const candidates = await tx.leadAutomationDelivery.findMany({
-        where: eligibleWhere,
+        where: privacySafeWhere,
         orderBy: [
           { nextAttemptAt: "asc" },
           { createdAt: "asc" },
@@ -50,8 +56,7 @@ export async function requeueAutomationBatch(
 
       const reset = await tx.leadAutomationDelivery.updateMany({
         where: {
-          ...eligibleWhere,
-          id: { in: candidateIds },
+          AND: [privacySafeWhere, { id: { in: candidateIds } }],
         },
         data: {
           attempts: 0,
@@ -120,19 +125,26 @@ export async function requeueAutomationDelivery(
         where: { id: deliveryId },
         select: {
           lastErrorCode: true,
-          lead: { select: { name: true } },
+          lead: {
+            select: { name: true, privacyErasureRequestedAt: true },
+          },
           status: true,
         },
       });
       if (
         !delivery ||
+        delivery.lead.privacyErasureRequestedAt ||
         (delivery.status !== "FAILED" && delivery.status !== "DEAD")
       ) {
         return false;
       }
 
       const reset = await tx.leadAutomationDelivery.updateMany({
-        where: { id: deliveryId, status: delivery.status },
+        where: {
+          id: deliveryId,
+          lead: { privacyErasureRequestedAt: null },
+          status: delivery.status,
+        },
         data: {
           attempts: 0,
           claimToken: null,

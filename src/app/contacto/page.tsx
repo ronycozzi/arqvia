@@ -1,8 +1,14 @@
 import { Clock3, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { QuoteForm } from "@/components/quote-form";
 import { TrackedAnchor } from "@/components/tracked-anchor";
+import { getPublicAreaLinks } from "@/lib/area-data";
+import { getPublicBlogPosts } from "@/lib/blog-data";
 import { getClientConfig } from "@/lib/client-config";
+import { resolveContactSource } from "@/lib/contact-source";
+import { localSeoPages } from "@/lib/local-seo";
+import { getPublicProjects } from "@/lib/project-data";
 import { createPageMetadata } from "@/lib/seo";
+import { getPublicServiceLinks } from "@/lib/service-data";
 import { buildWhatsAppUrl } from "@/lib/utils";
 
 export const generateMetadata = createPageMetadata({
@@ -18,9 +24,36 @@ type ContactPageProps = {
 
 export default async function ContactPage({ searchParams }: ContactPageProps) {
   const { origen } = await searchParams;
-  const config = await getClientConfig();
-  const sourcePage = getContactSourcePage(origen);
-  const sourceLabel = getContactSourceLabel(sourcePage);
+  const [config, projects, services, posts, areas] = await Promise.all([
+    getClientConfig(),
+    getPublicProjects(),
+    getPublicServiceLinks(),
+    getPublicBlogPosts(),
+    getPublicAreaLinks(),
+  ]);
+  const dynamicLabels = new Map<string, string>([
+    ...projects.map(
+      (project) =>
+        ["/proyectos/" + project.slug, "proyecto " + project.title] as const,
+    ),
+    ...services.map(
+      (service) =>
+        ["/servicios/" + service.slug, "servicio " + service.title] as const,
+    ),
+    ...posts.map(
+      (post) => ["/blog/" + post.slug, "guía " + post.title] as const,
+    ),
+    ...areas.map(
+      (area) => ["/zonas/" + area.slug, "zona " + area.name] as const,
+    ),
+    ...localSeoPages.map(
+      (page) => ["/" + page.slug, page.title] as const,
+    ),
+  ]);
+  const { label: sourceLabel, sourcePage } = resolveContactSource(
+    origen,
+    dynamicLabels,
+  );
 
   return (
     <>
@@ -92,44 +125,4 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
       </section>
     </>
   );
-}
-
-function getContactSourcePage(value?: string) {
-  const pathname = value?.split(/[?#]/, 1)[0] || "";
-
-  if (
-    pathname.startsWith("/") &&
-    !pathname.startsWith("//") &&
-    !pathname.startsWith("/admin") &&
-    /^\/(?:[a-z0-9-]+\/?)*$/i.test(pathname)
-  ) {
-    return pathname;
-  }
-
-  return "/contacto";
-}
-
-function getContactSourceLabel(sourcePage: string) {
-  if (sourcePage.startsWith("/proyectos/")) {
-    return `proyecto ${humanizeSlug(sourcePage.replace("/proyectos/", ""))}`;
-  }
-
-  if (sourcePage.startsWith("/servicios/")) {
-    return `servicio ${humanizeSlug(sourcePage.replace("/servicios/", ""))}`;
-  }
-
-  if (sourcePage !== "/contacto") {
-    return `consulta desde ${humanizeSlug(sourcePage.replace(/^\//, ""))}`;
-  }
-
-  return "";
-}
-
-function humanizeSlug(value: string) {
-  return value
-    .split(/[/?#]/)[0]
-    .split("-")
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
 }

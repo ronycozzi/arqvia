@@ -1,8 +1,10 @@
-import Image from "next/image";
+import { getImageProps } from "next/image";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import type { ReactNode } from "react";
+import { preload } from "react-dom";
 import type { PublicClientConfig } from "@/lib/client-config";
+import { imageKit } from "@/lib/content";
 import type { PublicProject } from "@/types/project";
 
 export function ArqviaArchitecturalHero({
@@ -19,20 +21,61 @@ export function ArqviaArchitecturalHero({
   trustItems: string[];
 }) {
   const project = featuredProject || null;
+  const mobileHeroImage =
+    config.heroImage === imageKit.hero ? imageKit.heroMobile : config.heroImage;
+  const commonImageProps = {
+    alt: imageAlt,
+    fetchPriority: "high" as const,
+    loading: "eager" as const,
+    sizes: "100vw",
+  };
+  const {
+    props: { src: desktopSrc, srcSet: desktopSrcSet },
+  } = getImageProps({
+    ...commonImageProps,
+    src: config.heroImage,
+    width: 3840,
+    height: 2160,
+    quality: 88,
+  });
+  const {
+    props: { srcSet: mobileSrcSet, ...mobileImageProps },
+  } = getImageProps({
+    ...commonImageProps,
+    src: mobileHeroImage,
+    width: 1122,
+    height: 1402,
+    quality: 75,
+  });
+
+  preload(desktopSrc, {
+    as: "image",
+    fetchPriority: "high",
+    imageSizes: "100vw",
+    imageSrcSet: desktopSrcSet,
+    media: "(min-width: 768px)",
+  });
+  preload(mobileImageProps.src, {
+    as: "image",
+    fetchPriority: "high",
+    imageSizes: "100vw",
+    imageSrcSet: mobileSrcSet,
+    media: "(max-width: 767px)",
+  });
 
   return (
     <section className="relative isolate min-h-[calc(92svh-80px)] overflow-hidden bg-[#0f100c] text-paper">
       <div className="absolute inset-0 z-0 scale-[1.01] motion-reduce:transform-none">
-        <Image
-          src={config.heroImage}
-          alt={imageAlt}
-          data-testid="hero-architectural-image"
-          fill
-          loading="eager"
-          fetchPriority="high"
-          sizes="100vw"
-          className="object-cover object-[60%_center] brightness-[1.14] contrast-[1.04] saturate-[0.96] md:object-[66%_center]"
-        />
+        <picture>
+          <source media="(min-width: 768px)" srcSet={desktopSrcSet} />
+          <img
+            {...mobileImageProps}
+            srcSet={mobileSrcSet}
+            alt={imageAlt}
+            data-testid="hero-architectural-image"
+            className="absolute inset-0 size-full object-cover object-[54%_center] brightness-[1.14] contrast-[1.04] saturate-[0.96] md:object-[66%_center]"
+          />
+        </picture>
       </div>
 
       <div className="absolute inset-0 z-10 bg-[linear-gradient(90deg,#0f100c_0%,rgba(15,16,12,0.93)_22%,rgba(15,16,12,0.48)_43%,rgba(15,16,12,0.06)_70%,rgba(15,16,12,0)_100%)] max-md:bg-[linear-gradient(90deg,rgba(15,16,12,0.92)_0%,rgba(15,16,12,0.76)_58%,rgba(15,16,12,0.48)_100%)]" />
@@ -118,7 +161,7 @@ export function ArqviaArchitecturalHero({
               <span>{project.areaM2} m²</span>
             </div>
             <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-bronze-light">
-              Proyecto destacado
+              Caso de estudio relacionado
             </p>
             <h2 className="font-serif text-3xl font-medium leading-tight text-paper">
               {project.title}

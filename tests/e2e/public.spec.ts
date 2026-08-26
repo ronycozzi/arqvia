@@ -266,6 +266,23 @@ test("mobile menu traps focus and closes accessibly", async ({ page }) => {
   await expect(menuButton).toBeFocused();
 });
 
+test("mobile menu remains fully usable on a short landscape viewport", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 640, height: 320 });
+  await page.goto("/");
+
+  await page.locator('button[aria-controls="mobile-site-menu"]').click();
+  const mobileMenu = page.getByRole("navigation", { name: "Mobile" });
+  const quoteLink = mobileMenu.getByRole("link", {
+    name: /solicitar presupuesto/i,
+  });
+
+  await quoteLink.scrollIntoViewIfNeeded();
+  await expect(quoteLink).toBeVisible();
+  await expect(quoteLink).toBeEnabled();
+});
+
 test("header identifies the active public section", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/proyectos/casa-patio-norte");
@@ -1492,6 +1509,35 @@ for (const path of publicPages) {
     );
 
     expect(hasOverflow).toBe(false);
+
+    const clippedControls = await page.evaluate(() => {
+      const viewportWidth = document.documentElement.clientWidth;
+      return Array.from(
+        document.querySelectorAll<HTMLElement>(
+          "a[href], button, input, select, textarea, [role='dialog']",
+        ),
+      )
+        .filter((element) => {
+          const style = window.getComputedStyle(element);
+          const rect = element.getBoundingClientRect();
+          return (
+            style.display !== "none" &&
+            style.visibility !== "hidden" &&
+            rect.width > 0 &&
+            rect.height > 0 &&
+            rect.bottom > 0 &&
+            rect.top < window.innerHeight
+          );
+        })
+        .filter((element) => {
+          if (element.closest("[data-horizontal-scroll='true']")) return false;
+          const rect = element.getBoundingClientRect();
+          return rect.left < -1 || rect.right > viewportWidth + 1;
+        })
+        .map((element) => element.outerHTML.slice(0, 180));
+    });
+
+    expect(clippedControls, path).toEqual([]);
   });
 }
 
@@ -1513,6 +1559,10 @@ for (const path of [
   "/estimador",
   "/faq",
   "/blog/anteproyecto-vs-proyecto-ejecutivo",
+  "/privacidad",
+  "/terminos",
+  "/cookies",
+  "/aviso-presupuestos",
 ]) {
   test(`axe accessibility scan: ${path}`, async ({ page }) => {
     await page.goto(path);

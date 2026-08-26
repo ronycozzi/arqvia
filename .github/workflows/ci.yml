@@ -38,8 +38,7 @@ jobs:
       NEXT_PUBLIC_SITE_URL: http://localhost:3100
       NEXT_PUBLIC_WHATSAPP_NUMBER: ""
       NEXT_PUBLIC_WHATSAPP_MESSAGE: "Hola, quiero consultar por un proyecto."
-      ADMIN_EMAIL: admin@arqvia.local
-      ADMIN_PASSWORD: ChangeMe123!
+      RATE_LIMIT_STORE: database
       POSTGRES_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/arqvia_ci?schema=public
     steps:
       - name: Checkout
@@ -79,6 +78,9 @@ jobs:
 
       - name: Seed database
         run: npm run db:seed
+        env:
+          ADMIN_EMAIL: admin@arqvia.local
+          ADMIN_PASSWORD: ChangeMe123!
 
       - name: Verify content integrity
         run: npm run content:check
@@ -137,6 +139,7 @@ jobs:
           NEXT_PUBLIC_SITE_URL: https://arqvia.example.com
           NEXT_PUBLIC_WHATSAPP_NUMBER: "5493517778899"
           ARQVIA_STRICT_PUBLIC_URL: "true"
+          RATE_LIMIT_STORE: "database"
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
@@ -169,7 +172,7 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_DB: arqvia
+          POSTGRES_DB: arqvia_test
           POSTGRES_PASSWORD: arqvia
           POSTGRES_USER: arqvia
         ports:
@@ -180,7 +183,7 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
-      DATABASE_URL: postgresql://arqvia:arqvia@localhost:5432/arqvia
+      DATABASE_URL: postgresql://arqvia:arqvia@localhost:5432/arqvia_test
       AUTH_SECRET: ci-postgres-secret-with-more-than-32-characters
       AUTH_URL: http://localhost:3200
       NEXT_PUBLIC_SITE_URL: http://localhost:3200

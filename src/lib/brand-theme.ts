@@ -24,12 +24,14 @@ const bodyFonts: Record<string, string> = {
 
 export const brandHeadingFontOptions = [
   "Newsreader",
-  "Cormorant Garamond",
   "Georgia",
   "Times New Roman",
 ] as const;
 
-export const brandBodyFontOptions = ["Manrope", "Inter", "System UI", "Arial"] as const;
+export const brandBodyFontOptions = ["Manrope", "System UI", "Arial"] as const;
+
+export const legacyBrandHeadingFontOptions = ["Cormorant Garamond"] as const;
+export const legacyBrandBodyFontOptions = ["Inter"] as const;
 
 function normalizeHex(value: string, fallback: string) {
   const clean = value.trim();

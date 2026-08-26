@@ -9,14 +9,25 @@ const content: ReleaseContentSnapshot = {
   faqs: 5,
   homeContents: 1,
   institutionalPages: 2,
+  leadIdentityBacklog: 0,
+  privateObjectDeletionBacklog: 0,
+  privacyErasureBacklog: 0,
   localMedia: 0,
+  legalLatestUpdatedAt: "2026-06-30T12:00:00.000Z",
   legalPages: 4,
+  legalPageSlugs: [
+    "aviso-presupuestos",
+    "cookies",
+    "privacidad",
+    "terminos",
+  ],
   projects: 3,
   publicMedia: 18,
   seedMedia: 0,
   services: 4,
   teamMembers: 1,
   testimonials: 1,
+  technicalVisitBacklog: 0,
   unapprovedPublicMedia: 0,
   untrackedPublicMedia: 0,
 };
@@ -38,6 +49,12 @@ const approvalEnv = {
   ARQVIA_PWA_APPROVED_BY: "QA mobile",
   ARQVIA_STORAGE_APPROVED_AT: "2026-07-01T12:00:00.000Z",
   ARQVIA_STORAGE_APPROVED_BY: "Operaciones de medios",
+  DATA_RETENTION_CRON_SECRET: "",
+  LEAD_RETENTION_BATCH_SIZE: "25",
+  LEAD_RETENTION_DAYS: "730",
+  LEAD_RETENTION_ENABLED: "false",
+  PRIVATE_OBJECT_DELETION_CRON_SECRET:
+    "private-object-deletion-worker-secret-2026",
 };
 
 describe("release gate", () => {
@@ -80,6 +97,8 @@ describe("release gate", () => {
         NEXT_PUBLIC_ANALYTICS_PROVIDER: "ga4",
         NEXT_PUBLIC_SITE_URL: "https://arqvia.com.ar",
         NEXT_PUBLIC_WHATSAPP_NUMBER: "5493517778899",
+        PRIVATE_OBJECT_DELETION_CRON_SECRET:
+          "private-object-deletion-worker-secret-2026",
         RATE_LIMIT_STORE: "database",
         S3_ACCESS_KEY_ID: "access-key",
         S3_BUCKET: "arqvia-media",
@@ -123,6 +142,32 @@ describe("release gate", () => {
     expect(result.failed.map((item) => item.id)).toContain("RG-LEGAL-001");
   });
 
+  it("blocks release when a required legal slug is missing or changed after approval", () => {
+    const wrongSlug = buildReleaseGate({
+      config: fallbackClientConfig,
+      content: {
+        ...content,
+        legalPageSlugs: ["cookies", "privacidad", "terminos", "otro"],
+      },
+      env: approvalEnv,
+      estimator: { enabled: false, version: 1 },
+    });
+    const staleApproval = buildReleaseGate({
+      config: fallbackClientConfig,
+      content: {
+        ...content,
+        legalLatestUpdatedAt: "2026-07-02T12:00:00.000Z",
+      },
+      env: approvalEnv,
+      estimator: { enabled: false, version: 1 },
+    });
+
+    expect(wrongSlug.failed.map((item) => item.id)).toContain("RG-LEGAL-001");
+    expect(staleApproval.failed.map((item) => item.id)).toContain(
+      "RG-LEGAL-001",
+    );
+  });
+
   it("blocks release when the governed home content is missing", () => {
     const result = buildReleaseGate({
       config: fallbackClientConfig,
@@ -143,6 +188,23 @@ describe("release gate", () => {
     });
 
     expect(result.failed.map((item) => item.id)).toContain("RG-CONTENT-001");
+  });
+
+  it("blocks release while required production backfills are incomplete", () => {
+    const result = buildReleaseGate({
+      config: fallbackClientConfig,
+      content: {
+        ...content,
+        leadIdentityBacklog: 2,
+        privateObjectDeletionBacklog: 1,
+        privacyErasureBacklog: 1,
+        technicalVisitBacklog: 1,
+      },
+      env: approvalEnv,
+      estimator: { enabled: false, version: 1 },
+    });
+
+    expect(result.failed.map((item) => item.id)).toContain("RG-DATA-001");
   });
 
   it("blocks an untracked public media reference even when approvals are otherwise complete", () => {
@@ -197,13 +259,22 @@ describe("release gate", () => {
       content,
       estimator: { enabled: false, version: 1 },
     };
+    const explicitRetention = {
+      LEAD_RETENTION_BATCH_SIZE: "25",
+      LEAD_RETENTION_DAYS: "730",
+    };
     const disabled = buildReleaseGate({
       ...baseInput,
-      env: { LEAD_RETENTION_ENABLED: "false" },
+      env: {
+        ...explicitRetention,
+        DATA_RETENTION_CRON_SECRET: "",
+        LEAD_RETENTION_ENABLED: "false",
+      },
     });
     const enabledWithoutApproval = buildReleaseGate({
       ...baseInput,
       env: {
+        ...explicitRetention,
         DATA_RETENTION_CRON_SECRET: "a-strong-retention-secret-with-32-characters",
         LEAD_RETENTION_ENABLED: "true",
       },
@@ -211,6 +282,7 @@ describe("release gate", () => {
     const enabledAndApproved = buildReleaseGate({
       ...baseInput,
       env: {
+        ...explicitRetention,
         ARQVIA_RETENTION_APPROVED_AT: "2026-07-01T12:00:00.000Z",
         ARQVIA_RETENTION_APPROVED_BY: "Asesoria legal",
         DATA_RETENTION_CRON_SECRET: "a-strong-retention-secret-with-32-characters",

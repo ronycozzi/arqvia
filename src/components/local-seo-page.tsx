@@ -10,6 +10,7 @@ import {
   processSteps,
 } from "@/lib/content";
 import type { LocalSeoPage } from "@/lib/local-seo";
+import { projectMatchesLocalService } from "@/lib/local-proof";
 import { getPublicProjects } from "@/lib/project-data";
 import { getPublicServices } from "@/lib/service-data";
 import { siteConfig } from "@/lib/site-config";
@@ -24,26 +25,22 @@ export async function LocalSeoPage({ page }: { page: LocalSeoPage }) {
   ]);
   const relatedService = services.find((service) => service.title === page.service);
   const relatedProjects = projects
-    .filter((project) => {
-      const serviceMatches = relatedService
-        ? project.serviceSlug === relatedService.slug ||
-          project.servicePerformed.toLowerCase().includes(page.service.toLowerCase())
-        : true;
-      const locationMatches =
-        page.area === "Córdoba" ||
-        project.location.toLocaleLowerCase("es-AR").includes(
-          page.area.toLocaleLowerCase("es-AR"),
-        );
-      return serviceMatches && locationMatches;
-    })
+    .filter((project) =>
+      projectMatchesLocalService({
+        area: page.area,
+        location: project.location,
+        projectServiceSlug: project.serviceSlug,
+        serviceSlug: relatedService?.slug || null,
+      }),
+    )
     .slice(0, 3);
   const fallbackProjects = relatedProjects;
   const intent = getLocalIntent(page);
   const contactHref = buildContactHref(`/${page.slug}`);
-  const publicAreaServed = workAreas.map((area) => ({
+  const publicAreaServed = [{
     "@type": "AdministrativeArea",
-    name: area.name,
-  }));
+    name: page.area,
+  }];
 
   return (
     <>

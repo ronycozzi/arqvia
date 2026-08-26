@@ -142,10 +142,10 @@ export function GalleryLightbox({
               fill
               sizes={
                 galleryImages.length === 2
-                  ? "(min-width: 768px) 50vw, 100vw"
-                  : "(min-width: 768px) 33vw, 100vw"
+                  ? "(min-width: 1280px) 600px, (min-width: 768px) calc(50vw - 40px), calc(100vw - 40px)"
+                  : "(min-width: 1280px) 400px, (min-width: 768px) calc(33vw - 32px), calc(100vw - 40px)"
               }
-              className="object-cover transition duration-500 group-hover:scale-105"
+              className="object-cover transition duration-500 group-hover:scale-105 motion-reduce:transform-none motion-reduce:transition-none"
             />
             {item.caption || item.type ? (
               <span className="absolute inset-x-0 bottom-0 bg-ink/72 px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-paper opacity-0 transition duration-300 group-hover:opacity-100 group-focus-visible:opacity-100">

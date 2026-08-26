@@ -654,18 +654,19 @@ Pasos:
 3. Configurar variables de entorno en hosting.
 4. Definir `NEXT_PUBLIC_SITE_URL` con el dominio publico final.
 5. Activar `ARQVIA_STRICT_PUBLIC_URL=true` para evitar sitemap/canonical de desarrollo.
-6. Mantener `LEAD_AUTOMATION_ENABLED=false` hasta configurar y validar los dos secretos, la URL HTTPS y el cron protegido; después de verificar el outbox, `LEAD_AUTOMATION_CAPTURE_ENABLED=true` permite conservar eventos durante esa pausa.
-7. Ejecutar `npm run db:postgres:deploy`.
-8. Cargar contenido.
-9. Completar las aprobaciones de `.env.example` y ejecutar `npm run release:check`. El procedimiento y cada bloqueo están en `docs/RELEASE_GATE.md`.
-10. Probar manifest, instalación y fallback offline sobre HTTPS según `docs/PWA.md`.
-11. Build con cliente PostgreSQL:
+6. En previews automatizados de Vercel, definir `VERCEL_PREVIEW_FEEDBACK_ENABLED=0` sólo para Preview para evitar que la Toolbar externa altere CSP y mediciones.
+7. Mantener `LEAD_AUTOMATION_ENABLED=false` hasta configurar y validar los dos secretos, la URL HTTPS y el cron protegido; después de verificar el outbox, `LEAD_AUTOMATION_CAPTURE_ENABLED=true` permite conservar eventos durante esa pausa.
+8. Ejecutar `npm run db:postgres:deploy`.
+9. Cargar contenido.
+10. Completar las aprobaciones de `.env.example` y ejecutar `npm run release:check`. El procedimiento y cada bloqueo están en `docs/RELEASE_GATE.md`.
+11. Probar manifest, instalación y fallback offline sobre HTTPS según `docs/PWA.md`.
+12. Build con cliente PostgreSQL:
 
 ```bash
 npm run build:postgres
 ```
 
-12. Start:
+13. Start:
 
 ```bash
 npm run start
@@ -696,6 +697,7 @@ aprobaciones de contenido, derechos visuales y revisión legal.
 - `npm run release:check`: BLOCKED por 11 controles únicos externos pendientes. El comando completó tanto ambiente como contenido y operación: dominio, secretos/bootstrap final, contacto real, PostgreSQL, S3, analítica, antiabuso distribuido, contenido, derechos individuales de medios, publicación y aprobación legal, y evidencia operativa. El estimador deshabilitado y las automatizaciones en modo captura segura pasan sus controles.
 - Retención programada: `NOT ENABLED`. El código y las pruebas están completos, pero faltan política legal, aprobación, scheduler y ensayo monitoreado en staging.
 - Lighthouse local sobre el build final: desktop 99 Performance y 100 en Accessibility, Best Practices y SEO; móvil, mediana de tres corridas, 85 Performance y 100 en las otras tres categorías. En móvil se midieron FCP 1,25 s, LCP 4,22 s, TBT 121 ms y CLS 0 bajo throttling simulado.
+- Lighthouse móvil sobre el preview HTTPS: Performance 87, Accessibility 100, Best Practices 100 y SEO 100; FCP 1,1 s, LCP 3,4 s, TBT 270 ms y CLS 0.
 - Preview técnico: `https://arqvia-preview.vercel.app`. Producción comercial: `NOT DEPLOYED` por los bloqueos explícitos del release gate.
 - Informe detallado de esta pasada: `docs/INTEGRAL_AUDIT_2026-08-26.md`.
 

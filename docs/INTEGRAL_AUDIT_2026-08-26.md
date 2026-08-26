@@ -82,6 +82,9 @@ Superficies verificadas:
   SEO 100.
 - Lighthouse móvil, mediana de tres corridas: Performance 85, Accessibility
   100, Best Practices 100, SEO 100; FCP 1,25 s, LCP 4,22 s, TBT 121 ms, CLS 0.
+- Lighthouse móvil sobre el preview HTTPS, sin la Toolbar externa de Vercel:
+  Performance 87, Accessibility 100, Best Practices 100, SEO 100; FCP 1,1 s,
+  LCP 3,4 s, TBT 270 ms, CLS 0.
 - Restore SQLite: integridad, checksum, tablas y conteos, PASS.
 - Schema PostgreSQL generado y validado, sin migración productiva aplicada.
 

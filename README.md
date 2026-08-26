@@ -438,6 +438,7 @@ npm run db:verify-restore:sqlite
 npm run db:cleanup:rate-limits
 npm run build:postgres
 npm run build:release
+npm run build:vercel
 npm run db:push
 npm run db:init
 npm run db:seed
@@ -664,7 +665,9 @@ Pasos:
 9. Cargar contenido.
 10. Completar las aprobaciones de `.env.example`; declarar explícitamente las cuatro variables `LEAD_RETENTION_*`/`DATA_RETENTION_CRON_SECRET`; y ejecutar `npm run release:check`. El procedimiento y cada bloqueo están en `docs/RELEASE_GATE.md`.
 11. Probar manifest, instalación y fallback offline sobre HTTPS según `docs/PWA.md`.
-12. Build productivo obligatorio, ligado al SHA y al estado aprobado de PostgreSQL:
+12. Vercel usa `npm run build:vercel`: los previews ejecutan el build PostgreSQL
+    técnico y el destino Production deriva obligatoriamente a `build:release`.
+    El build productivo queda ligado al SHA y al estado aprobado de PostgreSQL:
 
 ```bash
 npm run build:release

@@ -42,6 +42,7 @@
     "db:postgres:deploy": "npm run db:postgres:generate && prisma migrate deploy --schema prisma/postgresql/schema.prisma && npm run db:backfill:activity && npm run db:backfill:leads && npm run db:backfill:visits",
     "build:postgres": "npm run db:postgres:generate && npm run content:check && next build",
     "build:release": "tsx scripts/build-production-release.ts",
+    "build:vercel": "tsx scripts/build-vercel.ts",
     "db:push": "prisma db push",
     "db:init": "node scripts/init-sqlite.mjs",
     "db:seed": "prisma db seed",

@@ -106,16 +106,28 @@ jobs:
 
       - name: Audit public routes and metadata
         run: |
-          npm run start -- -p 3100 > /tmp/arqvia-public-audit.log 2>&1 &
+          setsid npm run start -- -p 3100 > /tmp/arqvia-public-audit.log 2>&1 &
           SERVER_PID=$!
-          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          cleanup() {
+            kill -- -"$SERVER_PID" 2>/dev/null || true
+            wait "$SERVER_PID" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+          READY=false
           for attempt in {1..30}; do
             if curl --fail --silent http://localhost:3100/api/ready > /dev/null; then
+              READY=true
               break
             fi
             sleep 1
           done
+          if [ "$READY" != "true" ]; then
+            cat /tmp/arqvia-public-audit.log
+            exit 1
+          fi
           npm run audit:public -- --url http://localhost:3100
+          cleanup
+          trap - EXIT
 
       - name: Strict public configuration build with SQLite fixture
         run: npm run build
@@ -140,6 +152,7 @@ jobs:
 
       - name: Upload Playwright evidence
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report

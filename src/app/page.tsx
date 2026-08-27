@@ -3,6 +3,7 @@ import { CheckCircle2, MessageCircle, MoveUpRight } from "lucide-react";
 import { BeforeAfter } from "@/components/before-after";
 import { ArqviaArchitecturalHero } from "@/components/hero/arqvia-architectural-hero";
 import { JsonLd } from "@/components/json-ld";
+import { MetricCounter } from "@/components/metric-counter";
 import { ProjectCard } from "@/components/project-card";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { SectionHeading } from "@/components/section-heading";
@@ -210,8 +211,8 @@ export default async function Home() {
               delay={index * 60}
               className="bg-graphite-soft py-6 md:px-6 md:py-8"
             >
-              <p className="font-serif text-3xl text-bronze-light md:text-4xl">
-                {metric.value}
+              <p className="font-serif text-3xl tabular-nums text-bronze-light md:text-4xl">
+                <MetricCounter value={metric.value} delay={index * 55} />
               </p>
               <p className="mt-1 text-xs font-semibold text-paper/78 md:text-sm">
                 {metric.label}

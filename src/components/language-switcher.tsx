@@ -79,7 +79,7 @@ export function LanguageSwitcher({
               onClick={() => selectLocale(option)}
               disabled={pending}
               className={cn(
-                "grid min-h-9 min-w-11 place-items-center px-2 text-xs font-bold transition duration-200",
+                "grid min-h-11 min-w-11 place-items-center px-2 text-xs font-bold transition duration-200",
                 pending && "cursor-wait opacity-60",
                 active
                   ? dark

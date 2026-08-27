@@ -89,11 +89,11 @@ export default async function EstimatorPage() {
       {config.enabled && rules.length ? (
         <InvestmentEstimator config={config} rules={rules} />
       ) : (
-        <section className="border border-ink/10 bg-paper p-7 shadow-premium md:p-12">
+        <section className="border border-ink/10 bg-paper p-5 shadow-premium sm:p-7 md:p-12">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-bronze">
             Evaluación personalizada
           </p>
-          <h1 className="mt-3 max-w-3xl font-serif text-5xl leading-tight text-ink md:text-7xl">
+          <h1 className="mt-3 max-w-3xl font-serif text-4xl leading-tight text-ink sm:text-5xl md:text-6xl lg:text-7xl">
             Cada proyecto necesita un alcance antes de estimar.
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-ink/72">

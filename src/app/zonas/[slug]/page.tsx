@@ -117,7 +117,7 @@ export default async function AreaPage({ params }: PageProps) {
       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-bronze">
         Zona de trabajo
       </p>
-      <h1 className="mt-4 max-w-4xl font-serif text-5xl leading-tight text-ink md:text-7xl">
+      <h1 className="mt-4 max-w-4xl font-serif text-4xl leading-tight text-ink sm:text-5xl md:text-6xl lg:text-7xl">
         Arquitectura, construcción y remodelaciones en {area.name}.
       </h1>
       <p className="mt-6 max-w-3xl text-lg leading-8 text-ink/75">

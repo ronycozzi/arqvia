@@ -139,6 +139,10 @@ img {
   max-width: 100%;
 }
 
+.touch-scroll-row::-webkit-scrollbar {
+  display: none;
+}
+
 button,
 a,
 input,
@@ -243,6 +247,7 @@ textarea {
   appearance: none;
   background: transparent;
   opacity: 0;
+  touch-action: pan-y;
 }
 
 .before-after-range::-webkit-slider-runnable-track {
@@ -509,7 +514,8 @@ textarea {
 }
 
 .image-sheen:hover .before-after-handle,
-.image-sheen:focus-within .before-after-handle {
+.image-sheen:focus-within .before-after-handle,
+.image-sheen[data-dragging="true"] .before-after-handle {
   color: var(--paper);
   background: var(--bronze);
   transform: translate(-50%, -50%) scale(1.06);

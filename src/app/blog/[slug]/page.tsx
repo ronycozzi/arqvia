@@ -141,7 +141,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-bronze">
             {post.category}
           </p>
-          <h1 className="mt-4 font-serif text-5xl leading-tight md:text-7xl">
+          <h1 className="mt-4 font-serif text-4xl leading-tight sm:text-5xl md:text-6xl lg:text-7xl">
             {post.title}
           </h1>
           <p className="mt-5 text-lg leading-8 text-paper/72">{post.excerpt}</p>

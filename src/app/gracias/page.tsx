@@ -38,7 +38,7 @@ export default async function ThankYouPage() {
           <span className="inline-grid size-16 place-items-center border border-bronze/30 bg-paper text-bronze">
             <CheckCircle2 className="size-8" />
           </span>
-          <h1 className="mt-6 max-w-2xl font-serif text-5xl leading-tight text-ink md:text-7xl">
+          <h1 className="mt-6 max-w-2xl font-serif text-4xl leading-tight text-ink sm:text-5xl md:text-6xl lg:text-7xl">
             Gracias, recibimos tu consulta.
           </h1>
           <p className="mt-5 text-lg leading-8 text-ink/75">

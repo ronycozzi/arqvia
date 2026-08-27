@@ -1344,6 +1344,146 @@ test("before after labels and drag handle remain visually separated", async ({ p
   expect(rangeBox!.width).toBeGreaterThan(handleBox!.width * 4);
 });
 
+test("before after accepts an imprecise mobile touch drag across the visible handle", async ({
+  context,
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+
+  const range = page.getByTestId("before-after-range");
+  const handle = page.getByTestId("before-after-handle");
+  await range.scrollIntoViewIfNeeded();
+
+  const rangeBox = await range.boundingBox();
+  const handleBox = await handle.boundingBox();
+  expect(rangeBox).not.toBeNull();
+  expect(handleBox).not.toBeNull();
+
+  const initialValue = Number(await range.inputValue());
+  const startX = handleBox!.x + 4;
+  const y = handleBox!.y + handleBox!.height / 2;
+  const endX = rangeBox!.x + rangeBox!.width * 0.78;
+  const session = await context.newCDPSession(page);
+
+  await session.send("Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: [{ id: 1, x: startX, y, radiusX: 10, radiusY: 10 }],
+  });
+  for (let step = 1; step <= 5; step += 1) {
+    await session.send("Input.dispatchTouchEvent", {
+      type: "touchMove",
+      touchPoints: [
+        {
+          id: 1,
+          x: startX + ((endX - startX) * step) / 5,
+          y,
+          radiusX: 10,
+          radiusY: 10,
+        },
+      ],
+    });
+  }
+  await session.send("Input.dispatchTouchEvent", {
+    type: "touchEnd",
+    touchPoints: [],
+  });
+
+  await expect.poll(async () => Number(await range.inputValue())).toBeGreaterThan(
+    initialValue + 12,
+  );
+  await expect(handle).toHaveCSS("width", "48px");
+  await expect(handle).toHaveCSS("height", "48px");
+});
+
+test("project gallery supports horizontal swipe on mobile", async ({
+  context,
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/proyectos/casa-patio-norte");
+  await page.getByRole("button", { name: /abrir imagen 1 de 2/i }).click();
+
+  const dialog = page.getByRole("dialog", { name: /galer.a de casa patio norte/i });
+  const activeImage = page.getByTestId("gallery-active-image");
+  await expect(dialog.getByText("1 / 2")).toBeVisible();
+  const imageBox = await activeImage.boundingBox();
+  expect(imageBox).not.toBeNull();
+
+  const y = imageBox!.y + imageBox!.height / 2;
+  const startX = imageBox!.x + imageBox!.width * 0.78;
+  const endX = imageBox!.x + imageBox!.width * 0.22;
+  const session = await context.newCDPSession(page);
+  await session.send("Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: [{ id: 2, x: startX, y, radiusX: 10, radiusY: 10 }],
+  });
+  await session.send("Input.dispatchTouchEvent", {
+    type: "touchMove",
+    touchPoints: [{ id: 2, x: endX, y, radiusX: 10, radiusY: 10 }],
+  });
+  await session.send("Input.dispatchTouchEvent", {
+    type: "touchEnd",
+    touchPoints: [],
+  });
+
+  await expect(dialog.getByText("2 / 2")).toBeVisible();
+});
+
+test("mobile typography, language controls and tablet footer keep usable proportions", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 844 });
+
+  for (const path of [
+    "/",
+    "/blog",
+    "/nosotros",
+    "/estimador",
+    "/zonas/cordoba-capital",
+  ]) {
+    await page.goto(path);
+    const fontSize = await page
+      .locator("h1")
+      .evaluate((heading) => Number.parseFloat(getComputedStyle(heading).fontSize));
+    expect(fontSize, path).toBeLessThanOrEqual(42);
+  }
+
+  const localeButtons = page.locator("footer [data-locale-option]");
+  await localeButtons.first().scrollIntoViewIfNeeded();
+  for (const button of await localeButtons.all()) {
+    const box = await button.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.width).toBeGreaterThanOrEqual(44);
+    expect(box!.height).toBeGreaterThanOrEqual(44);
+  }
+
+  await page.setViewportSize({ width: 768, height: 1024 });
+  await page.goto("/");
+  const tabletFooterGroup = page
+    .locator('[data-footer-group="Servicios"]')
+    .locator("details");
+  await expect(tabletFooterGroup).toBeVisible();
+});
+
+test("active project filter is brought into view on narrow screens", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.goto("/proyectos?categoria=Residencial");
+
+  const activeFilter = page
+    .getByTestId("project-filters")
+    .getByRole("link", { name: "Residencial", exact: true });
+  await expect(activeFilter).toHaveAttribute("aria-current", "page");
+  await expect
+    .poll(async () => {
+      const box = await activeFilter.boundingBox();
+      return box ? box.x >= 0 && box.x + box.width <= 320 : false;
+    })
+    .toBe(true);
+});
+
 test("project portfolio covers load visible architectural images", async ({ page }) => {
   await page.goto("/proyectos");
 

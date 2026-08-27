@@ -95,11 +95,11 @@ export async function LocalSeoPage({ page }: { page: LocalSeoPage }) {
           })),
         }}
       />
-      <section className="mx-auto max-w-7xl px-5 py-16 md:px-8">
+      <section className="mx-auto max-w-7xl px-5 py-12 md:px-8 md:py-16">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-bronze">
           Córdoba, Argentina
         </p>
-        <h1 className="mt-4 max-w-4xl font-serif text-5xl leading-tight text-ink md:text-7xl">
+        <h1 className="mt-4 max-w-4xl font-serif text-4xl leading-tight text-ink sm:text-5xl md:text-6xl lg:text-7xl">
           {page.title}
         </h1>
         <p className="mt-6 max-w-3xl text-lg leading-8 text-ink/75">
@@ -134,7 +134,8 @@ export async function LocalSeoPage({ page }: { page: LocalSeoPage }) {
                   fill
                   sizes="(min-width: 1024px) 58vw, 100vw"
                   className="object-cover opacity-90 transition duration-700 group-hover:scale-[1.035]"
-                  preload
+                  fetchPriority="high"
+                  loading="eager"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/20 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-5 md:p-7">

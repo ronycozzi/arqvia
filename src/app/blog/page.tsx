@@ -16,11 +16,11 @@ export default async function BlogPage() {
   const blogPosts = await getPublicBlogPosts();
 
   return (
-    <section className="mx-auto max-w-7xl px-5 py-16 md:px-8">
+    <section className="mx-auto max-w-7xl px-5 py-12 md:px-8 md:py-16">
       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-bronze">
         Blog
       </p>
-      <h1 className="mt-4 max-w-4xl font-serif text-5xl leading-tight text-ink md:text-7xl">
+      <h1 className="mt-4 max-w-4xl font-serif text-4xl leading-tight text-ink sm:text-5xl md:text-6xl lg:text-7xl">
         Guías para ordenar decisiones antes de diseñar, construir o remodelar.
       </h1>
       <p className="mt-5 max-w-3xl text-lg leading-8 text-ink/75">

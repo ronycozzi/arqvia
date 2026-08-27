@@ -129,18 +129,18 @@ export function SiteHeader({
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 md:px-8">
         <Link
           href="/"
-          className="group flex items-center gap-3"
+          className="group flex min-w-0 items-center gap-3"
         >
           <BrandMark
             companyName={config.companyName}
             logoUrl={config.logoUrl}
             className="transition duration-300 group-hover:border-bronze-light group-hover:bg-bronze/22"
           />
-          <span>
+          <span className="min-w-0">
             <span className="block font-serif text-2xl leading-none text-paper">
               {config.companyName}
             </span>
-            <span className="text-[11px] uppercase tracking-[0.18em] text-paper/68">
+            <span className="hidden text-[11px] uppercase tracking-[0.18em] text-paper/68 min-[360px]:block">
               {siteConfig.tagline}
             </span>
           </span>

@@ -2,7 +2,13 @@
 
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  type PointerEvent as ReactPointerEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { cn } from "@/lib/utils";
 import type { PublicProjectImage } from "@/types/project";
 
@@ -35,6 +41,11 @@ export function GalleryLightbox({
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const lastTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const swipeStartRef = useRef<{
+    pointerId: number;
+    x: number;
+    y: number;
+  } | null>(null);
   const galleryImages = images.map((image, index) =>
     getImageData(image, title, index),
   );
@@ -61,6 +72,42 @@ export function GalleryLightbox({
       current === null ? null : (current + 1) % galleryImages.length,
     );
   }, [galleryImages.length]);
+
+  function handleSwipeStart(event: ReactPointerEvent<HTMLDivElement>) {
+    if (!hasMultipleImages || event.pointerType === "mouse") return;
+
+    swipeStartRef.current = {
+      pointerId: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function handleSwipeEnd(event: ReactPointerEvent<HTMLDivElement>) {
+    const start = swipeStartRef.current;
+    if (!start || start.pointerId !== event.pointerId) return;
+
+    const deltaX = event.clientX - start.x;
+    const deltaY = event.clientY - start.y;
+    swipeStartRef.current = null;
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    if (Math.abs(deltaX) < 48 || Math.abs(deltaX) <= Math.abs(deltaY) * 1.15) {
+      return;
+    }
+
+    if (deltaX > 0) showPrevious();
+    else showNext();
+  }
+
+  function handleSwipeCancel(event: ReactPointerEvent<HTMLDivElement>) {
+    if (swipeStartRef.current?.pointerId !== event.pointerId) return;
+    swipeStartRef.current = null;
+  }
 
   useEffect(() => {
     if (!isOpen) return;
@@ -158,7 +205,7 @@ export function GalleryLightbox({
 
       {active ? (
         <div
-          className="fixed inset-0 z-[80] grid place-items-center bg-ink/90 p-4"
+          className="fixed inset-0 z-[80] grid place-items-center bg-ink p-3 sm:p-4 md:bg-ink/96"
           role="dialog"
           aria-modal="true"
           aria-labelledby="gallery-lightbox-title"
@@ -174,7 +221,7 @@ export function GalleryLightbox({
             ref={closeButtonRef}
             type="button"
             onClick={() => setActiveIndex(null)}
-            className="absolute right-4 top-4 z-10 grid size-11 place-items-center border border-paper/20 bg-paper text-ink shadow-premium transition hover:bg-bronze hover:text-paper focus:outline-none focus:ring-2 focus:ring-bronze md:right-6 md:top-6"
+            className="absolute right-4 top-[calc(1rem+env(safe-area-inset-top))] z-10 grid size-11 place-items-center border border-paper/20 bg-paper text-ink shadow-premium transition hover:bg-bronze hover:text-paper focus:outline-none focus:ring-2 focus:ring-bronze md:right-6 md:top-6"
             aria-label="Cerrar galería"
             title="Cerrar galería"
           >
@@ -184,19 +231,26 @@ export function GalleryLightbox({
             <button
               type="button"
               onClick={showPrevious}
-              className="absolute bottom-5 left-4 z-10 grid size-11 place-items-center border border-paper/20 bg-ink/70 text-paper backdrop-blur transition hover:border-bronze hover:bg-bronze focus:outline-none focus:ring-2 focus:ring-bronze md:bottom-auto md:left-6 md:top-1/2 md:-translate-y-1/2"
+              className="absolute bottom-[calc(1.25rem+env(safe-area-inset-bottom))] left-4 z-10 grid size-11 place-items-center border border-paper/20 bg-ink/82 text-paper backdrop-blur transition hover:border-bronze hover:bg-bronze focus:outline-none focus:ring-2 focus:ring-bronze md:bottom-auto md:left-6 md:top-1/2 md:-translate-y-1/2"
               aria-label="Ver imagen anterior"
               title="Imagen anterior"
             >
               <ChevronLeft className="size-6" aria-hidden="true" />
             </button>
           ) : null}
-          <div className="relative h-[76vh] w-full max-w-6xl">
+          <div
+            className="relative h-[calc(100dvh-7rem)] w-full max-w-6xl touch-pan-y select-none bg-ink md:h-[76dvh]"
+            data-testid="gallery-active-image"
+            onPointerDown={handleSwipeStart}
+            onPointerUp={handleSwipeEnd}
+            onPointerCancel={handleSwipeCancel}
+          >
             <Image
               src={active.url}
               alt={active.altText}
               fill
               sizes="100vw"
+              draggable={false}
               className="object-contain"
             />
             {active.caption ? (
@@ -209,7 +263,7 @@ export function GalleryLightbox({
             ) : null}
           </div>
           <p
-            className="absolute left-4 top-4 border border-paper/15 bg-ink/70 px-3 py-2 text-xs font-semibold tabular-nums text-paper backdrop-blur md:left-6 md:top-6"
+            className="absolute left-4 top-[calc(1rem+env(safe-area-inset-top))] border border-paper/15 bg-ink/82 px-3 py-2 text-xs font-semibold tabular-nums text-paper backdrop-blur md:left-6 md:top-6"
             aria-live="polite"
           >
             {(activeIndex ?? 0) + 1} / {galleryImages.length}
@@ -218,7 +272,7 @@ export function GalleryLightbox({
             <button
               type="button"
               onClick={showNext}
-              className="absolute bottom-5 right-4 z-10 grid size-11 place-items-center border border-paper/20 bg-ink/70 text-paper backdrop-blur transition hover:border-bronze hover:bg-bronze focus:outline-none focus:ring-2 focus:ring-bronze md:bottom-auto md:right-6 md:top-1/2 md:-translate-y-1/2"
+              className="absolute bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-4 z-10 grid size-11 place-items-center border border-paper/20 bg-ink/82 text-paper backdrop-blur transition hover:border-bronze hover:bg-bronze focus:outline-none focus:ring-2 focus:ring-bronze md:bottom-auto md:right-6 md:top-1/2 md:-translate-y-1/2"
               aria-label="Ver imagen siguiente"
               title="Imagen siguiente"
             >

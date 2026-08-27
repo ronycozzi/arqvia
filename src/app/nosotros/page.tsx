@@ -37,12 +37,12 @@ export default async function AboutPage() {
   return (
     <>
       <section className="bg-paper">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 md:px-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-end">
+        <div className="mx-auto grid max-w-7xl gap-8 px-5 py-12 md:px-8 md:py-16 lg:grid-cols-[0.85fr_1.15fr] lg:items-end">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-bronze">
               {page.eyebrow}
             </p>
-            <h1 className="mt-4 font-serif text-5xl leading-tight text-ink md:text-7xl">
+            <h1 className="mt-4 font-serif text-4xl leading-tight text-ink sm:text-5xl md:text-6xl lg:text-7xl">
               {page.title}
             </h1>
           </div>
@@ -52,7 +52,7 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-16 md:px-8">
+      <section className="mx-auto max-w-7xl px-5 py-12 md:px-8 md:py-16">
         <div className="grid gap-5 md:grid-cols-4">
           {homeContent.trustMetrics.map((metric) => (
             <div key={metric.label} className="premium-card p-6">
@@ -63,7 +63,7 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-10 px-5 py-16 md:px-8 lg:grid-cols-[0.8fr_1.2fr]">
+      <section className="mx-auto grid max-w-7xl gap-10 px-5 py-12 md:px-8 md:py-16 lg:grid-cols-[0.8fr_1.2fr]">
         <SectionHeading
           eyebrow={page.payload.decision.eyebrow}
           title={page.payload.decision.title}
@@ -78,7 +78,7 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="bg-mist py-16">
+      <section className="bg-mist py-12 md:py-16">
         <div className="mx-auto max-w-7xl px-5 md:px-8">
           <SectionHeading
             eyebrow={page.payload.philosophy.eyebrow}
@@ -98,7 +98,7 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-16 md:px-8">
+      <section className="mx-auto max-w-7xl px-5 py-12 md:px-8 md:py-16">
         <SectionHeading
           eyebrow={page.payload.team.eyebrow}
           title={page.payload.team.title}
@@ -134,9 +134,9 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="bg-ink py-16 text-paper">
+      <section className="bg-ink py-12 text-paper md:py-16">
         <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <h2 className="max-w-3xl font-serif text-5xl leading-tight">
+          <h2 className="max-w-3xl font-serif text-4xl leading-tight md:text-5xl">
             {page.finalCtaTitle}
           </h2>
           <p className="mt-5 max-w-2xl text-base leading-8 text-paper/78">

@@ -49,7 +49,7 @@ export default function GlobalError({
             <h1
               style={{
                 fontFamily: "Georgia, 'Times New Roman', serif",
-                fontSize: "clamp(42px, 8vw, 72px)",
+                fontSize: "42px",
                 fontWeight: 400,
                 lineHeight: 1.05,
                 margin: "18px 0 0",

@@ -3,7 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronsLeftRight } from "lucide-react";
-import { useState } from "react";
+import {
+  type PointerEvent as ReactPointerEvent,
+  useRef,
+  useState,
+} from "react";
 import { imageKit } from "@/lib/content";
 import type { PublicBeforeAfter } from "@/types/project";
 
@@ -40,10 +44,91 @@ export function BeforeAfter({
   compactTitle?: string;
 }) {
   const [position, setPosition] = useState(52);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    horizontal: boolean;
+  } | null>(null);
+
+  function updatePositionFromPointer(
+    event: ReactPointerEvent<HTMLInputElement>,
+  ) {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    if (!bounds.width) return;
+
+    const nextPosition = ((event.clientX - bounds.left) / bounds.width) * 100;
+    setPosition(Math.round(Math.min(85, Math.max(15, nextPosition))));
+  }
+
+  function handlePointerDown(event: ReactPointerEvent<HTMLInputElement>) {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+
+    dragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      horizontal: event.pointerType === "mouse",
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+
+    if (event.pointerType === "mouse") {
+      setIsDragging(true);
+      updatePositionFromPointer(event);
+    }
+  }
+
+  function handlePointerMove(event: ReactPointerEvent<HTMLInputElement>) {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+
+    const deltaX = event.clientX - drag.startX;
+    const deltaY = event.clientY - drag.startY;
+
+    if (!drag.horizontal) {
+      if (Math.abs(deltaX) < 5 && Math.abs(deltaY) < 5) return;
+      if (Math.abs(deltaY) > Math.abs(deltaX)) return;
+      drag.horizontal = true;
+      setIsDragging(true);
+    }
+
+    updatePositionFromPointer(event);
+  }
+
+  function finishPointerInteraction(
+    event: ReactPointerEvent<HTMLInputElement>,
+  ) {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+
+    const moved =
+      Math.abs(event.clientX - drag.startX) >= 5 ||
+      Math.abs(event.clientY - drag.startY) >= 5;
+
+    if (!moved) updatePositionFromPointer(event);
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    dragRef.current = null;
+    setIsDragging(false);
+  }
+
+  function cancelPointerInteraction(
+    event: ReactPointerEvent<HTMLInputElement>,
+  ) {
+    if (dragRef.current?.pointerId !== event.pointerId) return;
+    dragRef.current = null;
+    setIsDragging(false);
+  }
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_0.82fr] lg:items-center">
-      <div className="image-sheen relative aspect-[16/10] overflow-hidden border border-ink/10 bg-stone shadow-premium">
+      <div
+        className="image-sheen relative aspect-[16/10] overflow-hidden border border-ink/10 bg-stone shadow-premium"
+        data-dragging={isDragging ? "true" : "false"}
+      >
         <Image
           src={comparison.afterImage}
           alt={comparison.afterAlt}
@@ -71,7 +156,7 @@ export function BeforeAfter({
           aria-hidden="true"
         >
           <span
-            className="before-after-handle absolute left-1/2 top-1/2 grid size-10 -translate-x-1/2 -translate-y-1/2 place-items-center border border-paper/35 bg-ink/82 text-paper backdrop-blur-sm"
+            className="before-after-handle absolute left-1/2 top-1/2 grid size-12 -translate-x-1/2 -translate-y-1/2 place-items-center border border-paper/45 bg-ink/88 text-paper backdrop-blur-sm md:size-10"
             data-testid="before-after-handle"
           >
             <ChevronsLeftRight className="size-5" />
@@ -103,6 +188,10 @@ export function BeforeAfter({
           max="85"
           value={position}
           onChange={(event) => setPosition(Number(event.target.value))}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={finishPointerInteraction}
+          onPointerCancel={cancelPointerInteraction}
           className="before-after-range absolute inset-0 z-20 h-full w-full cursor-ew-resize touch-pan-y"
         />
       </div>

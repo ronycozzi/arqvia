@@ -57,7 +57,7 @@ export function SiteFooter({
       className="architectural-grid min-w-0 border-t border-paper/15 bg-graphite pb-[calc(5.5rem+env(safe-area-inset-bottom))] text-paper md:pb-0"
       style={{ overflowWrap: "anywhere" }}
     >
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr] md:px-8">
+      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-2 md:px-8 lg:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr]">
         <div className="min-w-0">
           <Link href="/" className="inline-flex min-w-0 items-center gap-3">
             <BrandMark companyName={config.companyName} logoUrl={config.logoUrl} />
@@ -141,43 +141,45 @@ export function SiteFooter({
           </div>
         </div>
 
-        <FooterList title="Servicios">
-          {services
-            .slice(0, 6)
-            .map((service) => (
-              <Link key={service.slug} href={`/servicios/${service.slug}`}>
-                {service.title}
+        <div className="grid min-w-0 content-start gap-0 lg:contents">
+          <FooterList title="Servicios">
+            {services
+              .slice(0, 6)
+              .map((service) => (
+                <Link key={service.slug} href={`/servicios/${service.slug}`}>
+                  {service.title}
+                </Link>
+              ))}
+          </FooterList>
+
+          <FooterList title="Áreas">
+            {areas.map((area) => (
+              <Link key={area.slug} href={`/zonas/${area.slug}`}>
+                {area.name}
               </Link>
             ))}
-        </FooterList>
+          </FooterList>
 
-        <FooterList title="Áreas">
-          {areas.map((area) => (
-            <Link key={area.slug} href={`/zonas/${area.slug}`}>
-              {area.name}
-            </Link>
-          ))}
-        </FooterList>
-
-        <FooterList title="Recursos">
-          <Link href="/proceso">Cómo trabajamos</Link>
-          <Link href="/blog">Blog</Link>
-          <Link href="/faq">Preguntas frecuentes</Link>
-          <Link href="/proyectos">Ver proyectos</Link>
-          <Link href={contactHref}>Solicitar presupuesto</Link>
-          <TrackedAnchor
-            href={whatsappUrl}
-            eventName="whatsapp_click"
-            eventParams={{ source: "footer_resources" }}
-          >
-            WhatsApp
-          </TrackedAnchor>
-          <Link href="/privacidad">Privacidad</Link>
-          <Link href="/terminos">Términos</Link>
-          <Link href="/cookies">Cookies</Link>
-          {analyticsEnabled ? <CookiePreferencesButton /> : null}
-          <Link href="/aviso-presupuestos">Aviso sobre presupuestos</Link>
-        </FooterList>
+          <FooterList title="Recursos">
+            <Link href="/proceso">Cómo trabajamos</Link>
+            <Link href="/blog">Blog</Link>
+            <Link href="/faq">Preguntas frecuentes</Link>
+            <Link href="/proyectos">Ver proyectos</Link>
+            <Link href={contactHref}>Solicitar presupuesto</Link>
+            <TrackedAnchor
+              href={whatsappUrl}
+              eventName="whatsapp_click"
+              eventParams={{ source: "footer_resources" }}
+            >
+              WhatsApp
+            </TrackedAnchor>
+            <Link href="/privacidad">Privacidad</Link>
+            <Link href="/terminos">Términos</Link>
+            <Link href="/cookies">Cookies</Link>
+            {analyticsEnabled ? <CookiePreferencesButton /> : null}
+            <Link href="/aviso-presupuestos">Aviso sobre presupuestos</Link>
+          </FooterList>
+        </div>
       </div>
       <div className="border-t border-paper/10 px-5 py-5 text-xs">
         <div className="mx-auto max-w-7xl text-center">
@@ -195,7 +197,7 @@ export function SiteFooter({
           display: none;
         }
 
-        @media (min-width: 48rem) {
+        @media (min-width: 64rem) {
           .arqvia-footer-mobile-group {
             display: none;
           }

@@ -84,7 +84,7 @@ export function ArqviaArchitecturalHero({
             {eyebrow}
           </p>
 
-          <h1 className="hero-reveal max-w-[46rem] font-serif text-5xl font-medium leading-[1] text-paper [animation-delay:120ms] md:text-6xl lg:text-[3.75rem] xl:text-[4.15rem]">
+          <h1 className="hero-reveal max-w-[46rem] font-serif text-[2.625rem] font-medium leading-[1.02] text-paper [animation-delay:120ms] sm:text-5xl md:text-6xl md:leading-[1] lg:text-[3.75rem] xl:text-[4.15rem]">
             {config.heroTitle}
           </h1>
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ProjectCard } from "@/components/project-card";
+import { ProjectFilters } from "@/components/project-filters";
 import { SectionHeading } from "@/components/section-heading";
 import { TrackedAnchor } from "@/components/tracked-anchor";
 import { getClientConfig } from "@/lib/client-config";
@@ -53,30 +54,7 @@ export default async function ProjectsPage({
           title="Proyectos construidos para vivir, trabajar y crecer."
           description="Explorá viviendas, remodelaciones, interiores y espacios comerciales realizados en Córdoba."
         />
-        <nav
-          aria-label="Filtros de proyectos"
-          data-horizontal-scroll="true"
-          className="mt-7 flex max-w-full snap-x gap-2 overflow-x-auto pb-3 md:flex-wrap md:overflow-visible"
-        >
-          {projectCategories.map((category) => (
-            <Link
-              key={category}
-              href={
-                category === "Todos"
-                  ? "/proyectos"
-                  : `/proyectos?${new URLSearchParams({ categoria: category }).toString()}`
-              }
-              className={`inline-flex min-h-11 shrink-0 snap-start items-center border px-4 py-2.5 text-sm font-semibold transition duration-300 ${
-                active === category
-                  ? "border-ink bg-ink text-paper shadow-premium"
-                  : "border-ink/12 bg-paper text-ink hover:-translate-y-0.5 hover:border-bronze hover:bg-white"
-              }`}
-              aria-current={active === category ? "page" : undefined}
-            >
-              {category}
-            </Link>
-          ))}
-        </nav>
+        <ProjectFilters active={active} categories={projectCategories} />
         {visibleProjects.length ? (
           <section className="mt-10">
             <h2 className="sr-only">Listado de proyectos</h2>

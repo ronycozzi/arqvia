@@ -145,7 +145,7 @@ export default async function ServiceDetailPage({ params }: PageProps) {
             <p className="mb-4 text-xs font-semibold uppercase tracking-[0.24em] text-bronze">
               Servicio
             </p>
-            <h1 className="font-serif text-5xl leading-none text-ink md:text-7xl">
+            <h1 className="font-serif text-4xl leading-[1.02] text-ink sm:text-5xl md:text-6xl lg:text-7xl lg:leading-none">
               {service.title}
             </h1>
             <p className="mt-6 text-lg leading-8 text-ink/75">
@@ -276,7 +276,7 @@ export default async function ServiceDetailPage({ params }: PageProps) {
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-bronze">
               Consulta específica
             </p>
-            <h2 className="mt-3 font-serif text-5xl leading-tight text-ink">
+            <h2 className="mt-3 font-serif text-4xl leading-tight text-ink md:text-5xl">
               Pedí una evaluación para {service.title.toLowerCase()}.
             </h2>
             <p className="mt-5 text-base leading-8 text-ink/75">

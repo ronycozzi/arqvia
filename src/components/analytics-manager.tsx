@@ -127,7 +127,7 @@ export function AnalyticsManager({ config }: { config: PublicAnalyticsConfig }) 
           <button
             type="button"
             onClick={() => setPreferencesOpen(false)}
-            className="absolute right-3 top-3 grid size-10 place-items-center text-paper/70 transition hover:text-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bronze-light"
+            className="absolute right-3 top-3 grid size-11 place-items-center text-paper/70 transition hover:text-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bronze-light"
             aria-label="Cerrar preferencias de medición"
           >
             <X className="size-4" aria-hidden="true" />

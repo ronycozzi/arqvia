@@ -13,7 +13,7 @@ export function LegalPageView({ page }: { page: PublicLegalPage }) {
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-bronze-light">
             Información legal
           </p>
-          <h1 className="mt-5 max-w-4xl font-serif text-5xl leading-[1.04] md:text-7xl">
+          <h1 className="mt-5 max-w-4xl font-serif text-4xl leading-[1.04] sm:text-5xl md:text-6xl lg:text-7xl">
             {page.title}
           </h1>
           <p className="mt-6 max-w-2xl text-base leading-8 text-paper/72 md:text-lg">

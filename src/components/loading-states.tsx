@@ -27,12 +27,12 @@ export function PublicPageLoading({
 }) {
   return (
     <div aria-busy="true" aria-live="polite" role="status">
-      <section className="mx-auto grid min-h-[72vh] max-w-7xl gap-10 px-5 py-16 md:px-8 lg:grid-cols-[0.92fr_1.08fr] lg:items-end">
+      <section className="mx-auto grid min-h-[72vh] max-w-7xl gap-10 px-5 py-12 md:px-8 md:py-16 lg:grid-cols-[0.92fr_1.08fr] lg:items-end">
         <div className="pb-4">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-bronze">
             {eyebrow}
           </p>
-          <p className="mt-5 max-w-3xl font-serif text-5xl leading-none text-ink md:text-7xl">
+          <p className="mt-5 max-w-3xl font-serif text-4xl leading-[1.02] text-ink sm:text-5xl md:text-6xl lg:text-7xl lg:leading-none">
             {title}
           </p>
           <div className="mt-8 max-w-2xl space-y-3">
@@ -73,13 +73,13 @@ export function ListingLoading({
     <section
       aria-busy="true"
       aria-live="polite"
-      className="mx-auto max-w-7xl px-5 py-16 md:px-8"
+      className="mx-auto max-w-7xl px-5 py-12 md:px-8 md:py-16"
       role="status"
     >
       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-bronze">
         {eyebrow}
       </p>
-      <p className="mt-4 max-w-4xl font-serif text-5xl leading-tight text-ink md:text-7xl">
+      <p className="mt-4 max-w-4xl font-serif text-4xl leading-tight text-ink sm:text-5xl md:text-6xl lg:text-7xl">
         {title}
       </p>
       {filterCount > 0 ? (
@@ -160,7 +160,7 @@ export function NotFoundScreen() {
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-bronze-light">
             Arqvia / 404
           </p>
-          <h1 className="mt-5 max-w-3xl font-serif text-6xl leading-none md:text-8xl">
+          <h1 className="mt-5 max-w-3xl font-serif text-4xl leading-[1.02] sm:text-5xl md:text-7xl lg:text-8xl lg:leading-none">
             Esta pagina no esta en el plano.
           </h1>
           <p className="mt-6 max-w-2xl text-base leading-8 text-paper/76">

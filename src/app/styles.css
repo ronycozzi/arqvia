@@ -219,39 +219,6 @@ textarea {
   }
 }
 
-@keyframes line-draw {
-  from {
-    opacity: 0;
-    transform: scaleX(0);
-  }
-  to {
-    opacity: 1;
-    transform: scaleX(1);
-  }
-}
-
-@keyframes callout-reveal {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 10px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-@keyframes project-card-enter {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 14px, 0) scale(0.985);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-}
-
 @keyframes skeleton-sweep {
   0% {
     background-position: 120% 0;
@@ -445,24 +412,6 @@ textarea {
   transform: none;
 }
 
-.line-draw {
-  transform: scaleX(1);
-}
-
-.hero-callout {
-  opacity: 1;
-  transform: none;
-}
-
-.hero-callout span {
-  transform: scaleX(1);
-}
-
-.hero-project-reveal {
-  opacity: 1;
-  transform: none;
-}
-
 .scroll-reveal {
   opacity: 1;
   transform: translate3d(0, 0, 0);
@@ -585,22 +534,6 @@ textarea {
     animation: hero-rise 760ms var(--motion-ease-out) both;
   }
 
-  .line-draw {
-    animation: line-draw 1100ms var(--motion-ease-out) 420ms both;
-  }
-
-  .hero-callout {
-    animation: callout-reveal 720ms var(--motion-ease-out) 520ms both;
-  }
-
-  .hero-callout span {
-    animation: line-draw 900ms var(--motion-ease-out) 620ms both;
-  }
-
-  .hero-project-reveal {
-    animation: project-card-enter 760ms var(--motion-ease-out) 520ms both;
-  }
-
   .group:hover .logo-mark::after,
   .logo-mark:hover::after {
     animation: line-sweep 850ms ease;
@@ -619,10 +552,6 @@ textarea {
 
   .hero-reveal,
   .hero-actions-reveal,
-  .line-draw,
-  .hero-callout,
-  .hero-callout span,
-  .hero-project-reveal,
   .scroll-reveal,
   .process-grid::before,
   .process-step,

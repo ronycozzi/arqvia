@@ -149,10 +149,6 @@ export default async function Home() {
       ? publicServices.filter((service) => service.featured)
       : publicServices
   ).slice(0, 3);
-  const heroFeaturedProject =
-    featuredProjects.find((project) =>
-      project.category.toLocaleLowerCase("es").includes("residencial"),
-    ) || featuredProjects[0];
   const testimonial = publicTestimonials[0];
   const streetAddress = getStreetAddress(config.address);
   const openingHoursSpecification = parseOpeningHours(config.businessHours);
@@ -199,7 +195,6 @@ export default async function Home() {
       <ArqviaArchitecturalHero
         config={config}
         eyebrow={homeContent.heroEyebrow}
-        featuredProject={heroFeaturedProject}
         imageAlt={homeContent.heroImageAlt}
         trustItems={homeContent.heroTrustItems}
       />

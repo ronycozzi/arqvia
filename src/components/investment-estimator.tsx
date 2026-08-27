@@ -273,7 +273,6 @@ export function InvestmentEstimator({
           </div>
 
           <aside className="relative flex min-h-[420px] flex-col justify-between overflow-hidden bg-ink p-6 text-paper md:p-8 lg:p-10">
-            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgb(255_250_241/0.055)_1px,transparent_1px),linear-gradient(180deg,rgb(255_250_241/0.05)_1px,transparent_1px)] bg-[size:72px_72px]" />
             <div className="relative">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-bronze-light">
                 Primera referencia

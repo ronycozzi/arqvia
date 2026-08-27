@@ -27,7 +27,7 @@ export function PostSaveActions({
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(211,151,79,0.22),transparent_42%),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:auto,56px_56px,56px_56px]"
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(211,151,79,0.22),transparent_42%)]"
       />
       <div className="relative grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
         <div>

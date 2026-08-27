@@ -1,0 +1,44 @@
+export const englishContentTranslations: Record<string, string> = {
+  "El anteproyecto sirve para definir la idea principal: distribución, implantación, relación con el terreno, criterios de uso, atmósfera y decisiones generales. Es la etapa donde se evalúa si el proyecto responde a la forma de vivir, trabajar o invertir del cliente.":
+    "The preliminary design defines the main idea: layout, siting, relationship with the land, use criteria, atmosphere and overall decisions. At this stage, we assess whether the project responds to the client's way of living, working or investing.",
+  "El proyecto ejecutivo traduce esas decisiones en información técnica: plantas, cortes, vistas, detalles, especificaciones, criterios de materiales y documentación para presupuestar o ejecutar. Sin esa bajada, distintos proveedores pueden interpretar cosas distintas.":
+    "The construction documentation translates those decisions into technical information: floor plans, sections, elevations, details, specifications, material criteria and documents for budgeting or building. Without that level of definition, different suppliers may interpret the project differently.",
+  "Separar ambas etapas permite ajustar la idea antes de avanzar en documentación más precisa. También evita invertir tiempo en detalles constructivos cuando todavía hay decisiones grandes abiertas.":
+    "Separating both stages allows the idea to be refined before moving into more precise documentation. It also prevents spending time on construction details while major decisions are still open.",
+  "Una remodelación no empieza con la demolición. Empieza con diagnóstico: qué funciona, qué falla, qué se conserva, qué se reemplaza y qué decisiones impactan en instalaciones, tiempos y presupuesto.":
+    "A renovation does not begin with demolition. It begins with a diagnosis: what works, what fails, what stays, what is replaced, and which decisions affect building systems, schedule and budget.",
+  "Antes de pedir precios conviene definir alcance por rubros: albañilería, instalaciones, mobiliario, iluminación, revestimientos, pintura, terminaciones y dirección técnica. Así cada presupuesto responde a lo mismo.":
+    "Before requesting prices, it helps to define the scope by trade: masonry, building systems, cabinetry, lighting, finishes, painting, final details and technical supervision. This ensures every quote responds to the same requirements.",
+  "También es importante decidir materiales y compras críticas antes de iniciar. Muchas demoras aparecen por productos sin stock, medidas no resueltas o cambios de distribución durante la ejecución.":
+    "It is also important to decide on materials and critical purchases before work starts. Many delays come from out-of-stock products, unresolved dimensions or layout changes during construction.",
+  "Comprar un terreno solo por ubicación o precio puede dejar afuera variables importantes. Orientación, pendiente, retiros, servicios, accesos, entorno y posibilidades de implantación influyen en el diseño y el costo futuro.":
+    "Buying land based only on location or price can overlook important variables. Orientation, slope, setbacks, utilities, access, surroundings and siting possibilities all influence the design and future cost.",
+  "También conviene revisar qué tipo de vivienda se puede construir, qué documentación será necesaria y si el terreno permite crecer por etapas. Una buena lectura inicial puede evitar decisiones caras después.":
+    "It is also worth reviewing what type of home can be built, which documents will be required and whether the property allows phased growth. A sound initial assessment can prevent costly decisions later.",
+  "Antes de avanzar, reuní ubicación, medidas, fotos, plano si existe y dudas principales. Con esa información se puede orientar una primera evaluación.":
+    "Before moving forward, gather the location, dimensions, photos, any available plans and your main questions. That information is enough to guide an initial assessment.",
+  "Un presupuesto de obra claro no es una lista suelta de precios. Debe explicar alcance, rubros, materiales, mano de obra, exclusiones, tiempos, forma de pago y decisiones que pueden modificar el costo.":
+    "A clear construction quote is not a loose list of prices. It should explain the scope, trades, materials, labor, exclusions, schedule, payment terms and decisions that may change the cost.",
+  "Para comparar propuestas, todos los proveedores deberían cotizar sobre la misma documentación y el mismo alcance. Si cada uno interpreta algo distinto, el precio deja de ser comparable.":
+    "To compare proposals, every supplier should quote from the same documents and scope. If each one interprets something different, the prices are no longer comparable.",
+  "Trabajar por etapas ayuda a separar lo definido de lo pendiente: obra gruesa, instalaciones, terminaciones, mobiliario, exteriores y equipamiento pueden tener niveles de decisión diferentes.":
+    "Working in stages helps separate confirmed decisions from pending ones: structural work, building systems, finishes, cabinetry, exterior work and equipment may each require a different level of definition.",
+  "No existe un sistema constructivo ideal para todos los casos. Steel frame y construcción tradicional pueden funcionar bien si se eligen según proyecto, ubicación, proveedores disponibles, tiempos, mantenimiento y nivel de terminación.":
+    "There is no single construction system that is ideal for every case. Steel framing and traditional construction can both work well when chosen according to the project, location, available suppliers, schedule, maintenance and finish level.",
+  "La construcción tradicional suele ser conocida por muchos equipos y proveedores locales. El steel frame puede aportar velocidad y precisión cuando está bien documentado y ejecutado por especialistas.":
+    "Traditional construction is familiar to many local teams and suppliers. Steel framing can provide speed and precision when it is properly documented and carried out by specialists.",
+  "La decisión debería tomarse después de evaluar diseño, superficie, presupuesto, logística, mano de obra disponible y expectativas de uso. El sistema debe servir al proyecto, no al revés.":
+    "The decision should follow an evaluation of the design, area, budget, logistics, available labor and intended use. The system must serve the project, not the other way around.",
+  "Una casa luminosa no depende solo de poner ventanas grandes. Hay que entender orientación, asoleamiento, privacidad, vistas, profundidad de ambientes y relación entre interior y exterior.":
+    "A bright home is not achieved simply by adding large windows. Orientation, sun exposure, privacy, views, room depth and the relationship between indoors and outdoors all need to be understood.",
+  "Patios, aleros, galerías y aberturas bien ubicadas pueden mejorar luz natural sin sobrecalentar ni exponer espacios íntimos. La materialidad también influye: colores, texturas y superficies reflejan o absorben luz.":
+    "Well-positioned courtyards, eaves, covered terraces and openings can improve natural light without overheating or exposing private spaces. Materials matter too: colors, textures and surfaces reflect or absorb light.",
+  "Diseñar con luz implica equilibrar confort, uso diario y mantenimiento. La mejor solución suele aparecer cuando se piensa desde el terreno y no desde una imagen aislada.":
+    "Designing with light means balancing comfort, daily use and maintenance. The best solution usually emerges when the property is considered as a whole instead of starting from an isolated image.",
+  "Los permisos y trámites dependen de ubicación, municipio, tipo de obra, superficie, uso y normativa aplicable. Por eso conviene revisar cada caso antes de prometer tiempos o costos cerrados.":
+    "Permits and approvals depend on the location, municipality, project type, area, use and applicable regulations. Each case should therefore be reviewed before fixed schedules or costs are promised.",
+  "En algunos proyectos puede ser necesario preparar planos, documentación técnica, autorizaciones, estudios o presentaciones específicas. En remodelaciones, el alcance también determina si se requiere intervención formal.":
+    "Some projects may require plans, technical documents, approvals, studies or specific submissions. For renovations, the scope also determines whether a formal application is required.",
+  "La recomendación es ordenar información inicial y consultar requisitos locales antes de iniciar obra. Empezar sin revisar puede generar demoras, cambios o costos no previstos.":
+    "The recommendation is to organize the initial information and check local requirements before construction begins. Starting without that review can lead to delays, changes or unexpected costs.",
+};

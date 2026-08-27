@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft, LockKeyhole, ShieldCheck } from "lucide-react";
 import { LoginForm } from "@/components/admin/login-form";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { getVerifiedAdminSession } from "@/lib/admin-auth";
 
 export const metadata: Metadata = {
@@ -32,6 +33,7 @@ export default async function AdminLoginPage({
             Volver al sitio
           </Link>
           <div className="flex items-center gap-3">
+            <LanguageSwitcher compact theme="dark" />
             <span className="grid size-10 place-items-center border border-bronze/45 bg-bronze/12 text-sm font-bold text-bronze-light">
               AV
             </span>

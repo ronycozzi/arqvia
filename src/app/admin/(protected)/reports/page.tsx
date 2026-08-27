@@ -225,8 +225,9 @@ export default async function ReportsPage({
               Exportar vista
             </Link>
             <p className="mt-2 text-xs leading-5 text-ink/60 lg:text-right">
-              CSV completo: {totalLeads}{" "}
-              {totalLeads === 1 ? "consulta" : "consultas"}, sin recorte.
+              {`CSV completo: ${totalLeads} ${
+                totalLeads === 1 ? "consulta" : "consultas"
+              }, sin recorte.`}
             </p>
           </div>
         </div>

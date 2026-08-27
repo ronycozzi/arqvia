@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { CookiePreferencesButton } from "@/components/analytics-manager";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { TrackedAnchor } from "@/components/tracked-anchor";
 import { BrandMark } from "@/components/brand-mark";
 import type { PublicClientConfig } from "@/lib/client-config";
@@ -135,6 +136,9 @@ export function SiteFooter({
               ))}
             </div>
           ) : null}
+          <div className="mt-7 border-t border-paper/12 pt-5">
+            <LanguageSwitcher theme="dark" />
+          </div>
         </div>
 
         <FooterList title="Servicios">

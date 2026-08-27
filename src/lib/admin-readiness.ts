@@ -132,7 +132,9 @@ export function buildAdminReadiness(
       ok: input.userCount >= 1,
       detail:
         input.userCount >= 1
-          ? `${input.userCount} usuario activo puede operar el panel.`
+          ? input.userCount === 1
+            ? "1 usuario activo puede operar el panel."
+            : `${input.userCount} usuarios activos pueden operar el panel.`
           : "Creá al menos un usuario activo para operar el panel con trazabilidad.",
       href: "/admin/users",
       action: "Revisar usuarios",

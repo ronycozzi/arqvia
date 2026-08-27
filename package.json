@@ -48,6 +48,7 @@
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
     "content:check": "tsx scripts/check-content-integrity.ts",
+    "i18n:generate": "tsx scripts/generate-i18n-catalog.ts",
     "release:env": "tsx scripts/validate-environment.ts",
     "release:guard": "npm run release:env && npm run release:check",
     "ops:check": "tsx scripts/check-service-endpoints.ts",

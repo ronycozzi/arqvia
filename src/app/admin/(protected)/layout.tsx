@@ -14,6 +14,7 @@ import {
   type AdminRole,
 } from "@/lib/admin-auth";
 import { AdminNavLink } from "@/components/admin/admin-nav-link";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import {
   AdminNotificationMenu,
   type AdminNotificationItem,
@@ -149,6 +150,9 @@ export default async function AdminLayout({
                 </button>
               </form>
             </div>
+            <div className="mt-4">
+              <LanguageSwitcher compact theme="dark" />
+            </div>
           </div>
 
           <div className="mt-5 border-y border-paper/10 py-4">
@@ -265,6 +269,10 @@ export default async function AdminLayout({
               <span className="shrink-0 border border-bronze/35 bg-bronze/12 px-2.5 py-1 text-[11px] font-semibold text-paper">
                 {roleLabels[role]}
               </span>
+            </div>
+
+            <div className="mt-3 border border-paper/12 bg-paper/[0.035] p-2">
+              <LanguageSwitcher compact theme="dark" />
             </div>
 
             <details className="group mt-3 border border-paper/12 bg-paper/[0.035]">

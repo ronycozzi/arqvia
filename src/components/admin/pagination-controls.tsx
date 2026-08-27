@@ -16,7 +16,7 @@ export function AdminPaginationControls({
   if (totalPages <= 1) {
     return (
       <p className="text-sm text-ink/65">
-        Mostrando {totalResults} {itemLabel}.
+        {`Mostrando ${totalResults} ${itemLabel}.`}
       </p>
     );
   }
@@ -27,7 +27,7 @@ export function AdminPaginationControls({
       aria-label={`Paginación de ${itemLabel}`}
     >
       <p className="text-sm text-ink/65">
-        Página {currentPage} de {totalPages} · {totalResults} {itemLabel}
+        {`Página ${currentPage} de ${totalPages} · ${totalResults} ${itemLabel}`}
       </p>
       <div className="flex gap-2">
         <Link

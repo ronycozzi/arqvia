@@ -25,6 +25,7 @@ La implementación incluye páginas públicas orientadas a conversión, portfoli
 - Panel para marca, contacto, home, páginas institucionales, proyectos, servicios, categorías, testimonios, equipo, áreas de trabajo, FAQ, blog y documentos legales.
 - Tracking de eventos para envíos de formulario y clics estratégicos de WhatsApp mediante `window.dataLayer`.
 - Blog, páginas locales, FAQ, legales, sitemap, robots.txt y JSON-LD.
+- Selector global Español/English en el footer, login y panel administrativo, con preferencia persistente y catálogo inglés local sin llamadas de traducción en producción.
 - Proyectos y servicios con estado Borrador/Publicado para preparar contenido sin exponerlo en la web ni en el sitemap.
 - Redirecciones permanentes administradas para conservar URLs anteriores cuando cambia el slug de proyectos, servicios, publicaciones o zonas.
 - Mutaciones editoriales y cambios de usuarios transaccionados junto con su registro de auditoría.
@@ -95,6 +96,31 @@ Abrir `http://localhost:3000`.
 Los iconos PWA están incluidos. Después de cambiar la identidad visual,
 regenerarlos con `npm run assets:pwa` y revisar los cuatro PNG de
 `public/icons/`.
+
+## Idiomas
+
+El idioma inicial es español rioplatense. El selector del footer guarda la
+preferencia `es` o `en` en la cookie `arqvia_locale` y la conserva al navegar
+por las páginas públicas, el login y el panel administrativo. El catálogo
+inglés se carga únicamente cuando hace falta; producción no consulta servicios
+externos para traducir contenido.
+
+- `src/i18n/generated/en.json`: catálogo general generado desde el código.
+- `src/i18n/manual-en.ts`: traducciones curadas de interfaz y textos dinámicos.
+- `src/i18n/content-en.ts`: traducciones editoriales revisadas.
+- `src/components/i18n-provider.tsx`: aplicación del idioma y contenido agregado dinámicamente.
+
+Después de incorporar mucho contenido estático nuevo, el catálogo puede
+actualizarse con:
+
+```bash
+npm run i18n:generate
+```
+
+El generador reutiliza las traducciones existentes y solicita únicamente las
+nuevas. Requiere conexión durante el desarrollo y puede necesitar reintentarse
+si el proveedor temporal limita solicitudes; el catálogo ya versionado sigue
+funcionando aunque esa regeneración no se ejecute.
 
 ## Admin
 

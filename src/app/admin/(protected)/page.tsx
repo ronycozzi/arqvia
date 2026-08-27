@@ -488,11 +488,10 @@ export default async function AdminPage() {
                 Rol: {roleLabels[role]}
               </span>
               <span className="inline-flex min-h-9 items-center border border-ink/10 bg-white px-3 text-xs font-semibold text-ink/70">
-                {visibleModules.length} módulos disponibles
+                {`${visibleModules.length} módulos disponibles`}
               </span>
               <span className="inline-flex min-h-9 items-center border border-ink/10 bg-white px-3 text-xs font-semibold text-ink/70">
-                {userCount} usuario{userCount === 1 ? "" : "s"} activo
-                {userCount === 1 ? "" : "s"}
+                {`${userCount} ${userCount === 1 ? "usuario activo" : "usuarios activos"}`}
               </span>
             </div>
           </div>
@@ -662,9 +661,8 @@ export default async function AdminPage() {
                         </div>
                         <p className="mt-1 text-sm leading-6 text-ink/75">
                           {canSeeLeadPII
-                            ? `${lead.projectType} · ${lead.city} · `
-                            : "Datos protegidos · "}
-                          {formatDate(lead.createdAt)}
+                            ? `${lead.projectType} · ${lead.city} · ${formatDate(lead.createdAt)}`
+                            : `Datos protegidos · ${formatDate(lead.createdAt)}`}
                         </p>
                       </div>
                       <span
@@ -1036,10 +1034,11 @@ function ReadinessPanel({
                 : "mt-3 text-sm font-semibold text-ink"
             }
           >
-            {statusLabel}
-            {pendingCount > 0
-              ? ` · ${pendingCount} pendiente${pendingCount === 1 ? "" : "s"}`
-              : " · Sin pendientes"}
+            {`${statusLabel}${
+              pendingCount > 0
+                ? ` · ${pendingCount} pendiente${pendingCount === 1 ? "" : "s"}`
+                : " · Sin pendientes"
+            }`}
           </p>
           <p
             className={

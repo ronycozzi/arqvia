@@ -273,7 +273,7 @@ export default async function TechnicalVisitsPage({
               Resultado actual
             </p>
             <h2 className="mt-2 font-serif text-3xl text-ink">
-              {filteredCount} {filteredCount === 1 ? "visita" : "visitas"}
+              {`${filteredCount} ${filteredCount === 1 ? "visita" : "visitas"}`}
             </h2>
           </div>
           {(query || selectedStatus) && (

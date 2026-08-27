@@ -2,12 +2,14 @@ import type { Metadata, Viewport } from "next";
 import { Manrope, Newsreader } from "next/font/google";
 import Script from "next/script";
 import { AppChrome } from "@/components/app-chrome";
+import { I18nProvider } from "@/components/i18n-provider";
 import { getPublicAnalyticsConfig } from "@/lib/analytics-config";
 import { getPublicAreaLinks } from "@/lib/area-data";
 import { buildBrandCssVariables, buildBrandTheme } from "@/lib/brand-theme";
 import { getClientConfig } from "@/lib/client-config";
 import { getPublicServiceLinks } from "@/lib/service-data";
 import { siteConfig } from "@/lib/site-config";
+import { APP_LOCALE_COOKIE } from "@/lib/locale";
 import "./styles.css";
 
 const manrope = Manrope({
@@ -105,20 +107,30 @@ export default async function RootLayout({
       lang="es-AR"
       className={`${manrope.variable} ${newsreader.variable} h-full antialiased`}
       data-scroll-behavior="smooth"
+      data-locale="es"
+      suppressHydrationWarning
       style={buildBrandCssVariables(config)}
     >
       <body className="flex min-h-full flex-col">
+        <Script id="arqvia-locale-bootstrap" strategy="beforeInteractive">
+          {`try{var match=document.cookie.match(/(?:^|;\\s*)${APP_LOCALE_COOKIE}=([^;]+)/);var locale=match&&match[1]==="en"?"en":"es";document.documentElement.dataset.locale=locale;document.documentElement.lang=locale==="en"?"en":"es-AR";if(locale==="en")document.documentElement.classList.add("i18n-pending");}catch(_error){}`}
+        </Script>
         <Script id="zod-csp-mode" strategy="beforeInteractive">
           {`globalThis.__zod_globalConfig = { ...(globalThis.__zod_globalConfig || {}), jitless: true };`}
         </Script>
-        <AppChrome
-          analytics={analytics}
-          areas={areas}
-          config={config}
-          services={services}
-        >
-          {children}
-        </AppChrome>
+        <noscript>
+          <style>{`.i18n-pending body{visibility:visible!important}`}</style>
+        </noscript>
+        <I18nProvider>
+          <AppChrome
+            analytics={analytics}
+            areas={areas}
+            config={config}
+            services={services}
+          >
+            {children}
+          </AppChrome>
+        </I18nProvider>
       </body>
     </html>
   );

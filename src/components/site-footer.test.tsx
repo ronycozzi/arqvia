@@ -59,6 +59,10 @@ describe("SiteFooter", () => {
     expect(container.querySelector('a[href^="https://wa.me/"]')).toBeInTheDocument();
     expect(container.querySelector('a[href^="/admin"]')).not.toBeInTheDocument();
     expect(footer).not.toHaveTextContent(/acceso interno/i);
+    expect(within(footer).getByRole("group", { name: "Idioma" })).toBeVisible();
+    expect(
+      within(footer).getByRole("button", { name: "Cambiar a English" }),
+    ).toHaveAttribute("aria-pressed", "false");
   });
 
   it("exposes keyboard-operable mobile disclosure groups", () => {

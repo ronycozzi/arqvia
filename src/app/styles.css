@@ -53,6 +53,14 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+html.i18n-pending body {
+  visibility: hidden;
+}
+
+html.i18n-ready body {
+  visibility: visible;
+}
+
 .font-sans {
   font-family: var(--brand-font-body, var(--font-manrope)), Arial, Helvetica, sans-serif;
 }

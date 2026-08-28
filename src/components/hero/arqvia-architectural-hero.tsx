@@ -95,7 +95,7 @@ export function ArqviaArchitecturalHero({
           <div className="hero-actions-reveal mt-6 flex flex-col gap-3 [animation-delay:360ms] sm:flex-row">
             <Link
               href="/contacto"
-              className="inline-flex h-14 items-center justify-center gap-2 bg-paper px-7 text-sm font-bold text-ink shadow-[0_18px_48px_rgba(201,155,98,0.22)] transition duration-200 hover:-translate-y-0.5 hover:bg-bronze-light"
+              className="inline-flex h-12 self-start items-center justify-center gap-2 bg-paper px-5 text-sm font-bold text-ink shadow-[0_18px_48px_rgba(201,155,98,0.22)] transition duration-200 hover:-translate-y-0.5 hover:bg-bronze-light sm:h-14 sm:self-auto sm:px-7"
             >
               {config.primaryCtaLabel}
               <ArrowRight className="size-4" aria-hidden="true" />

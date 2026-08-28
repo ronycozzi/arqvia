@@ -9,19 +9,19 @@ type ReleaseEvidence = {
   stateFingerprint: string;
 };
 
-function commandOutput(command: string, args: string[]) {
-  const result = spawnSync(command, args, {
+function gitOutput(args: string[]) {
+  const result = spawnSync("git", args, {
     cwd: process.cwd(),
     encoding: "utf8",
   });
   if (result.status !== 0) {
-    throw new Error(`${command} ${args.join(" ")} failed.`);
+    throw new Error(`git ${args.join(" ")} failed.`);
   }
   return result.stdout.trim();
 }
 
 function resolveSourceRevision() {
-  const checkoutRevision = commandOutput("git", ["rev-parse", "HEAD"]);
+  const checkoutRevision = gitOutput(["rev-parse", "HEAD"]);
   const providerRevision =
     process.env.VERCEL_GIT_COMMIT_SHA?.trim() ||
     process.env.GITHUB_SHA?.trim() ||
@@ -33,7 +33,7 @@ function resolveSourceRevision() {
     );
   }
 
-  const trackedChanges = commandOutput("git", [
+  const trackedChanges = gitOutput([
     "status",
     "--porcelain",
     "--untracked-files=no",
@@ -46,7 +46,7 @@ function resolveSourceRevision() {
 
   if (
     !providerRevision &&
-    commandOutput("git", ["status", "--porcelain", "--untracked-files=all"])
+    gitOutput(["status", "--porcelain", "--untracked-files=all"])
   ) {
     throw new Error(
       "A local production release build requires a clean Git worktree or an explicit provider revision.",
@@ -100,7 +100,7 @@ function main() {
     });
     runNpmScript("build:postgres", evidenceEnv);
     if (
-      commandOutput("git", [
+      gitOutput([
         "status",
         "--porcelain",
         "--untracked-files=no",

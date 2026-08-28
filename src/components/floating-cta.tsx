@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import type { PublicClientConfig } from "@/lib/client-config";
 import { siteConfig } from "@/lib/site-config";
 import {
@@ -14,19 +15,54 @@ import { trackEvent } from "@/lib/analytics";
 
 export function FloatingCta({ config }: { config: PublicClientConfig }) {
   const pathname = usePathname();
+  const [isVisible, setIsVisible] = useState(false);
   const hiddenOnCurrentPage =
     pathname === "/contacto" ||
     pathname === "/gracias" ||
     pathname.startsWith("/admin");
   const contactHref = buildContactHref(pathname);
 
-  if (hiddenOnCurrentPage) {
+  useEffect(() => {
+    if (hiddenOnCurrentPage) return;
+
+    let footerIsVisible = false;
+    const revealThreshold = () =>
+      Math.min(420, Math.max(260, window.innerHeight * 0.45));
+    const updateVisibility = () => {
+      setIsVisible(window.scrollY > revealThreshold() && !footerIsVisible);
+    };
+
+    const footer = document.querySelector("footer");
+    const footerObserver =
+      footer && "IntersectionObserver" in window
+        ? new IntersectionObserver(
+            ([entry]) => {
+              footerIsVisible = entry.isIntersecting;
+              updateVisibility();
+            },
+            { rootMargin: "0px 0px 96px 0px" },
+          )
+        : null;
+
+    footerObserver?.observe(footer!);
+    window.addEventListener("scroll", updateVisibility, { passive: true });
+    window.addEventListener("resize", updateVisibility);
+    updateVisibility();
+
+    return () => {
+      footerObserver?.disconnect();
+      window.removeEventListener("scroll", updateVisibility);
+      window.removeEventListener("resize", updateVisibility);
+    };
+  }, [hiddenOnCurrentPage, pathname]);
+
+  if (hiddenOnCurrentPage || !isVisible) {
     return null;
   }
 
   return (
     <nav
-      className="fixed inset-x-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40 flex gap-2 md:hidden"
+      className="mobile-cta-enter fixed inset-x-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40 flex gap-2 md:hidden"
       aria-label="Acciones rápidas"
     >
       <a

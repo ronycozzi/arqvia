@@ -227,6 +227,17 @@ textarea {
   }
 }
 
+@keyframes mobile-cta-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 .image-sheen {
   position: relative;
   overflow: hidden;
@@ -527,6 +538,10 @@ textarea {
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  .mobile-cta-enter {
+    animation: mobile-cta-enter 320ms var(--motion-ease-out) both;
+  }
+
   .hero-reveal {
     animation: hero-fade-up 760ms var(--motion-ease-out) both;
   }

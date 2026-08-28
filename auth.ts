@@ -17,7 +17,7 @@ import { loginSchema } from "@/lib/validations";
 
 const ADMIN_SESSION_MAX_AGE_SECONDS = 8 * 60 * 60;
 const INVALID_PASSWORD_HASH =
-  "$2b$12$4sFHEq9wcqnIZtWYqaDvruKPcNm0bYMnE89fUfOTOGaoVcCJSM1bm";
+  "$2b$12$4sFHEq9wcqnIZtWYqaDvruKPcNm0bYMnE89fUfOTOGaoVcCJSM1bm"; // nosemgrep: generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash -- timing equalizer, not a credential
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),

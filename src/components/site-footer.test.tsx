@@ -49,6 +49,9 @@ describe("SiteFooter", () => {
       within(footer).getByRole("link", { name: config.phone }),
     ).toHaveAttribute("href", "tel:+543515551234");
     expect(
+      within(footer).getByRole("link", { name: config.phone }),
+    ).toHaveClass("min-h-11");
+    expect(
       within(footer).getByRole("link", { name: config.email }),
     ).toHaveAttribute("href", "mailto:hola@arqvia.com.ar");
     expect(

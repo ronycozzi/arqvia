@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { fallbackClientConfig } from "@/lib/client-config";
 import { buildReleaseGate, type ReleaseContentSnapshot } from "@/lib/release-readiness";
 
+const testRetentionSecret = "test-retention-secret-".padEnd(40, "x");
+
 const content: ReleaseContentSnapshot = {
   areas: 2,
   blogPosts: 3,
@@ -275,7 +277,7 @@ describe("release gate", () => {
       ...baseInput,
       env: {
         ...explicitRetention,
-        DATA_RETENTION_CRON_SECRET: "a-strong-retention-secret-with-32-characters",
+        DATA_RETENTION_CRON_SECRET: testRetentionSecret,
         LEAD_RETENTION_ENABLED: "true",
       },
     });
@@ -285,7 +287,7 @@ describe("release gate", () => {
         ...explicitRetention,
         ARQVIA_RETENTION_APPROVED_AT: "2026-07-01T12:00:00.000Z",
         ARQVIA_RETENTION_APPROVED_BY: "Asesoria legal",
-        DATA_RETENTION_CRON_SECRET: "a-strong-retention-secret-with-32-characters",
+        DATA_RETENTION_CRON_SECRET: testRetentionSecret,
         LEAD_RETENTION_ENABLED: "true",
       },
     });

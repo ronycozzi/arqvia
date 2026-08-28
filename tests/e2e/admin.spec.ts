@@ -420,8 +420,14 @@ test("admin dashboard exposes commercial readiness guidance", async ({ page }) =
 
   const readinessPanel = page.getByTestId("admin-readiness-panel");
   await expect(readinessPanel).toBeVisible();
+  const readinessToggle = readinessPanel.getByRole("button").first();
+  if (await readinessToggle.isVisible()) await readinessToggle.click();
   await expect(readinessPanel.getByText(/puesta a punto comercial/i)).toBeVisible();
-  await expect(readinessPanel.getByText(/checklist de venta del sitio/i)).toBeVisible();
+  await expect(
+    readinessPanel.getByRole("heading", {
+      name: /checklist de venta del sitio/i,
+    }),
+  ).toBeVisible();
   await expect(
     readinessPanel.getByText(/portfolio con prueba comercial/i),
   ).toBeVisible();
@@ -429,7 +435,9 @@ test("admin dashboard exposes commercial readiness guidance", async ({ page }) =
     readinessPanel.getByText(/servicios con p.ginas completas/i),
   ).toBeVisible();
   await expect(readinessPanel.getByText(/crm en movimiento/i)).toBeVisible();
-  await expect(readinessPanel.getByText(/controles aprobados/i)).toBeVisible();
+  await expect(
+    readinessPanel.getByText("controles aprobados", { exact: true }),
+  ).toBeVisible();
   await expect(readinessPanel.getByText(/\d+%/)).toHaveCount(0);
   await expect(readinessPanel.getByRole("link").first()).toHaveAttribute(
     "href",
@@ -438,9 +446,13 @@ test("admin dashboard exposes commercial readiness guidance", async ({ page }) =
 
   const launchPanel = page.getByTestId("admin-launch-readiness-panel");
   await expect(launchPanel).toBeVisible();
+  const launchToggle = launchPanel.getByRole("button").first();
+  if (await launchToggle.isVisible()) await launchToggle.click();
   await expect(launchPanel.getByText(/publicaci.n/i).first()).toBeVisible();
   await expect(
-    launchPanel.getByText(/checklist t.cnico antes de publicar/i),
+    launchPanel.getByRole("heading", {
+      name: /checklist t.cnico antes de publicar/i,
+    }),
   ).toBeVisible();
   await expect(
     launchPanel.getByText("Dominio publico", { exact: true }),
@@ -752,7 +764,10 @@ test("admin login ignores malicious external callbackUrl", async ({ page }) => {
   await expect(page.getByRole("heading", { name: /panel arqvia/i })).toBeVisible();
 });
 
-test("admin settings are protected and manageable for seeded admin", async ({ page }) => {
+test("admin settings are protected and manageable for seeded admin", async (
+  { page },
+  testInfo,
+) => {
   await page.goto("/admin/settings");
   await expect(page).toHaveURL(/\/admin\/login/);
   await expect(page.getByRole("heading", { name: /ingresar al admin/i })).toBeVisible();
@@ -760,7 +775,16 @@ test("admin settings are protected and manageable for seeded admin", async ({ pa
   await loginAdmin(page);
   await expect(page.getByRole("navigation", { name: /acciones r/i })).toHaveCount(0);
   await expect(page.locator("footer")).toHaveCount(0);
-  await page.getByRole("link", { name: /configuraci/i }).first().click();
+  if (!new URL(page.url()).pathname.startsWith("/admin/settings")) {
+    const toolsToggle = page.getByRole("button", {
+      name: /accesos y herramientas/i,
+    });
+    if (testInfo.project.name === "mobile") {
+      await expect(toolsToggle).toBeVisible();
+      await toolsToggle.click();
+    }
+    await page.getByRole("link", { name: /configuraci/i }).first().click();
+  }
 
   await expect(page).toHaveURL(/\/admin\/settings/);
   await expect(

@@ -7,8 +7,8 @@ import {
   verifyAutomationBearerToken,
 } from "../src/lib/lead-automation-config";
 
-const webhookSecret = "0123456789abcdef0123456789abcdef";
-const cronSecret = "abcdef0123456789abcdef0123456789";
+const webhookSecret = "test-webhook-secret-".padEnd(40, "x");
+const cronSecret = "test-cron-secret-".padEnd(40, "y");
 
 describe("lead automation configuration", () => {
   it("stays disabled without reporting missing optional configuration", () => {
@@ -210,7 +210,7 @@ describe("lead automation request authentication", () => {
     const body = '{"event":"lead.created","leadId":"lead_123"}';
 
     expect(createLeadWebhookSignature(body, webhookSecret, 1_750_000_000)).toBe(
-      "t=1750000000,v1=2181e9de1449391385e8c22e90da1965f47fb766229ce4c0d02d9c2dab3031f4",
+      "t=1750000000,v1=4da5ba052f7bd01ffe39dd346684dcdd27e586a9a48d40ad3a5b69248b04affc",
     );
   });
 

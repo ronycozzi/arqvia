@@ -186,8 +186,11 @@ function normalizePath(pathname: string) {
   return pathname === "/" ? pathname : pathname.replace(/\/+$/, "");
 }
 
-function extractTagText(html: string, tagName: string) {
-  const match = html.match(new RegExp(`<${tagName}\\b[^>]*>([\\s\\S]*?)<\\/${tagName}>`, "i"));
+function extractTagText(html: string, tagName: "title") {
+  const match =
+    tagName === "title"
+      ? html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)
+      : null;
   return match ? decodeHtml(match[1].replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim() : "";
 }
 
@@ -216,14 +219,20 @@ function extractMetaContent(
   return "";
 }
 
-function countTags(html: string, tagName: string) {
-  return (html.match(new RegExp(`<${tagName}\\b`, "gi")) || []).length;
+function countTags(html: string, tagName: "h1") {
+  return tagName === "h1" ? (html.match(/<h1\b/gi) || []).length : 0;
 }
 
-function extractAttribute(tag: string, attribute: string) {
-  const match = tag.match(
-    new RegExp(`\\b${attribute}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i"),
-  );
+const attributePatterns = {
+  content: /\bcontent\s*=\s*(?:"([^"]*)"|'([^']*)')/i,
+  href: /\bhref\s*=\s*(?:"([^"]*)"|'([^']*)')/i,
+  name: /\bname\s*=\s*(?:"([^"]*)"|'([^']*)')/i,
+  property: /\bproperty\s*=\s*(?:"([^"]*)"|'([^']*)')/i,
+  rel: /\brel\s*=\s*(?:"([^"]*)"|'([^']*)')/i,
+} as const;
+
+function extractAttribute(tag: string, attribute: keyof typeof attributePatterns) {
+  const match = tag.match(attributePatterns[attribute]);
   return match?.[1] || match?.[2] || "";
 }
 

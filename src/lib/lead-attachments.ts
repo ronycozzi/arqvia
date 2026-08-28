@@ -248,10 +248,13 @@ export function isPassivePdfDocument(source: Uint8Array) {
     "SubmitForm",
     "XFA",
   ];
-
-  return !blockedNames.some((name) =>
-    new RegExp(`/${name}(?![A-Za-z0-9])`).test(searchable),
+  const documentNames = new Set(
+    [...searchable.matchAll(/\/([A-Za-z][A-Za-z0-9]*)/g)].map(
+      (match) => match[1],
+    ),
   );
+
+  return !blockedNames.some((name) => documentNames.has(name));
 }
 
 function invalidFile(message: string) {

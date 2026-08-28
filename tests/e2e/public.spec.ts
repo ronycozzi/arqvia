@@ -1218,6 +1218,10 @@ test("local SEO CTA preserves landing source in the quote flow", async ({ page }
 test("persistent WhatsApp actions preserve project context", async ({ page }, testInfo) => {
   await page.goto("/proyectos/casa-patio-norte");
 
+  if (testInfo.project.name === "mobile") {
+    await page.evaluate(() => window.scrollTo(0, 600));
+  }
+
   const persistentWhatsApp =
     testInfo.project.name === "mobile"
       ? page
@@ -1226,6 +1230,7 @@ test("persistent WhatsApp actions preserve project context", async ({ page }, te
       : page
           .locator("header")
           .getByRole("link", { name: "WhatsApp", exact: true });
+  await expect(persistentWhatsApp).toBeVisible();
   const href = await persistentWhatsApp.getAttribute("href");
 
   expect(href).toBeTruthy();

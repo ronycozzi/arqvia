@@ -38,6 +38,7 @@ import { getAvailableServiceProjectSlugs } from "@/lib/service-project-mapping";
 import { siteConfig } from "@/lib/site-config";
 import { formatDate } from "@/lib/utils";
 import { AdminUnreadLeadBadge } from "@/components/admin/unread-lead-badge";
+import { AdminMobileDisclosure } from "@/components/admin/admin-mobile-disclosure";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -558,6 +559,10 @@ export default async function AdminPage() {
         </div>
       </section>
 
+      <AdminMobileDisclosure
+        description={`${visibleModules.length} módulos disponibles según tu rol`}
+        label="Accesos y herramientas"
+      >
       <section className="premium-card p-6" aria-labelledby="admin-modules-title">
         <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
           <div>
@@ -614,6 +619,7 @@ export default async function AdminPage() {
           ))}
         </div>
       </section>
+      </AdminMobileDisclosure>
 
       <section className="premium-card p-6" aria-labelledby="recent-leads-title">
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
@@ -818,12 +824,12 @@ export default async function AdminPage() {
             cierre. Cada estado abre la bandeja filtrada.
           </p>
         </div>
-        <div className="mt-6 grid gap-3 md:grid-cols-4">
+        <div className="touch-scroll-row -mx-1 mt-6 flex snap-x gap-3 overflow-x-auto px-1 pb-2 md:mx-0 md:grid md:grid-cols-4 md:overflow-visible md:px-0 md:pb-0">
           {pipeline.map((item) => (
             <Link
               key={item.label}
               href={`/admin/leads?estado=${item.status}`}
-              className="group border border-paper/12 bg-paper/[0.04] p-4 transition hover:-translate-y-0.5 hover:border-bronze-light focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bronze-light"
+              className="group min-w-[min(15rem,78vw)] snap-start border border-paper/12 bg-paper/[0.04] p-4 transition hover:-translate-y-0.5 hover:border-bronze-light focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bronze-light md:min-w-0"
             >
               <p className="font-sans text-4xl font-semibold tabular-nums text-bronze-light">
                 {formatCount(item.value)}
@@ -896,7 +902,7 @@ function StatGroup({
         </span>
         <h3 className="text-sm font-semibold text-ink">{label}</h3>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="touch-scroll-row -mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0">
         {stats.map((stat) => (
           <StatCard key={stat.label} stat={stat} />
         ))}
@@ -907,7 +913,7 @@ function StatGroup({
 
 function StatCard({ stat }: { stat: DashboardStat }) {
   const tone = stat.tone || "neutral";
-  const className = `block border p-4 transition hover:-translate-y-0.5 hover:border-bronze focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bronze ${statToneClassNames[tone]}`;
+  const className = `block min-w-[min(14rem,82vw)] snap-start border p-4 transition hover:-translate-y-0.5 hover:border-bronze focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bronze sm:min-w-0 ${statToneClassNames[tone]}`;
   const content = (
     <>
       <p className="font-sans text-4xl font-semibold leading-none tabular-nums text-ink">
@@ -986,10 +992,12 @@ function ReadinessPanel({
   const pendingCount = checks.length - approvedCount;
 
   return (
-    <section
-      className="premium-card p-6"
-      data-testid={dark ? "admin-launch-readiness-panel" : "admin-readiness-panel"}
+    <AdminMobileDisclosure
+      description={`${approvedCount}/${checks.length} controles aprobados`}
+      label={title}
+      testId={dark ? "admin-launch-readiness-panel" : "admin-readiness-panel"}
     >
+    <section className="premium-card p-6">
       <div className="grid gap-6 lg:grid-cols-[0.62fr_1.38fr]">
         <div
           className={
@@ -1175,5 +1183,6 @@ function ReadinessPanel({
         </div>
       </div>
     </section>
+    </AdminMobileDisclosure>
   );
 }

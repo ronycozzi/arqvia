@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "project": {
+    "name": "Arqvia",
+    "productType": "Premium architecture, construction and interiors lead-generation website with a private operations CMS",
+    "stack": ["nextjs", "react", "typescript", "tailwind-v4", "prisma"]
+  },
+  "sources": {
+    "tokens": ["src/app/styles.css"],
+    "components": [
+      "src/components/hero/arqvia-architectural-hero.tsx",
+      "src/components/project-card.tsx",
+      "src/components/service-card.tsx",
+      "src/components/quote-form.tsx",
+      "src/components/site-header.tsx",
+      "src/components/site-footer.tsx"
+    ],
+    "assets": ["public/images"],
+    "instructions": ["AGENTS.md", "CLAUDE.md"]
+  },
+  "design": {
+    "colorMode": "mixed editorial: dark graphite proof surfaces with light paper content bands",
+    "colors": {
+      "background": "#eef0eb",
+      "paper": "#fbfaf7",
+      "ink": "#1c211d",
+      "graphite": "#141815",
+      "graphiteSoft": "#1e2420",
+      "bronze": "#84572f",
+      "bronzeLight": "#d3a26b",
+      "olive": "#4e5d52",
+      "error": "#b42318"
+    },
+    "typography": {
+      "display": "Newsreader, medium weight, editorial and compact",
+      "body": "Manrope, regular to semibold, highly legible",
+      "admin": "Manrope only, operational hierarchy"
+    },
+    "spacing": {
+      "public": "spacious editorial bands with 20px mobile and 32px desktop gutters",
+      "admin": "dense but scannable, 16-24px panel padding"
+    },
+    "radius": { "default": "0px" },
+    "shadows": { "premium": "0 24px 64px rgb(26 30 27 / 0.11)" },
+    "motion": {
+      "fast": "180ms",
+      "medium": "420ms",
+      "slow": "680ms",
+      "easeOut": "cubic-bezier(0.16, 1, 0.3, 1)"
+    },
+    "density": "editorial public site; compact operational admin"
+  },
+  "components": {
+    "installed": [],
+    "preferredPrimitives": [
+      "semantic HTML",
+      "lucide-react icons",
+      "native details/summary where responsive visibility is not required",
+      "React state for responsive disclosures"
+    ],
+    "patterns": [
+      "full-bleed image hero with left editorial copy",
+      "proof-led project cards",
+      "contextual WhatsApp and quote CTAs",
+      "same-space before/after comparison",
+      "mobile-first admin disclosures"
+    ]
+  },
+  "constraints": {
+    "must": [
+      "Keep the Arqvia name and Spanish/English language support",
+      "Keep the hero image clean and visually dominant",
+      "Use clear conversion actions on every major public page",
+      "Preserve keyboard navigation, visible focus, reduced motion and 44px touch targets",
+      "Keep before/after images from the same room and comparable viewpoint",
+      "Keep admin surfaces utilitarian, role-aware and private"
+    ],
+    "avoid": [
+      "Public copy containing template, demo, editable, placeholder or internal implementation language",
+      "Background grids, architectural line overlays or callout lines over the hero image",
+      "Pointer-driven hero parallax, shine sweeps or aggressive animation",
+      "Generic centered SaaS hero composition",
+      "Nested decorative cards and rounded pill-heavy UI",
+      "Decorative gradients, orbs and visual effects without a functional role"
+    ]
+  },
+  "decisions": [
+    {
+      "date": "2026-08-27",
+      "decision": "Keep the current premium architecture direction and refine behavior instead of redesigning stable public sections.",
+      "evidence": "Five-width screenshot baseline, zero home Axe violations and no horizontal overflow."
+    },
+    {
+      "date": "2026-08-27",
+      "decision": "Show the floating mobile conversion bar only after the opening content and hide it near the footer.",
+      "evidence": "The always-visible bar obscured portfolio content and duplicated hero/footer actions."
+    },
+    {
+      "date": "2026-08-27",
+      "decision": "Collapse secondary admin panels on mobile while retaining the complete desktop dashboard.",
+      "evidence": "Authenticated mobile dashboard measured 12,626px before prioritization."
+    }
+  ],
+  "evidence": [
+    { "fact": "design.tokens", "source": "src/app/styles.css" },
+    { "fact": "hero.composition", "source": "src/components/hero/arqvia-architectural-hero.tsx" },
+    { "fact": "responsive.baseline", "source": "test-results/audit-v2/before" },
+    { "fact": "project.stack", "source": "package.json" }
+  ],
+  "generatedAt": "2026-08-27T22:55:00-03:00"
+}

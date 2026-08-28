@@ -21,8 +21,7 @@ export function ProjectCard({
             src={project.coverImage}
             alt={project.imageAlt}
             fill
-            preload={priority}
-            loading={priority ? undefined : "lazy"}
+            loading={priority ? "eager" : "lazy"}
             sizes="(min-width: 1280px) 292px, (min-width: 1024px) 309px, (min-width: 768px) calc(50vw - 40px), calc(100vw - 48px)"
             className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035] group-focus-within:scale-[1.035] motion-reduce:transform-none motion-reduce:transition-none"
           />

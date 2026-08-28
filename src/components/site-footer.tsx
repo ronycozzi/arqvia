@@ -79,7 +79,7 @@ export function SiteFooter({
             <p>
               <a
                 href={`tel:${config.phone.replace(/[^+\d]/g, "")}`}
-                className="flex min-w-0 items-center gap-2 transition hover:text-paper focus-visible:text-paper"
+                className="flex min-h-11 min-w-0 items-center gap-2 transition hover:text-paper focus-visible:text-paper lg:min-h-0"
               >
                 <Phone className="size-4 shrink-0" aria-hidden="true" />
                 <span className="min-w-0">{config.phone}</span>
@@ -88,7 +88,7 @@ export function SiteFooter({
             <p>
               <a
                 href={`mailto:${config.email}`}
-                className="flex min-w-0 items-center gap-2 transition hover:text-paper focus-visible:text-paper"
+                className="flex min-h-11 min-w-0 items-center gap-2 transition hover:text-paper focus-visible:text-paper lg:min-h-0"
               >
                 <Mail className="size-4 shrink-0" aria-hidden="true" />
                 <span className="min-w-0">{config.email}</span>
@@ -128,7 +128,7 @@ export function SiteFooter({
                   href={item.href}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex h-10 items-center justify-center gap-2 border border-paper/15 px-3 text-xs font-semibold text-paper/78 transition duration-300 hover:-translate-y-0.5 hover:border-bronze-light hover:text-bronze-light"
+                  className="inline-flex h-11 items-center justify-center gap-2 border border-paper/15 px-3 text-xs font-semibold text-paper/78 transition duration-300 hover:-translate-y-0.5 hover:border-bronze-light hover:text-bronze-light"
                 >
                   {item.label === "LinkedIn" ? <ExternalLink className="size-3.5" /> : null}
                   {item.label}
@@ -219,7 +219,7 @@ function FooterList({
   children: React.ReactNode;
 }) {
   const linksClassName =
-    "flex flex-col gap-3 text-sm text-paper/78 [&_a]:transition [&_a:hover]:text-paper";
+    "flex flex-col gap-1 text-sm text-paper/78 lg:gap-3 [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center [&_a]:transition [&_a:hover]:text-paper lg:[&_a]:min-h-0";
 
   return (
     <div className="min-w-0" data-footer-group={title}>

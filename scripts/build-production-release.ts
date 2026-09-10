@@ -20,14 +20,49 @@ function gitOutput(args: string[]) {
   return result.stdout.trim();
 }
 
-function resolveSourceRevision() {
-  const checkoutRevision = gitOutput(["rev-parse", "HEAD"]);
-  const providerRevision =
+/**
+ * Vercel construye desde un tarball del commit, sin `.git`.
+ *
+ * Las comprobaciones de git de esta compuerta existen para impedir que un
+ * artefacto de producción salga de un árbol de trabajo sucio. En un contenedor
+ * recién creado por el proveedor no hay árbol sucio posible: el checkout ES el
+ * commit, y el proveedor dice cuál en `VERCEL_GIT_COMMIT_SHA`. Sin esta
+ * distinción el build fallaba en la primera línea —`git rev-parse HEAD`— y el
+ * proyecto no podía desplegar a producción.
+ */
+function gitDisponible() {
+  const result = spawnSync("git", ["rev-parse", "--git-dir"], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+  });
+  return result.status === 0;
+}
+
+function providerRevision() {
+  return (
     process.env.VERCEL_GIT_COMMIT_SHA?.trim() ||
     process.env.GITHUB_SHA?.trim() ||
-    process.env.ARQVIA_RELEASE_SOURCE_REVISION?.trim();
+    process.env.ARQVIA_RELEASE_SOURCE_REVISION?.trim() ||
+    null
+  );
+}
 
-  if (providerRevision && providerRevision !== checkoutRevision) {
+function resolveSourceRevision() {
+  const provider = providerRevision();
+
+  if (!gitDisponible()) {
+    if (!provider) {
+      throw new Error(
+        "Sin repositorio Git, la revisión tiene que venir del proveedor " +
+          "(VERCEL_GIT_COMMIT_SHA, GITHUB_SHA o ARQVIA_RELEASE_SOURCE_REVISION).",
+      );
+    }
+    return provider;
+  }
+
+  const checkoutRevision = gitOutput(["rev-parse", "HEAD"]);
+
+  if (provider && provider !== checkoutRevision) {
     throw new Error(
       "Release source revision does not match the checked-out commit.",
     );
@@ -45,7 +80,7 @@ function resolveSourceRevision() {
   }
 
   if (
-    !providerRevision &&
+    !provider &&
     gitOutput(["status", "--porcelain", "--untracked-files=all"])
   ) {
     throw new Error(
@@ -53,7 +88,7 @@ function resolveSourceRevision() {
     );
   }
 
-  return providerRevision || checkoutRevision;
+  return provider || checkoutRevision;
 }
 
 function runNpmScript(
@@ -99,12 +134,11 @@ function main() {
       ARQVIA_RELEASE_EVIDENCE_PATH: beforePath,
     });
     runNpmScript("build:postgres", evidenceEnv);
+    // Igual que arriba: sin repositorio no hay nada que comparar, y la huella
+    // de estado que se verifica más abajo sigue cubriendo el caso.
     if (
-      gitOutput([
-        "status",
-        "--porcelain",
-        "--untracked-files=no",
-      ])
+      gitDisponible() &&
+      gitOutput(["status", "--porcelain", "--untracked-files=no"])
     ) {
       throw new Error(
         "Tracked source files changed while the release artifact was building.",

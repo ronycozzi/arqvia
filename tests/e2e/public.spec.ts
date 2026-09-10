@@ -1509,9 +1509,13 @@ test("project portfolio covers load visible architectural images", async ({ page
     await card.scrollIntoViewIfNeeded();
     const image = card.locator("img").first();
     await expect(image).toBeVisible();
+    // La primera visita a /proyectos dispara la optimización bajo demanda de
+    // las cuatro portadas, y el runner de CI las reencoda de a una en dos
+    // núcleos. Lo que se afirma es que la portada carga, no que tarde menos de
+    // X: con 20 s la prueba fallaba de a ratos sin que hubiera nada roto.
     await expect
       .poll(async () => image.evaluate((img) => (img as HTMLImageElement).naturalWidth), {
-        timeout: 20_000,
+        timeout: 60_000,
       })
       .toBeGreaterThan(80);
   }

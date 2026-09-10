@@ -199,19 +199,32 @@ async function collectResidueChecks(): Promise<ResidueCheck[]> {
         ],
       },
     }),
+    // Los cubos de rate limit no se pueden atribuir a un fixture: la clave es
+    // un HMAC del ámbito más el valor, justamente para que un email o un
+    // teléfono no queden guardados en claro (lo verifica una unitaria en
+    // `src/lib/rate-limit.test.ts`). Buscarlos por `e2e` era peor que inútil:
+    // `e2e` son tres dígitos hexadecimales, así que la consulta iba a coincidir
+    // tarde o temprano con el digest de un cubo cualquiera y hacía fallar la
+    // verificación al azar. Los cubos caducan solos y los borra
+    // `db:cleanup:rate-limits`.
+    //
+    // Lo que sí tiene sentido comprobar es la invariante de privacidad: que
+    // ninguna clave haya terminado con un dato de contacto en claro.
     prisma.rateLimitBucket.count({
       where: {
-        OR: [
-          { key: { contains: "e2e" } },
-          { key: { contains: "arqvia.test" } },
-        ],
+        OR: [{ key: { contains: "@" } }, { key: { contains: "arqvia.test" } }],
       },
     }),
+    // La clave de almacenamiento es `<epoch>-<8 hex>-<nombre original>`. El
+    // nombre del fixture va al final, así que se busca por ahí: `e2e` a secas
+    // también coincidía con el tramo hexadecimal.
     prisma.privateObjectDeletion.count({
       where: {
         OR: [
           { storageKey: { contains: "privacy-" } },
-          { storageKey: { contains: "e2e" } },
+          { storageKey: { contains: "e2e-" } },
+          { storageKey: { contains: "imagen-cms-" } },
+          { storageKey: { contains: "arqvia-test" } },
         ],
       },
     }),
@@ -236,7 +249,7 @@ async function collectResidueChecks(): Promise<ResidueCheck[]> {
     { label: "páginas institucionales", count: institutionalPages },
     { label: "redirecciones", count: redirects },
     { label: "auditoría", count: auditLogs },
-    { label: "límites de solicitudes", count: rateLimitBuckets },
+    { label: "datos de contacto en claves de rate limit", count: rateLimitBuckets },
     { label: "cola de borrado privado", count: privateObjectDeletions },
     { label: "archivos subidos", count: uploadedFiles },
   ];

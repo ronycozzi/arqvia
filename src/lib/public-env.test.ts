@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { isStrictPublicUrlContext, validatePublicEnv } from "./public-env";
+import {
+  isStrictPublicUrlContext,
+  resolvePublicSiteUrl,
+  validatePublicEnv,
+} from "./public-env";
 
 const baseEnv = {
   NEXT_PUBLIC_WHATSAPP_MESSAGE: "Hola, quiero consultar por un proyecto con Arqvia.",
@@ -54,6 +58,34 @@ describe("validatePublicEnv", () => {
     });
 
     expect(env.NEXT_PUBLIC_SITE_URL).toBe("https://arqvia.com.ar");
+  });
+
+  it("uses the linked Vercel project's production origin instead of another project's alias", () => {
+    const env = validatePublicEnv({
+      ...baseEnv,
+      VERCEL_ENV: "production",
+      VERCEL_PROJECT_PRODUCTION_URL: "arqvia-jade.vercel.app",
+      NEXT_PUBLIC_SITE_URL: "https://arqvia.vercel.app",
+    });
+
+    expect(env.NEXT_PUBLIC_SITE_URL).toBe("https://arqvia-jade.vercel.app");
+  });
+
+  it("preserves an explicit custom domain when Vercel exposes a project origin", () => {
+    expect(
+      resolvePublicSiteUrl({
+        VERCEL_PROJECT_PRODUCTION_URL: "arqvia-jade.vercel.app",
+        NEXT_PUBLIC_SITE_URL: "https://arqvia.com.ar",
+      }),
+    ).toBe("https://arqvia.com.ar");
+  });
+
+  it("falls back to the linked Vercel production origin when no site URL is configured", () => {
+    expect(
+      resolvePublicSiteUrl({
+        VERCEL_PROJECT_PRODUCTION_URL: "arqvia-jade.vercel.app",
+      }),
+    ).toBe("https://arqvia-jade.vercel.app");
   });
 
   it("accepts disabled analytics without an identifier", () => {

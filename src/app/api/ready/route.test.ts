@@ -16,7 +16,7 @@ vi.mock("@/lib/db", () => ({
   },
 }));
 
-import { GET } from "@/app/api/ready/route";
+import { GET, READINESS_TIMEOUT_MS } from "@/app/api/ready/route";
 
 describe("GET /api/ready", () => {
   beforeEach(() => {
@@ -46,6 +46,24 @@ describe("GET /api/ready", () => {
     expect(database.userFindFirst).toHaveBeenCalledWith({
       select: { id: true },
     });
+  });
+
+  it("allows a cold database to wake within the readiness budget", async () => {
+    vi.useFakeTimers();
+    database.queryRaw.mockImplementation(
+      () => new Promise((resolve) => setTimeout(() => resolve([{ connected: 1 }]), 3_000)),
+    );
+
+    try {
+      const responsePromise = GET();
+      await vi.advanceTimersByTimeAsync(3_000);
+      const response = await responsePromise;
+
+      expect(READINESS_TIMEOUT_MS).toBeGreaterThan(3_000);
+      expect(response.status).toBe(200);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("returns 503 without probing tables when connectivity fails", async () => {

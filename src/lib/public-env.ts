@@ -54,6 +54,39 @@ function cleanPhone(value: string) {
   return value.replace(/\D/g, "");
 }
 
+function normalizedVercelProductionOrigin(value?: string) {
+  if (!value?.trim()) return null;
+
+  const candidate = value.trim().replace(/^https?:\/\//i, "").split("/")[0];
+  if (!candidate || !candidate.toLowerCase().endsWith(".vercel.app")) {
+    return null;
+  }
+
+  return `https://${candidate.toLowerCase()}`;
+}
+
+export function resolvePublicSiteUrl(env: PublicEnvRaw = process.env) {
+  const configured = env.NEXT_PUBLIC_SITE_URL?.trim();
+  const projectOrigin = normalizedVercelProductionOrigin(
+    env.VERCEL_PROJECT_PRODUCTION_URL,
+  );
+
+  if (!configured) return projectOrigin;
+  if (!projectOrigin) return configured;
+
+  try {
+    const configuredUrl = new URL(configured);
+    const projectUrl = new URL(projectOrigin);
+    const pointsAtAnotherVercelProject =
+      configuredUrl.hostname.toLowerCase().endsWith(".vercel.app") &&
+      configuredUrl.hostname.toLowerCase() !== projectUrl.hostname;
+
+    return pointsAtAnotherVercelProject ? projectOrigin : configured;
+  } catch {
+    return configured;
+  }
+}
+
 export function isStrictPublicUrlContext(env: PublicEnvRaw = process.env) {
   return (
     env.ARQVIA_STRICT_PUBLIC_URL === "true" ||
@@ -69,7 +102,7 @@ export function validatePublicEnv(env: PublicEnvRaw = process.env) {
     NEXT_PUBLIC_ANALYTICS_ID: env.NEXT_PUBLIC_ANALYTICS_ID || undefined,
     NEXT_PUBLIC_ANALYTICS_PROVIDER:
       env.NEXT_PUBLIC_ANALYTICS_PROVIDER || undefined,
-    NEXT_PUBLIC_SITE_URL: env.NEXT_PUBLIC_SITE_URL || undefined,
+    NEXT_PUBLIC_SITE_URL: resolvePublicSiteUrl(env) || undefined,
     NEXT_PUBLIC_WHATSAPP_MESSAGE:
       env.NEXT_PUBLIC_WHATSAPP_MESSAGE || undefined,
     NEXT_PUBLIC_WHATSAPP_NUMBER:

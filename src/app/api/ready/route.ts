@@ -3,6 +3,8 @@ import { withTimeout } from "@/lib/promise-timeout";
 
 export const dynamic = "force-dynamic";
 
+export const READINESS_TIMEOUT_MS = 8_000;
+
 const responseHeaders = {
   "Cache-Control": "no-store, max-age=0",
   "Content-Type": "application/json; charset=utf-8",
@@ -22,7 +24,7 @@ export async function GET() {
           prisma.user.findFirst({ select: { id: true } }),
         ]);
       })(),
-      2_500,
+      READINESS_TIMEOUT_MS,
     );
 
     return Response.json(

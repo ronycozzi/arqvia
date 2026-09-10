@@ -1,3 +1,5 @@
+import { publicEnv } from "@/lib/public-env";
+
 export const siteConfig = {
   name: "Arqvia",
   tagline: "Arquitectura, obra e interiores",
@@ -6,7 +8,7 @@ export const siteConfig = {
   locale: "es_AR",
   city: "Córdoba",
   country: "Argentina",
-  url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+  url: publicEnv.NEXT_PUBLIC_SITE_URL,
   whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "",
   whatsappMessage:
     process.env.NEXT_PUBLIC_WHATSAPP_MESSAGE ||

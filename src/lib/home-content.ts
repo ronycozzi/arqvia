@@ -34,7 +34,6 @@ export type PublicHomeContent = {
   heroImageAlt: string;
   heroTrustItems: string[];
   trustMetrics: HomeTrustMetric[];
-  projectsTitle: string;
   servicesTitle: string;
   servicesDescription: string;
   beforeAfterTitle: string;
@@ -48,10 +47,19 @@ export type PublicHomeContent = {
   seoDescription: string;
 };
 
+/**
+ * La columna `projectsTitle` sigue existiendo en la base aunque la home ya no
+ * tenga sección de proyectos: la portada es el índice de obra. No se borra
+ * para no forzar una migración por un campo que nadie lee; al guardar se
+ * escribe un valor fijo y al leer se ignora.
+ */
+const LEGACY_PROJECTS_TITLE = "Obras terminadas. Resultados concretos.";
+
 export type StoredHomeContent = Omit<
   PublicHomeContent,
   "heroTrustItems" | "trustMetrics" | "processReasons" | "processSteps"
 > & {
+  projectsTitle: string;
   heroTrustItemsJson: string;
   trustMetricsJson: string;
   processReasonsJson: string;
@@ -73,7 +81,6 @@ export const fallbackHomeContent: PublicHomeContent = {
     { value: "+18.000", label: "m² diseñados/intervenidos" },
     { value: "7", label: "Zonas de trabajo" },
   ],
-  projectsTitle: "Obras terminadas. Resultados concretos.",
   servicesTitle: "Diseñamos, construimos y transformamos espacios.",
   servicesDescription:
     "Podemos resolver una etapa puntual o acompañar el proyecto completo.",
@@ -154,7 +161,6 @@ export function toPublicHomeContent(
     heroImageAlt: content.heroImageAlt,
     heroTrustItems,
     trustMetrics,
-    projectsTitle: content.projectsTitle,
     servicesTitle: content.servicesTitle,
     servicesDescription: content.servicesDescription,
     beforeAfterTitle: content.beforeAfterTitle,
@@ -171,11 +177,11 @@ export function toPublicHomeContent(
 
 export function serializeHomeContent(content: PublicHomeContent): StoredHomeContent {
   return {
+    projectsTitle: LEGACY_PROJECTS_TITLE,
     heroEyebrow: content.heroEyebrow,
     heroImageAlt: content.heroImageAlt,
     heroTrustItemsJson: JSON.stringify(content.heroTrustItems),
     trustMetricsJson: JSON.stringify(content.trustMetrics),
-    projectsTitle: content.projectsTitle,
     servicesTitle: content.servicesTitle,
     servicesDescription: content.servicesDescription,
     beforeAfterTitle: content.beforeAfterTitle,
@@ -205,7 +211,6 @@ export function homeContentFromForm(
       value: input[`metric${index}Value` as keyof HomeContentFormInput] as string,
       label: input[`metric${index}Label` as keyof HomeContentFormInput] as string,
     })),
-    projectsTitle: input.projectsTitle,
     servicesTitle: input.servicesTitle,
     servicesDescription: input.servicesDescription,
     beforeAfterTitle: input.beforeAfterTitle,

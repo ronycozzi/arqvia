@@ -17,7 +17,9 @@ test("Editor updates governed home content and the public page reflects it", asy
   const original = await prisma.homeContent.findUniqueOrThrow({
     where: { id: "arqvia-home" },
   });
-  const projectsTitle = `Obras Arqvia E2E ${Date.now()}`;
+  // La sección Proyectos salió de la home (la portada ya es el índice de
+  // obra); el campo editable que sigue viéndose en la home es el de servicios.
+  const servicesTitle = `Servicios Arqvia E2E ${Date.now()}`;
 
   try {
     await page.goto("/admin/login");
@@ -30,13 +32,13 @@ test("Editor updates governed home content and the public page reflects it", asy
     await expect(
       page.getByRole("heading", { level: 2, name: /contenido comercial de la home/i }),
     ).toBeVisible();
-    await page.locator('textarea[name="projectsTitle"]').fill(projectsTitle);
+    await page.locator('textarea[name="servicesTitle"]').fill(servicesTitle);
     await page.getByRole("button", { name: /guardar contenido/i }).click();
     await expect(page.getByRole("status")).toContainText(/home actualizada/i);
 
     await page.goto("/");
     await expect(
-      page.getByRole("heading", { level: 2, name: projectsTitle }),
+      page.getByRole("heading", { level: 2, name: servicesTitle }),
     ).toBeVisible();
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       "content",

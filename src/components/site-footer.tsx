@@ -79,7 +79,7 @@ export function SiteFooter({
             <p>
               <a
                 href={`tel:${config.phone.replace(/[^+\d]/g, "")}`}
-                className="flex min-h-11 min-w-0 items-center gap-2 transition hover:text-paper focus-visible:text-paper lg:min-h-0"
+                className="flex min-h-11 min-w-0 items-center gap-2 transition hover:text-paper focus-visible:text-paper lg:min-h-6"
               >
                 <Phone className="size-4 shrink-0" aria-hidden="true" />
                 <span className="min-w-0">{config.phone}</span>
@@ -88,7 +88,7 @@ export function SiteFooter({
             <p>
               <a
                 href={`mailto:${config.email}`}
-                className="flex min-h-11 min-w-0 items-center gap-2 transition hover:text-paper focus-visible:text-paper lg:min-h-0"
+                className="flex min-h-11 min-w-0 items-center gap-2 transition hover:text-paper focus-visible:text-paper lg:min-h-6"
               >
                 <Mail className="size-4 shrink-0" aria-hidden="true" />
                 <span className="min-w-0">{config.email}</span>
@@ -219,7 +219,7 @@ function FooterList({
   children: React.ReactNode;
 }) {
   const linksClassName =
-    "flex flex-col gap-1 text-sm text-paper/78 lg:gap-3 [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center [&_a]:transition [&_a:hover]:text-paper lg:[&_a]:min-h-0";
+    "flex flex-col gap-1 text-sm text-paper/78 lg:gap-3 [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center [&_a]:transition [&_a:hover]:text-paper lg:[&_a]:min-h-6";
 
   return (
     <div className="min-w-0" data-footer-group={title}>

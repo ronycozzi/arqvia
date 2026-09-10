@@ -4,7 +4,6 @@ import { BeforeAfter } from "@/components/before-after";
 import { ArqviaArchitecturalHero } from "@/components/hero/arqvia-architectural-hero";
 import { JsonLd } from "@/components/json-ld";
 import { MetricCounter } from "@/components/metric-counter";
-import { ProjectCard } from "@/components/project-card";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { SectionHeading } from "@/components/section-heading";
 import { ServiceCard } from "@/components/service-card";
@@ -12,7 +11,7 @@ import { TrackedAnchor } from "@/components/tracked-anchor";
 import { getPublicAreas } from "@/lib/area-data";
 import { getClientConfig } from "@/lib/client-config";
 import { getHomeContent } from "@/lib/home-data";
-import { getFeaturedPublicProjects, getPublicProjects } from "@/lib/project-data";
+import { getPublicProjects } from "@/lib/project-data";
 import { buildPageMetadata } from "@/lib/seo";
 import { getPublicServices } from "@/lib/service-data";
 import { getPublicTestimonials } from "@/lib/testimonial-data";
@@ -131,7 +130,6 @@ export default async function Home() {
   const [
     config,
     homeContent,
-    publicProjects,
     publicServices,
     publicTestimonials,
     publicAreas,
@@ -140,7 +138,6 @@ export default async function Home() {
     await Promise.all([
       getClientConfig(),
       getHomeContent(),
-      getFeaturedPublicProjects(3),
       getPublicServices(),
       getPublicTestimonials(),
       getPublicAreas(),
@@ -149,7 +146,6 @@ export default async function Home() {
       // primera pantalla contara menos de lo que el estudio hace.
       getPublicProjects(),
     ]);
-  const featuredProjects = publicProjects;
   const featuredServices = (
     publicServices.some((service) => service.featured)
       ? publicServices.filter((service) => service.featured)
@@ -229,45 +225,6 @@ export default async function Home() {
       </section>
 
       <section
-        id="home-projects"
-        aria-labelledby="home-projects-title"
-        className="architectural-grid bg-graphite py-14 text-paper md:py-16"
-      >
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <ScrollReveal variant="left" className="mb-9">
-            <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
-              <div className="max-w-3xl">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-bronze-light">
-                  Proyectos
-                </p>
-                <h2 id="home-projects-title" className="font-serif text-4xl leading-tight md:text-5xl">
-                  {homeContent.projectsTitle}
-                </h2>
-              </div>
-              <Link
-                href="/proyectos"
-                className="architectural-link inline-flex items-center gap-2 text-sm font-semibold text-bronze-light"
-              >
-                Ver todos los proyectos <MoveUpRight className="size-4" aria-hidden="true" />
-              </Link>
-            </div>
-          </ScrollReveal>
-          <div className="grid items-stretch gap-5 lg:grid-cols-3">
-            {featuredProjects.map((project, index) => (
-              <ScrollReveal
-                key={project.slug}
-                delay={index * 80}
-                variant="media"
-                className="h-full [&_article]:bg-paper"
-              >
-                <ProjectCard project={project} />
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section
         id="home-services"
         aria-label="Servicios destacados"
         className="mx-auto max-w-7xl px-5 py-14 md:px-8 md:py-16"
@@ -281,7 +238,7 @@ export default async function Home() {
             />
             <Link
               href="/servicios"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-ink underline decoration-bronze underline-offset-4"
+              className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-ink underline decoration-bronze underline-offset-4"
             >
               Ver servicios <MoveUpRight className="size-4" aria-hidden="true" />
             </Link>
@@ -342,7 +299,7 @@ export default async function Home() {
               </div>
               <Link
                 href="/proceso"
-                className="architectural-link mt-8 inline-flex text-sm font-semibold text-bronze-light"
+                className="architectural-link mt-8 inline-flex min-h-11 items-center text-sm font-semibold text-bronze-light"
               >
                 Ver cómo trabajamos
               </Link>

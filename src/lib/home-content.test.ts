@@ -23,7 +23,6 @@ function validFormInput() {
     metric3Label: content.trustMetrics[2].label,
     metric4Value: content.trustMetrics[3].value,
     metric4Label: content.trustMetrics[3].label,
-    projectsTitle: content.projectsTitle,
     servicesTitle: content.servicesTitle,
     servicesDescription: content.servicesDescription,
     beforeAfterTitle: content.beforeAfterTitle,

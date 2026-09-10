@@ -129,17 +129,9 @@ export function HomeContentForm({
       <EditorSection
         icon={<ListChecks className="size-5" aria-hidden="true" />}
         eyebrow="Recorrido principal"
-        title="Proyectos, servicios y transformación"
+        title="Servicios y transformación"
         description="Estos textos ordenan la lectura de la home sin agregar bloques innecesarios."
       >
-        <TextareaField
-          name="projectsTitle"
-          label="Título de proyectos"
-          defaultValue={content.projectsTitle}
-          disabled={disabled}
-          error={state.errors?.projectsTitle?.[0]}
-          rows={2}
-        />
         <TextareaField
           name="servicesTitle"
           label="Título de servicios"

@@ -410,7 +410,6 @@ export const homeContentFormSchema = z.object({
   metric3Label: homeShortText,
   metric4Value: z.string().trim().min(1, "Ingresá el valor").max(24),
   metric4Label: homeShortText,
-  projectsTitle: homeSectionTitle,
   servicesTitle: homeSectionTitle,
   servicesDescription: homeDescription,
   beforeAfterTitle: homeSectionTitle,

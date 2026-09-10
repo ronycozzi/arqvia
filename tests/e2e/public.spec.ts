@@ -901,8 +901,10 @@ test("home prioritizes projects and does not advertise the estimator", async ({
   page,
 }) => {
   await page.goto("/");
+  // El índice de obra de la portada es la sección de proyectos: su enlace a
+  // /proyectos es el que tiene que estar a la vista.
   await expect(
-    page.getByRole("link", { name: /ver todos los proyectos/i }),
+    page.getByRole("link", { name: /ver (todos los )?proyectos/i }).first(),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: /estim. un rango inicial para tu proyecto/i }),

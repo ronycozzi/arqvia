@@ -45,7 +45,6 @@ function homeFormData() {
     expectedUpdatedAt,
     heroEyebrow: content.heroEyebrow,
     heroImageAlt: content.heroImageAlt,
-    projectsTitle: content.projectsTitle,
     servicesTitle: content.servicesTitle,
     servicesDescription: content.servicesDescription,
     beforeAfterTitle: content.beforeAfterTitle,

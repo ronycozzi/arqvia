@@ -115,6 +115,6 @@ export async function updateHomeContent(
     expectedUpdatedAt: savedContent.updatedAt.toISOString(),
     message: "Home actualizada. Los cambios ya están disponibles en el sitio público.",
     ok: true,
-    resource: { id: savedContent.id, title: parsed.data.projectsTitle },
+    resource: { id: savedContent.id, title: parsed.data.servicesTitle },
   };
 }

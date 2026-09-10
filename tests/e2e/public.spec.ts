@@ -7,6 +7,30 @@ const testOrigin =
   `http://localhost:${process.env.PLAYWRIGHT_PORT || "3100"}`;
 const analyticsProvider = process.env.NEXT_PUBLIC_ANALYTICS_PROVIDER || "none";
 
+/**
+ * Un píxel transparente en lugar de cada imagen optimizada.
+ *
+ * Las pruebas de desborde miden el ancho que dicta el CSS, y `next/image`
+ * reserva su caja antes de descargar nada: lo que llegue por la red no cambia
+ * el resultado. Pedir las imágenes de verdad, en cambio, sí rompe. Cambiar de
+ * viewport hace que el navegador vuelva a elegir del `srcset`, y la navegación
+ * siguiente cancela esas peticiones a medio camino; con la caché de imágenes
+ * fría —la de cualquier máquina de integración— el servidor queda esperando
+ * optimizaciones que ya nadie va a reclamar. Como el navegador abre seis
+ * conexiones por origen, las navegaciones siguientes encolan detrás de esas y
+ * se cuelgan esperando `load` para siempre.
+ */
+const TRANSPARENT_PIXEL = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+  "base64",
+);
+
+async function stubOptimizedImages(page: Page) {
+  await page.route("**/_next/image**", (route) =>
+    route.fulfill({ status: 200, contentType: "image/png", body: TRANSPARENT_PIXEL }),
+  );
+}
+
 type EstimatorFixture = {
   client: PrismaClient;
   enabled: boolean;
@@ -815,8 +839,12 @@ test("blog guide uses editorial sections, functional anchors and one contextual 
 test("blog and footer wrap long managed copy without horizontal overflow", async ({
   page,
 }) => {
+  await stubOptimizedImages(page);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/blog/anteproyecto-vs-proyecto-ejecutivo");
+  await page.goto("/blog/anteproyecto-vs-proyecto-ejecutivo", {
+    waitUntil: "domcontentloaded",
+  });
+  await page.evaluate(() => document.fonts.ready);
 
   const unbrokenText = "arquitectura".repeat(40);
   await page.locator("article h1").evaluate((element, value) => {
@@ -1652,7 +1680,9 @@ const publicPages = [
 
 for (const path of publicPages) {
   test(`public page has no horizontal overflow: ${path}`, async ({ page }) => {
-    await page.goto(path);
+    await stubOptimizedImages(page);
+    await page.goto(path, { waitUntil: "domcontentloaded" });
+    await page.evaluate(() => document.fonts.ready);
     const hasOverflow = await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
     );

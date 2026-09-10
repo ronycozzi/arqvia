@@ -692,8 +692,13 @@ Pasos:
 10. Completar las aprobaciones de `.env.example`; declarar explícitamente las cuatro variables `LEAD_RETENTION_*`/`DATA_RETENTION_CRON_SECRET`; y ejecutar `npm run release:check`. El procedimiento y cada bloqueo están en `docs/RELEASE_GATE.md`.
 11. Probar manifest, instalación y fallback offline sobre HTTPS según `docs/PWA.md`.
 12. Vercel usa `npm run build:vercel`: los previews ejecutan el build PostgreSQL
-    técnico y el destino Production deriva obligatoriamente a `build:release`.
-    El build productivo queda ligado al SHA y al estado aprobado de PostgreSQL:
+    técnico y el destino Production deriva a `build:release` en cuanto el sitio
+    se publica en su dominio propio. Mientras `NEXT_PUBLIC_SITE_URL` siga siendo
+    un `*.vercel.app` —es decir, mientras no haya dominio de cliente que
+    proteger— Production usa el mismo build técnico que los previews. El
+    criterio es el dominio publicado, no un interruptor: la compuerta se vuelve
+    a exigir sola el día que se configura el dominio final. El build productivo
+    queda ligado al SHA y al estado aprobado de PostgreSQL:
 
 ```bash
 npm run build:release

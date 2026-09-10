@@ -96,3 +96,14 @@ PostgreSQL efímero. Después consulta la base productiva sin escribir, construy
 el artefacto con `build:release` desde ese estado y conserva el recibo del gate.
 Vercel usa el mismo comando mediante `vercel.json`, de modo que su build no puede
 omitir estos controles.
+
+`scripts/vercel-build-policy.ts` decide cuándo se exige el gate en Production, y
+lo hace mirando el dominio publicado. La compuerta verifica lo que hace falta
+para entregarle el sitio a un cliente —dominio propio, S3, analítica con
+consentimiento, retención declarada, revisión legal aprobada—, y nada de eso
+existe mientras el proyecto vive en su subdominio de Vercel: ahí la compuerta
+sólo bloquea cada despliegue sin proteger nada. Por eso, con
+`NEXT_PUBLIC_SITE_URL` apuntando a un `*.vercel.app`, Production compila con
+`build:postgres`; con cualquier otro host —o sin host reconocible, que falla
+cerrado— vuelve a `build:release`. No hay variable que activar el día del
+lanzamiento: configurar el dominio final ES activar la compuerta.

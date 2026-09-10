@@ -438,9 +438,10 @@ textarea {
   color: var(--paper);
 }
 
-/* En teléfono el índice sube: la obra tiene que estar a la vista sin
-   desplazar, y la bajada con su acción pasan debajo de la lista. En
-   escritorio hay lugar para las dos cosas en la misma banda. */
+/* En teléfono la bajada y el botón van pegados al enunciado: al bajarlos
+   debajo del índice, la única acción de la portada quedaba a dos pantallas de
+   distancia. El índice entra igual con un scroll corto. En escritorio hay
+   lugar para las dos cosas en la misma banda. */
 .obra-index__shell {
   margin-inline: auto;
   display: grid;
@@ -451,20 +452,20 @@ textarea {
 
 .obra-index__head-main {
   order: 1;
-  padding-bottom: 1.5rem;
-}
-
-.obra-index__rotulo {
-  order: 2;
-}
-
-.obra-index__list {
-  order: 3;
+  padding-bottom: 1.25rem;
 }
 
 .obra-index__head-aside {
+  order: 2;
+  padding-bottom: 1.75rem;
+}
+
+.obra-index__rotulo {
+  order: 3;
+}
+
+.obra-index__list {
   order: 4;
-  padding-top: 1.75rem;
 }
 
 .obra-index__legend {
@@ -493,7 +494,6 @@ textarea {
     grid-column: 2;
     grid-row: 1;
     align-self: end;
-    padding-top: 0;
     padding-bottom: 2rem;
   }
 

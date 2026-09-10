@@ -12,7 +12,7 @@ import { TrackedAnchor } from "@/components/tracked-anchor";
 import { getPublicAreas } from "@/lib/area-data";
 import { getClientConfig } from "@/lib/client-config";
 import { getHomeContent } from "@/lib/home-data";
-import { getFeaturedPublicProjects } from "@/lib/project-data";
+import { getFeaturedPublicProjects, getPublicProjects } from "@/lib/project-data";
 import { buildPageMetadata } from "@/lib/seo";
 import { getPublicServices } from "@/lib/service-data";
 import { getPublicTestimonials } from "@/lib/testimonial-data";
@@ -135,6 +135,7 @@ export default async function Home() {
     publicServices,
     publicTestimonials,
     publicAreas,
+    todasLasObras,
   ] =
     await Promise.all([
       getClientConfig(),
@@ -143,6 +144,10 @@ export default async function Home() {
       getPublicServices(),
       getPublicTestimonials(),
       getPublicAreas(),
+      // El índice de portada muestra el rango completo del estudio, no la
+      // selección destacada: dejar afuera la obra comercial hacía que la
+      // primera pantalla contara menos de lo que el estudio hace.
+      getPublicProjects(),
     ]);
   const featuredProjects = publicProjects;
   const featuredServices = (
@@ -198,6 +203,7 @@ export default async function Home() {
         eyebrow={homeContent.heroEyebrow}
         imageAlt={homeContent.heroImageAlt}
         trustItems={homeContent.heroTrustItems}
+        projects={todasLasObras}
       />
 
       <section

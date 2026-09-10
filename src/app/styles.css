@@ -419,6 +419,437 @@ textarea {
   transform: none;
 }
 
+/* ================================================================== *
+ * Portada: índice de obra.
+ *
+ * Cuatro obras reales como cuatro renglones a ancho completo. El abierto
+ * muestra la obra; los demás quedan como líneas de un índice. La silueta
+ * —franjas horizontales, una gruesa— es lo que la separa del resto de las
+ * portadas del estudio, que son todas texto-izquierda / media-derecha.
+ * ================================================================== */
+
+.obra-index {
+  --linea: color-mix(in srgb, var(--paper) 16%, transparent);
+  --linea-fuerte: color-mix(in srgb, var(--paper) 30%, transparent);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--graphite);
+  color: var(--paper);
+}
+
+/* En teléfono el índice sube: la obra tiene que estar a la vista sin
+   desplazar, y la bajada con su acción pasan debajo de la lista. En
+   escritorio hay lugar para las dos cosas en la misma banda. */
+.obra-index__shell {
+  margin-inline: auto;
+  display: grid;
+  width: 100%;
+  max-width: 92rem;
+  padding: 2.25rem 1.25rem 2.5rem;
+}
+
+.obra-index__head-main {
+  order: 1;
+  padding-bottom: 1.5rem;
+}
+
+.obra-index__rotulo {
+  order: 2;
+}
+
+.obra-index__list {
+  order: 3;
+}
+
+.obra-index__head-aside {
+  order: 4;
+  padding-top: 1.75rem;
+}
+
+.obra-index__legend {
+  order: 5;
+}
+
+@media (min-width: 768px) {
+  .obra-index__shell {
+    padding: 3rem 2rem 3.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .obra-index__shell {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    column-gap: 3rem;
+  }
+
+  .obra-index__head-main {
+    grid-column: 1;
+    grid-row: 1;
+    padding-bottom: 2rem;
+  }
+
+  .obra-index__head-aside {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: end;
+    padding-top: 0;
+    padding-bottom: 2rem;
+  }
+
+  .obra-index__rotulo,
+  .obra-index__list,
+  .obra-index__legend {
+    grid-column: 1 / -1;
+  }
+}
+
+/* --- Cabecera: la promesa reducida a una línea ------------------- */
+
+.obra-index__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--bronze-light);
+}
+
+.obra-index__eyebrow-tick {
+  display: block;
+  height: 1px;
+  width: 2.5rem;
+  background: var(--bronze-light);
+}
+
+/* El enunciado deja de ser el protagonista: la evidencia la da la lista. */
+.obra-index__claim {
+  margin-top: 1.1rem;
+  max-width: 20ch;
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: clamp(1.75rem, 2.6vw, 2.6rem);
+  font-weight: 500;
+  line-height: 1.12;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+
+.obra-index__head-aside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.obra-index__lead {
+  max-width: 40ch;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: color-mix(in srgb, var(--paper) 82%, transparent);
+}
+
+.obra-index__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-height: 3rem;
+  padding-inline: 1.5rem;
+  background: var(--bronze);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--paper);
+  transition:
+    transform var(--motion-fast) var(--motion-ease-out),
+    background-color var(--motion-fast) var(--motion-ease-out);
+}
+
+.obra-index__cta:hover,
+.obra-index__cta:focus-visible {
+  background: var(--paper);
+  color: var(--ink);
+  transform: translateY(-2px);
+}
+
+/* --- Rótulo del índice -------------------------------------------- */
+
+.obra-index__rotulo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--paper) 62%, transparent);
+}
+
+.obra-index__rotulo-rule {
+  height: 1px;
+  flex: 1;
+  background: var(--linea);
+}
+
+.obra-index__rotulo-count {
+  font-variant-numeric: tabular-nums;
+}
+
+/* La vía al portfolio completo vive en el rótulo del índice: el índice
+   muestra unas pocas obras y este enlace lleva a todas. */
+.obra-index__rotulo-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.25rem;
+  border-bottom: 1px solid var(--bronze-light);
+  padding-inline: 0.1rem;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--paper);
+  transition: color var(--motion-fast) var(--motion-ease-out);
+}
+
+.obra-index__rotulo-link:hover,
+.obra-index__rotulo-link:focus-visible {
+  color: var(--bronze-light);
+}
+
+/* --- Los renglones ------------------------------------------------ */
+
+.obra-index__list {
+  border-top: 1px solid var(--linea-fuerte);
+}
+
+.obra-index__item {
+  border-bottom: 1px solid var(--linea);
+}
+
+.obra-index__item details {
+  position: relative;
+}
+
+.obra-index__summary {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: 0.9rem;
+  padding-block: 0.85rem;
+  cursor: pointer;
+  list-style: none;
+  transition: background-color var(--motion-fast) var(--motion-ease-out);
+}
+
+.obra-index__summary::-webkit-details-marker {
+  display: none;
+}
+
+.obra-index__summary:hover,
+.obra-index__summary:focus-visible {
+  background: color-mix(in srgb, var(--paper) 5%, transparent);
+}
+
+.obra-index__order {
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--bronze-light);
+}
+
+/* La miniatura vive en el renglón: en táctil no hay hover, así que la
+   lista tiene que entenderse sin abrir nada. */
+.obra-index__thumb {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  height: 2.75rem;
+  width: 3.75rem;
+  flex: none;
+  background: color-mix(in srgb, var(--paper) 8%, transparent);
+}
+
+@media (min-width: 768px) {
+  .obra-index__thumb {
+    height: 3.25rem;
+    width: 4.75rem;
+  }
+}
+
+.obra-index__thumb-img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+/* En el renglón abierto la miniatura repetiría la fotografía de abajo. */
+.obra-index__item details[open] .obra-index__thumb {
+  opacity: 0;
+}
+
+.obra-index__name {
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: clamp(1.15rem, 2vw, 1.75rem);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.obra-index__meta {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .obra-index__meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 1.5rem;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--paper) 70%, transparent);
+  }
+}
+
+.obra-index__meta-item--num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Un signo, no un chevron genérico: la cruz de un plano que se vuelve raya
+   cuando el renglón está abierto. */
+.obra-index__chevron {
+  position: relative;
+  display: block;
+  height: 12px;
+  width: 12px;
+  flex: none;
+}
+
+.obra-index__chevron::before,
+.obra-index__chevron::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  background: var(--bronze-light);
+}
+
+.obra-index__chevron::before {
+  height: 1px;
+  width: 12px;
+}
+
+.obra-index__chevron::after {
+  height: 12px;
+  width: 1px;
+  transition: transform var(--motion-medium) var(--motion-ease-out);
+}
+
+.obra-index__item details[open] .obra-index__chevron::after {
+  transform: scaleY(0);
+}
+
+/* --- El panel abierto --------------------------------------------- */
+
+.obra-index__panel {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+
+.obra-index__panel-inner {
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  gap: 1.25rem;
+  padding-bottom: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .obra-index__panel-inner {
+    grid-template-columns: minmax(0, 2.1fr) minmax(0, 1fr);
+    align-items: end;
+    gap: 2rem;
+  }
+}
+
+.obra-index__figure {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  background: color-mix(in srgb, var(--paper) 8%, transparent);
+}
+
+@media (min-width: 1024px) {
+  .obra-index__figure {
+    aspect-ratio: 16 / 7;
+  }
+}
+
+.obra-index__figure-img {
+  object-fit: cover;
+}
+
+.obra-index__detail {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.1rem;
+}
+
+.obra-index__summary-text {
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: color-mix(in srgb, var(--paper) 84%, transparent);
+}
+
+.obra-index__open {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  border-bottom: 1px solid var(--bronze-light);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--paper);
+  transition: color var(--motion-fast) var(--motion-ease-out);
+}
+
+.obra-index__open:hover,
+.obra-index__open:focus-visible {
+  color: var(--bronze-light);
+}
+
+/* --- Leyenda ------------------------------------------------------ */
+
+.obra-index__legend {
+  margin-top: 1.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.75rem;
+}
+
+.obra-index__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--paper) 74%, transparent);
+}
+
+.obra-index__legend-tick {
+  display: block;
+  height: 7px;
+  width: 1px;
+  background: var(--bronze-light);
+}
+
 .hero-actions-reveal {
   transform: none;
 }
@@ -544,6 +975,17 @@ textarea {
 
   .hero-reveal {
     animation: hero-fade-up 760ms var(--motion-ease-out) both;
+  }
+
+  /* La apertura del renglón se anima con grid-template-rows, que tiene
+     soporte parejo; <details> por sí solo salta. Con movimiento reducido
+     el salto instantáneo es el comportamiento correcto. */
+  .obra-index__panel {
+    transition: grid-template-rows var(--motion-medium) var(--motion-ease-out);
+  }
+
+  .obra-index__item details:not([open]) .obra-index__panel {
+    grid-template-rows: 0fr;
   }
 
   .hero-actions-reveal {

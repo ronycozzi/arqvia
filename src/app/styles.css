@@ -1031,3 +1031,10 @@ textarea {
     font-size: 16px;
   }
 }
+
+/* Énfasis sin cursiva: en estas webs no va la itálica. `em` conserva su
+   semántica (lectores de pantalla, buscadores) y se marca con peso. */
+em {
+  font-style: normal;
+  font-weight: 600;
+}

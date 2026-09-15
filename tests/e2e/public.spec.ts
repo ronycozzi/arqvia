@@ -1520,6 +1520,9 @@ test("active project filter is brought into view on narrow screens", async ({
 });
 
 test("project portfolio covers load visible architectural images", async ({ page }) => {
+  // Cada portada puede esperar hasta 60 s su primera optimización: el límite global de 30 s
+  // cortaba la prueba antes de que terminara la espera y la hacía fallar sin nada roto.
+  test.setTimeout(300_000);
   await page.goto("/proyectos");
 
   const projectCards = page.locator("article").filter({

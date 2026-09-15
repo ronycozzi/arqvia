@@ -92,8 +92,10 @@ jobs:
       - name: Verify E2E fixture cleanup
         run: npm run test:e2e-residue
 
+      # Evidence only when something failed, kept one week: every successful run used to
+      # upload its full report and filled the account's Actions artifact quota.
       - name: Upload Playwright evidence
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: playwright-report
@@ -101,7 +103,7 @@ jobs:
             playwright-report/
             test-results/
           if-no-files-found: ignore
-          retention-days: 14
+          retention-days: 7
 
   release-check:
     needs: verify-artifact

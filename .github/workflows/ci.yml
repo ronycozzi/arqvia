@@ -153,8 +153,10 @@ jobs:
       - name: Verify E2E fixture cleanup
         run: npm run test:e2e-residue
 
+      # Evidence only when something failed, kept one week: every successful run used to
+      # upload its full report and filled the account's Actions artifact quota.
       - name: Upload Playwright evidence
-        if: always()
+        if: failure()
         continue-on-error: true
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
@@ -163,7 +165,7 @@ jobs:
             playwright-report/
             test-results/
           if-no-files-found: ignore
-          retention-days: 14
+          retention-days: 7
 
   postgres:
     runs-on: ubuntu-latest

@@ -12,7 +12,11 @@ const baseURL =
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  timeout: 30_000,
+  // El runner de CI tiene dos núcleos y reencoda las imágenes bajo demanda la
+  // primera vez que se visita cada página: con 30 s, page.goto se quedaba sin
+  // tiempo esperando al optimizador y cinco pruebas de mobile fallaban sin que
+  // hubiera nada roto en el sitio. En esta máquina la misma suite pasa en 1,1 min.
+  timeout: process.env.CI ? 90_000 : 30_000,
   expect: { timeout: 5_000 },
   fullyParallel: false,
   workers: 1,

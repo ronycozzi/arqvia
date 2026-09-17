@@ -1542,10 +1542,13 @@ test("project portfolio covers load visible architectural images", async ({ page
     // La primera visita a /proyectos dispara la optimización bajo demanda de
     // las cuatro portadas, y el runner de CI las reencoda de a una en dos
     // núcleos. Lo que se afirma es que la portada carga, no que tarde menos de
-    // X: con 20 s la prueba fallaba de a ratos sin que hubiera nada roto.
+    // X: con 20 s la prueba fallaba de a ratos sin que hubiera nada roto. La
+    // espera entra dentro del tiempo de la prueba (90 s en CI, 30 s acá), así
+    // que pedir más que eso sólo servía para que el corte llegara antes y el
+    // error dijera "naturalWidth 0" en vez de "el runner tardó".
     await expect
       .poll(async () => image.evaluate((img) => (img as HTMLImageElement).naturalWidth), {
-        timeout: 60_000,
+        timeout: process.env.CI ? 45_000 : 20_000,
       })
       .toBeGreaterThan(80);
   }

@@ -1,4 +1,4 @@
-﻿import { expect, test, type Page } from "@playwright/test";
+﻿import { expect, test, type Page, type Route } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { PrismaClient } from "@prisma/client";
 
@@ -1526,9 +1526,17 @@ test("active project filter is brought into view on narrow screens", async ({
 
 test("project portfolio covers load visible architectural images", async ({ page }) => {
   // Esta es la única prueba que pide las portadas de verdad, así que no puede
-  // usar el stub. Lo que sí se saca es la espera del evento load: incluía todas
-  // las demás imágenes del listado, y el corte de la prueba llegaba antes de
-  // que el optimizador terminara con las cuatro portadas que sí se afirman.
+  // usar el stub. La primera pasada va con las imágenes bloqueadas: el srcset
+  // ya viene en el HTML y el navegador elige su candidata sin descargar nada,
+  // así que alcanza para saber qué URL va a pedir. Bloquearlas evita además que
+  // la recarga cancele optimizaciones a medio hacer, que es lo que dejaba al
+  // servidor ocupado con trabajo que ya nadie iba a reclamar.
+  const wantedCovers = new Set<string>();
+  page.on("request", (request) => {
+    if (request.url().includes("/_next/image")) wantedCovers.add(request.url());
+  });
+  const blockOptimizedImages = (route: Route) => route.abort();
+  await page.route("**/_next/image**", blockOptimizedImages);
   await page.goto("/proyectos", { waitUntil: "domcontentloaded" });
 
   const projectCards = page.locator("article").filter({
@@ -1543,16 +1551,18 @@ test("project portfolio covers load visible architectural images", async ({ page
   const cardCount = await projectCards.count();
   expect(cardCount).toBeGreaterThanOrEqual(4);
 
-  const covers: string[] = [];
   for (let index = 0; index < Math.min(cardCount, 4); index += 1) {
     const card = projectCards.nth(index);
     await card.scrollIntoViewIfNeeded();
     const image = card.locator("img").first();
     await expect(image).toBeVisible();
-    const source = (await image.getAttribute("src")) ?? "";
-    expect(source).not.toBe("");
-    covers.push(source);
   }
+
+  // Las URLs a optimizar son exactamente las que el navegador pidió en la pasada
+  // bloqueada. En mobile no son las de src: elige otra candidata del srcset, y
+  // ahí estaba el error del intento anterior, que calentaba la que no era y
+  // dejaba la caché fría justo para la que el navegador iba a volver a pedir.
+  expect(wantedCovers.size).toBeGreaterThanOrEqual(4);
 
   // Cada portada se pide primero por HTTP. Eso hace dos cosas: afirma que la
   // portada se sirve de verdad —200 y un tipo de imagen, no una respuesta vacía
@@ -1560,7 +1570,9 @@ test("project portfolio covers load visible architectural images", async ({ page
   // sólo con naturalWidth no alcanzaba: en un runner de dos núcleos y con la
   // caché fría, la etiqueta img se quedaba con la petición cancelada y el valor
   // no se movía del 0 por mucho que se ampliara la espera.
-  for (const source of covers) {
+  await page.unroute("**/_next/image**", blockOptimizedImages);
+
+  for (const source of wantedCovers) {
     const response = await page.request.get(new URL(source, testOrigin).toString(), {
       timeout: 60_000,
     });
@@ -1571,7 +1583,7 @@ test("project portfolio covers load visible architectural images", async ({ page
   // Con las cuatro portadas ya optimizadas, la recarga las toma de la caché del
   // servidor y el navegador puede decodificarlas sin carrera.
   await page.reload({ waitUntil: "domcontentloaded" });
-  for (let index = 0; index < covers.length; index += 1) {
+  for (let index = 0; index < Math.min(cardCount, 4); index += 1) {
     const card = projectCards.nth(index);
     await card.scrollIntoViewIfNeeded();
     const image = card.locator("img").first();

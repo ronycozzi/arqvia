@@ -1543,21 +1543,42 @@ test("project portfolio covers load visible architectural images", async ({ page
   const cardCount = await projectCards.count();
   expect(cardCount).toBeGreaterThanOrEqual(4);
 
+  const covers: string[] = [];
   for (let index = 0; index < Math.min(cardCount, 4); index += 1) {
     const card = projectCards.nth(index);
     await card.scrollIntoViewIfNeeded();
     const image = card.locator("img").first();
     await expect(image).toBeVisible();
-    // La primera visita a /proyectos dispara la optimización bajo demanda de
-    // las cuatro portadas, y el runner de CI las reencoda de a una en dos
-    // núcleos. Lo que se afirma es que la portada carga, no que tarde menos de
-    // X: con 20 s la prueba fallaba de a ratos sin que hubiera nada roto. La
-    // espera entra dentro del tiempo de la prueba (90 s en CI, 30 s acá), así
-    // que pedir más que eso sólo servía para que el corte llegara antes y el
-    // error dijera "naturalWidth 0" en vez de "el runner tardó".
+    const source = (await image.getAttribute("src")) ?? "";
+    expect(source).not.toBe("");
+    covers.push(source);
+  }
+
+  // Cada portada se pide primero por HTTP. Eso hace dos cosas: afirma que la
+  // portada se sirve de verdad —200 y un tipo de imagen, no una respuesta vacía
+  // ni un error— y deja la versión optimizada ya hecha en el servidor. Esperar
+  // sólo con naturalWidth no alcanzaba: en un runner de dos núcleos y con la
+  // caché fría, la etiqueta img se quedaba con la petición cancelada y el valor
+  // no se movía del 0 por mucho que se ampliara la espera.
+  for (const source of covers) {
+    const response = await page.request.get(new URL(source, testOrigin).toString(), {
+      timeout: 60_000,
+    });
+    expect(response.status()).toBe(200);
+    expect(response.headers()["content-type"]).toMatch(/^image\//);
+  }
+
+  // Con las cuatro portadas ya optimizadas, la recarga las toma de la caché del
+  // servidor y el navegador puede decodificarlas sin carrera.
+  await page.reload({ waitUntil: "domcontentloaded" });
+  for (let index = 0; index < covers.length; index += 1) {
+    const card = projectCards.nth(index);
+    await card.scrollIntoViewIfNeeded();
+    const image = card.locator("img").first();
+    await expect(image).toBeVisible();
     await expect
       .poll(async () => image.evaluate((img) => (img as HTMLImageElement).naturalWidth), {
-        timeout: process.env.CI ? 45_000 : 20_000,
+        timeout: 20_000,
       })
       .toBeGreaterThan(80);
   }

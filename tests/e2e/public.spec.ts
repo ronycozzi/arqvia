@@ -265,6 +265,7 @@ test("footer keeps desktop columns and groups long navigation on mobile", async 
 });
 
 test("mobile menu traps focus and closes accessibly", async ({ page }) => {
+  await stubOptimizedImages(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
 
@@ -293,6 +294,7 @@ test("mobile menu traps focus and closes accessibly", async ({ page }) => {
 test("mobile menu remains fully usable on a short landscape viewport", async ({
   page,
 }) => {
+  await stubOptimizedImages(page);
   await page.setViewportSize({ width: 640, height: 320 });
   await page.goto("/");
 
@@ -1383,6 +1385,7 @@ test("before after accepts an imprecise mobile touch drag across the visible han
   context,
   page,
 }) => {
+  await stubOptimizedImages(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
 
@@ -1435,6 +1438,7 @@ test("project gallery supports horizontal swipe on mobile", async ({
   context,
   page,
 }) => {
+  await stubOptimizedImages(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/proyectos/casa-patio-norte");
   await page.getByRole("button", { name: /abrir imagen 1 de 2/i }).click();
@@ -1468,6 +1472,7 @@ test("project gallery supports horizontal swipe on mobile", async ({
 test("mobile typography, language controls and tablet footer keep usable proportions", async ({
   page,
 }) => {
+  await stubOptimizedImages(page);
   await page.setViewportSize({ width: 320, height: 844 });
 
   for (const path of [
@@ -1520,7 +1525,11 @@ test("active project filter is brought into view on narrow screens", async ({
 });
 
 test("project portfolio covers load visible architectural images", async ({ page }) => {
-  await page.goto("/proyectos");
+  // Esta es la única prueba que pide las portadas de verdad, así que no puede
+  // usar el stub. Lo que sí se saca es la espera del evento load: incluía todas
+  // las demás imágenes del listado, y el corte de la prueba llegaba antes de
+  // que el optimizador terminara con las cuatro portadas que sí se afirman.
+  await page.goto("/proyectos", { waitUntil: "domcontentloaded" });
 
   const projectCards = page.locator("article").filter({
     has: page.getByRole("link", { name: /ver proyecto|ver/i }),

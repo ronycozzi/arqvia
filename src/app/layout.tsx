@@ -8,6 +8,7 @@ import { getPublicAreaLinks } from "@/lib/area-data";
 import { withBasePath } from "@/lib/base-path";
 import { buildBrandCssVariables, buildBrandTheme } from "@/lib/brand-theme";
 import { getClientConfig } from "@/lib/client-config";
+import { isDemoDeployProfile } from "@/lib/deploy-profile";
 import { getPublicServiceLinks } from "@/lib/service-data";
 import { siteConfig } from "@/lib/site-config";
 import { APP_LOCALE_COOKIE } from "@/lib/locale";
@@ -57,7 +58,8 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
       images: [config.heroImage],
     },
-    robots: { index: true, follow: true },
+    // A showcase served under another domain must not be indexed as if it were a real studio.
+    robots: isDemoDeployProfile() ? { index: false, follow: false } : { index: true, follow: true },
     manifest: withBasePath("/manifest.webmanifest"),
     icons: {
       icon: [

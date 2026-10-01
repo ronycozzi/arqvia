@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { normalizeBasePath } from "./src/lib/base-path";
+import { isDemoDeployProfile } from "./src/lib/deploy-profile";
 import {
   outsideBasePathRedirects,
   serverActionAllowedOrigins,
@@ -111,7 +112,11 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/(.*)",
-        headers: securityHeaders,
+        headers: isDemoDeployProfile()
+          ? // A showcase under another domain stays out of search results; the header binds
+            // every response, including files that carry no HTML metadata.
+            [...securityHeaders, { key: "X-Robots-Tag", value: "noindex, nofollow" }]
+          : securityHeaders,
       },
       {
         source: "/sw.js",

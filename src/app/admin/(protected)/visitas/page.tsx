@@ -28,6 +28,7 @@ import {
   technicalVisitStatusValues,
   visitWindowLabels,
 } from "@/lib/technical-visit-config";
+import { withBasePath } from "@/lib/base-path";
 
 export const metadata: Metadata = {
   title: "Agenda de visitas técnicas",
@@ -331,7 +332,7 @@ export default async function TechnicalVisitsPage({
                             visit.status,
                           ) ? (
                             <a
-                              href={`/api/admin/visitas/${visit.id}/calendar`}
+                              href={withBasePath(`/api/admin/visitas/${visit.id}/calendar`)}
                               className="grid size-10 place-items-center border border-ink/12 text-ink transition hover:border-bronze hover:text-bronze"
                               aria-label={`Descargar calendario de ${visit.lead.name}`}
                               title="Descargar calendario"
@@ -385,7 +386,7 @@ export default async function TechnicalVisitsPage({
                     visit.status,
                   ) ? (
                     <a
-                      href={`/api/admin/visitas/${visit.id}/calendar`}
+                      href={withBasePath(`/api/admin/visitas/${visit.id}/calendar`)}
                       className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 border border-ink/12 bg-paper px-4 text-xs font-semibold text-ink"
                     >
                       <Download className="size-4" aria-hidden="true" />

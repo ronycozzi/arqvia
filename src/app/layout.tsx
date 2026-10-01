@@ -5,6 +5,7 @@ import { AppChrome } from "@/components/app-chrome";
 import { I18nProvider } from "@/components/i18n-provider";
 import { getPublicAnalyticsConfig } from "@/lib/analytics-config";
 import { getPublicAreaLinks } from "@/lib/area-data";
+import { withBasePath } from "@/lib/base-path";
 import { buildBrandCssVariables, buildBrandTheme } from "@/lib/brand-theme";
 import { getClientConfig } from "@/lib/client-config";
 import { getPublicServiceLinks } from "@/lib/service-data";
@@ -57,15 +58,15 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [config.heroImage],
     },
     robots: { index: true, follow: true },
-    manifest: "/manifest.webmanifest",
+    manifest: withBasePath("/manifest.webmanifest"),
     icons: {
       icon: [
-        { url: "/icons/arqvia-192.png", sizes: "192x192", type: "image/png" },
-        { url: "/icons/arqvia-512.png", sizes: "512x512", type: "image/png" },
+        { url: withBasePath("/icons/arqvia-192.png"), sizes: "192x192", type: "image/png" },
+        { url: withBasePath("/icons/arqvia-512.png"), sizes: "512x512", type: "image/png" },
       ],
       apple: [
         {
-          url: "/icons/arqvia-apple-180.png",
+          url: withBasePath("/icons/arqvia-apple-180.png"),
           sizes: "180x180",
           type: "image/png",
         },

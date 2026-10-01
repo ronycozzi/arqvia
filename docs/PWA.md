@@ -53,6 +53,16 @@ Al cambiar la política o la lista precargada, incrementar `CACHE_VERSION` en
 `arqvia-pwa-`. En desarrollo, `PwaManager` desregistra workers previos para que
 un build de producción local no controle por accidente `next dev`.
 
+## Despliegue bajo una subruta
+
+Con `NEXT_PUBLIC_BASE_PATH` definido la app comparte dominio con otro sitio.
+En ese modo `PwaManager` no registra el service worker: un worker con scope
+`/` controlaría todo el sitio anfitrión. Si existiera un registro previo dentro
+del prefijo, se desregistra; los registros del sitio anfitrión no se tocan.
+`/sw.js` deja de enviar `Service-Worker-Allowed`, y el manifest publica
+`start_url`, `scope`, iconos y accesos directos dentro del prefijo.
+`public/sw.js`, `offline.html` y `offline-recovery.js` quedan sin uso.
+
 ## Verificación
 
 La verificación automatizada cubre manifest, iconos y dimensiones, sintaxis del

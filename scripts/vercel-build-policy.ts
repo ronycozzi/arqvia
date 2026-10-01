@@ -1,3 +1,5 @@
+import { isDemoDeployProfile } from "../src/lib/deploy-profile";
+
 export type VercelBuildTarget = "preview" | "production";
 
 export type BuildPolicyEnv = Record<string, string | undefined>;
@@ -14,6 +16,14 @@ export type BuildPolicyEnv = Record<string, string | undefined>;
  * —se olvidaría justo el día del lanzamiento— sino el dominio publicado: en
  * cuanto `NEXT_PUBLIC_SITE_URL` deja de ser un `*.vercel.app`, la compuerta
  * vuelve a exigirse sola.
+ *
+ * Hay una excepción explícita: el perfil demo (`ARQVIA_DEPLOY_PROFILE=demo`).
+ * Una demo servida bajo una subruta de otro dominio (por ejemplo
+ * https://cozziinteractive.com/arqvia-demo) tampoco es un lanzamiento a
+ * cliente. El perfil sólo vale si el despliegue realmente es de subruta
+ * (`NEXT_PUBLIC_BASE_PATH` definido y `NEXT_PUBLIC_SITE_URL` https con esa misma
+ * ruta); un sitio en la raíz de su propio dominio nunca califica, aunque
+ * alguien deje la variable puesta.
  */
 function publicationHostname(env: BuildPolicyEnv) {
   const candidates = [
@@ -37,6 +47,8 @@ function publicationHostname(env: BuildPolicyEnv) {
 }
 
 export function releaseGateApplies(env: BuildPolicyEnv = process.env) {
+  if (isDemoDeployProfile(env)) return false;
+
   const hostname = publicationHostname(env);
   // Sin host reconocible se falla cerrado: la compuerta se exige.
   if (!hostname) return true;

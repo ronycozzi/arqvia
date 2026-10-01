@@ -20,6 +20,7 @@ import {
   type ProjectGalleryEditorItem,
   type ProjectGalleryType,
 } from "@/lib/project-gallery-editor";
+import { withBasePath } from "@/lib/base-path";
 
 export type ProjectGalleryMediaOption = {
   altText: string;
@@ -259,7 +260,7 @@ export function ProjectGalleryField({
                         // Admin previews must support local and configured remote assets.
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={item.url}
+                          src={withBasePath(item.url)}
                           alt=""
                           className="absolute inset-0 size-full object-cover"
                           onError={() =>
@@ -464,7 +465,7 @@ export function ProjectGalleryField({
                       <div className="relative min-h-24 bg-stone">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={asset.url}
+                          src={withBasePath(asset.url)}
                           alt=""
                           className="absolute inset-0 size-full object-cover"
                         />

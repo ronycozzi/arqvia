@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/app-image";
 import Link from "next/link";
 import { getPublicBlogPosts } from "@/lib/blog-data";
 import { createPageMetadata } from "@/lib/seo";

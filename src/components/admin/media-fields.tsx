@@ -13,6 +13,7 @@ import {
   ProjectGalleryField,
   type ProjectGalleryMediaOption,
 } from "@/components/admin/project-gallery-field";
+import { withBasePath } from "@/lib/base-path";
 
 export type AdminMediaOption = ProjectGalleryMediaOption;
 
@@ -63,7 +64,7 @@ export function MediaImageField({
               // Admin previews must tolerate local uploads, remote assets and SVGs.
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={value}
+                src={withBasePath(value)}
                 alt=""
                 className="absolute inset-0 size-full object-cover"
               />
@@ -177,7 +178,7 @@ function MediaAssetChooser({
     try {
       const params = new URLSearchParams({ q: normalizedQuery, take: "36" });
       if (category !== "all") params.set("category", category);
-      const response = await fetch(`/api/admin/media?${params.toString()}`, {
+      const response = await fetch(withBasePath(`/api/admin/media?${params.toString()}`), {
         credentials: "same-origin",
         headers: { Accept: "application/json" },
       });
@@ -309,7 +310,7 @@ function MediaAssetChooser({
                   <div className="relative h-full min-h-24 bg-stone">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={asset.url}
+                      src={withBasePath(asset.url)}
                       alt=""
                       className="absolute inset-0 size-full object-cover"
                     />

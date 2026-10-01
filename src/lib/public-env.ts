@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isDemoDeployProfile } from "@/lib/deploy-profile";
 
 const publicEnvSchema = z.object({
   NEXT_PUBLIC_ANALYTICS_ID: z.string().trim().max(40).default(""),
@@ -140,8 +141,11 @@ export function validatePublicEnv(env: PublicEnvRaw = process.env) {
     );
   }
 
+  // A demo served under a sub-path of another domain has no client behind it:
+  // the sample number is expected there. Every other production keeps the check.
   if (
     isStrictPublicUrlContext(env) &&
+    !isDemoDeployProfile(env) &&
     placeholderWhatsAppNumbers.has(cleanPhone(parsed.data.NEXT_PUBLIC_WHATSAPP_NUMBER))
   ) {
     throw new Error(

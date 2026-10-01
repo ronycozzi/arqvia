@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { withBasePath } from "@/lib/base-path";
 
 export function LeadContactLink({
   channel,
@@ -16,7 +17,7 @@ export function LeadContactLink({
   leadId: string;
 }) {
   function recordContact() {
-    void fetch(`/api/admin/leads/${leadId}/contact`, {
+    void fetch(withBasePath(`/api/admin/leads/${leadId}/contact`), {
       body: JSON.stringify({ channel }),
       credentials: "same-origin",
       headers: { "Content-Type": "application/json" },

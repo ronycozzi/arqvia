@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import Image from "@/components/app-image";
 import { JsonLd } from "@/components/json-ld";
 import { getPublicAreas } from "@/lib/area-data";
 import { getClientConfig } from "@/lib/client-config";

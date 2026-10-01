@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/app-image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import {
   type PointerEvent as ReactPointerEvent,

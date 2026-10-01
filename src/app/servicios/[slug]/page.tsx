@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Image from "next/image";
+import Image from "@/components/app-image";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { ArrowRight, MessageCircle } from "lucide-react";

@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
+import { normalizeBasePath } from "./src/lib/base-path";
+import {
+  outsideBasePathRedirects,
+  serverActionAllowedOrigins,
+} from "./src/lib/base-path-config";
 
 const isDevelopment = process.env.NODE_ENV === "development";
+// Sub-path the app is served under (for example "/arqvia-demo"); empty = root.
+const basePath = normalizeBasePath(process.env.NEXT_PUBLIC_BASE_PATH);
+const publicSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || "";
+const allowedActionOrigins = serverActionAllowedOrigins(basePath, publicSiteUrl);
 const mediaPublicUrl = (() => {
   if (!process.env.S3_PUBLIC_BASE_URL) return null;
 
@@ -41,7 +50,11 @@ const securityHeaders = [
   { key: "Origin-Agent-Cluster", value: "?1" },
   {
     key: "Strict-Transport-Security",
-    value: "max-age=63072000; includeSubDomains; preload",
+    // Under a base path the response is served on somebody else's domain: the
+    // app must not opt that whole domain into the browser preload list.
+    value: basePath
+      ? "max-age=63072000; includeSubDomains"
+      : "max-age=63072000; includeSubDomains; preload",
   },
   {
     key: "Content-Security-Policy",
@@ -63,6 +76,22 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  basePath: basePath || undefined,
+  ...(allowedActionOrigins.length
+    ? {
+        experimental: {
+          // Behind the rewrite the browser sends the public Origin while the
+          // app sees its own deployment host; Server Actions would be rejected.
+          serverActions: { allowedOrigins: allowedActionOrigins },
+        },
+      }
+    : {}),
+  async redirects() {
+    // Old addresses: with a base path, anything outside the prefix on this
+    // deployment (https://<project>.vercel.app/servicios) moves to the public
+    // URL, keeping the path.
+    return outsideBasePathRedirects(basePath, publicSiteUrl);
+  },
   images: {
     qualities: [75, 88],
     ...(mediaPublicUrl
@@ -99,7 +128,8 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: "default-src 'self'; script-src 'self'; connect-src 'self'",
           },
-          { key: "Service-Worker-Allowed", value: "/" },
+          // Never widen the worker scope to the host root on a shared domain.
+          ...(basePath ? [] : [{ key: "Service-Worker-Allowed", value: "/" }]),
         ],
       },
       {

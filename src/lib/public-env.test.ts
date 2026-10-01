@@ -129,6 +129,36 @@ describe("validatePublicEnv", () => {
     ).toThrow(/NEXT_PUBLIC_WHATSAPP_NUMBER must be the real client WhatsApp/);
   });
 
+  it("allows the sample WhatsApp number only for a sub-path demo deployment", () => {
+    const demo = {
+      ...baseEnv,
+      ARQVIA_DEPLOY_PROFILE: "demo",
+      NEXT_PUBLIC_BASE_PATH: "/arqvia-demo",
+      NEXT_PUBLIC_SITE_URL: "https://cozziinteractive.com/arqvia-demo",
+      NEXT_PUBLIC_WHATSAPP_NUMBER: "5493515551234",
+      VERCEL_ENV: "production",
+    };
+
+    expect(validatePublicEnv(demo).NEXT_PUBLIC_SITE_URL).toBe(
+      "https://cozziinteractive.com/arqvia-demo",
+    );
+    // The profile alone is not enough: a root deployment keeps the check.
+    expect(() =>
+      validatePublicEnv({
+        ...demo,
+        NEXT_PUBLIC_BASE_PATH: "",
+        NEXT_PUBLIC_SITE_URL: "https://arqvia.com.ar",
+      }),
+    ).toThrow(/NEXT_PUBLIC_WHATSAPP_NUMBER must be the real client WhatsApp/);
+    // And a demo still needs a real public https URL.
+    expect(() =>
+      validatePublicEnv({
+        ...demo,
+        NEXT_PUBLIC_SITE_URL: "http://localhost:3000/arqvia-demo",
+      }),
+    ).toThrow(/NEXT_PUBLIC_SITE_URL must be a real public https URL/);
+  });
+
   it("rejects malformed WhatsApp values in every environment", () => {
     expect(() =>
       validatePublicEnv({

@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/app-image";
 import Link from "next/link";
 import { ChevronsLeftRight } from "lucide-react";
 import {

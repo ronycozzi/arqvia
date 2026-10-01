@@ -7,6 +7,7 @@ import {
   type AdminReferenceKind,
   type AdminReferenceOption,
 } from "@/lib/admin-reference";
+import { withBasePath } from "@/lib/base-path";
 
 type ReferenceSelectFieldProps = {
   allowEmpty?: boolean;
@@ -57,7 +58,7 @@ export function ReferenceSelectField({
           type: referenceType,
         });
         if (selectedValue) params.set("selectedId", selectedValue);
-        const response = await fetch(`/api/admin/references?${params}`, {
+        const response = await fetch(withBasePath(`/api/admin/references?${params}`), {
           credentials: "same-origin",
           headers: { Accept: "application/json" },
           signal: controller.signal,

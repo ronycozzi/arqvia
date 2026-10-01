@@ -11,6 +11,7 @@ import {
   resolveAdminPagination,
 } from "@/lib/admin-pagination";
 import { prisma } from "@/lib/db";
+import { withBasePath } from "@/lib/base-path";
 
 type PageProps = {
   searchParams: Promise<{
@@ -148,7 +149,7 @@ export default async function UsersPage({ searchParams }: PageProps) {
 
         <form
           className="mt-6 grid gap-3 lg:grid-cols-[1fr_180px_180px_auto]"
-          action="/admin/users"
+          action={withBasePath("/admin/users")}
         >
           <label className="sr-only" htmlFor="q">
             Buscar usuario

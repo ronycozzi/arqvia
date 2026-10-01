@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { joinSiteUrl, withBasePath } from "@/lib/base-path";
 import { publicEnv } from "@/lib/public-env";
 
 export function cn(...inputs: ClassValue[]) {
@@ -18,7 +19,8 @@ export function buildWhatsAppUrl(message: string, explicitNumber?: string) {
   const number = normalizeWhatsAppNumber(
     explicitNumber || publicEnv.NEXT_PUBLIC_WHATSAPP_NUMBER,
   );
-  if (!number) return "/contacto";
+  // Rendered in plain anchors, which do not get the base path from next/link.
+  if (!number) return withBasePath("/contacto");
   return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 }
 
@@ -77,7 +79,8 @@ export function getBaseUrl() {
 }
 
 export function absoluteUrl(pathOrUrl: string, base = getBaseUrl()) {
-  return new URL(pathOrUrl, base).toString();
+  // The public site URL may carry a sub-path (base path deployments).
+  return joinSiteUrl(base, pathOrUrl);
 }
 
 export function metadataTitle(title: string, companyName = "Arqvia") {

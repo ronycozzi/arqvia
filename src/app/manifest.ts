@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { withBasePath } from "@/lib/base-path";
 import { buildBrandTheme } from "@/lib/brand-theme";
 import { getClientConfig } from "@/lib/client-config";
 
@@ -10,8 +11,10 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     name: `${config.companyName} - Arquitectura, obra e interiores`,
     short_name: config.companyName,
     description: config.heroSubtitle,
-    start_url: "/",
-    scope: "/",
+    // Under a base path the app must never claim the whole host: scope and
+    // start URL stay inside the prefix.
+    start_url: withBasePath("/"),
+    scope: withBasePath("/"),
     display: "standalone",
     background_color: theme.background,
     theme_color: theme.graphite,
@@ -19,19 +22,19 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     categories: ["business", "design", "productivity"],
     icons: [
       {
-        src: "/icons/arqvia-192.png",
+        src: withBasePath("/icons/arqvia-192.png"),
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icons/arqvia-512.png",
+        src: withBasePath("/icons/arqvia-512.png"),
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icons/arqvia-maskable-512.png",
+        src: withBasePath("/icons/arqvia-maskable-512.png"),
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
@@ -42,19 +45,19 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
         name: "Ver proyectos",
         short_name: "Proyectos",
         description: `Abrir el portfolio de obras de ${config.companyName}.`,
-        url: "/proyectos",
+        url: withBasePath("/proyectos"),
       },
       {
         name: "Explorar servicios",
         short_name: "Servicios",
         description: "Revisar servicios de arquitectura, obra e interiores.",
-        url: "/servicios",
+        url: withBasePath("/servicios"),
       },
       {
         name: "Solicitar presupuesto",
         short_name: "Presupuesto",
         description: "Contar los datos iniciales de un proyecto.",
-        url: "/contacto",
+        url: withBasePath("/contacto"),
       },
     ],
   };

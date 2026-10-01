@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/app-image";
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import { SectionHeading } from "@/components/section-heading";

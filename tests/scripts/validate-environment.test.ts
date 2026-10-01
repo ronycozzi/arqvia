@@ -87,3 +87,58 @@ describe("production environment validation", () => {
     );
   });
 });
+
+describe("production environment validation with the demo profile", () => {
+  const demoEnvironment: Environment = {
+    ...validEnvironment,
+    ARQVIA_DEPLOY_PROFILE: "demo",
+    AUTH_URL: "https://cozziinteractive.com/arqvia-demo/api/auth",
+    NEXT_PUBLIC_BASE_PATH: "/arqvia-demo",
+    NEXT_PUBLIC_SITE_URL: "https://cozziinteractive.com/arqvia-demo",
+  };
+  const urlCheck = (env: Environment) =>
+    validateProductionEnvironment(env).find((item) => item.id === "ENV-URL-001")
+      ?.ok;
+
+  it("accepts a public URL with the base path and AUTH_URL below it", () => {
+    expect(urlCheck(demoEnvironment)).toBe(true);
+  });
+
+  it("rejects an AUTH_URL outside the demo prefix or on another origin", () => {
+    expect(
+      urlCheck({ ...demoEnvironment, AUTH_URL: "https://cozziinteractive.com/api/auth" }),
+    ).toBe(false);
+    expect(
+      urlCheck({
+        ...demoEnvironment,
+        AUTH_URL: "https://arqvia-jade.vercel.app/arqvia-demo/api/auth",
+      }),
+    ).toBe(false);
+  });
+
+  it("keeps rejecting URLs with a path when the profile is not active", () => {
+    expect(
+      urlCheck({ ...demoEnvironment, ARQVIA_DEPLOY_PROFILE: undefined }),
+    ).toBe(false);
+    expect(
+      urlCheck({
+        ...validEnvironment,
+        ARQVIA_DEPLOY_PROFILE: "demo",
+        AUTH_URL: "https://arqvia.com.ar/api/auth",
+      }),
+    ).toBe(false);
+  });
+
+  it("does not relax any other control", () => {
+    const failed = validateProductionEnvironment({
+      ...demoEnvironment,
+      DATABASE_URL: "file:./dev.db",
+      MEDIA_STORAGE_PROVIDER: "local",
+      NEXT_PUBLIC_WHATSAPP_NUMBER: "5493515551234",
+    })
+      .filter((item) => !item.ok)
+      .map((item) => item.id);
+
+    expect(failed).toEqual(["ENV-DB-001", "ENV-CONTACT-001", "ENV-STORAGE-001"]);
+  });
+});

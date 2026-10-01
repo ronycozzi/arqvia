@@ -63,3 +63,46 @@ describe("releaseGateApplies", () => {
     ).toBe(true);
   });
 });
+
+describe("demo deploy profile", () => {
+  const demo = {
+    ARQVIA_DEPLOY_PROFILE: "demo",
+    NEXT_PUBLIC_BASE_PATH: "/arqvia-demo",
+    NEXT_PUBLIC_SITE_URL: "https://cozziinteractive.com/arqvia-demo",
+  };
+
+  it("keeps the regular build for a demo served under a sub-path", () => {
+    expect(releaseGateApplies(demo)).toBe(false);
+    expect(resolveVercelBuildScript("production", demo)).toBe("build:postgres");
+  });
+
+  it("still demands the release gate for the same URL without the profile", () => {
+    expect(
+      resolveVercelBuildScript("production", {
+        ...demo,
+        ARQVIA_DEPLOY_PROFILE: undefined,
+      }),
+    ).toBe("build:release");
+  });
+
+  it("cannot be used to skip the gate on a client's own domain", () => {
+    expect(
+      resolveVercelBuildScript("production", {
+        ARQVIA_DEPLOY_PROFILE: "demo",
+        NEXT_PUBLIC_SITE_URL: "https://arqvia.com.ar",
+      }),
+    ).toBe("build:release");
+    expect(
+      resolveVercelBuildScript("production", {
+        ...demo,
+        NEXT_PUBLIC_SITE_URL: "https://arqvia.com.ar",
+      }),
+    ).toBe("build:release");
+    expect(
+      resolveVercelBuildScript("production", {
+        ...demo,
+        NEXT_PUBLIC_BASE_PATH: "",
+      }),
+    ).toBe("build:release");
+  });
+});

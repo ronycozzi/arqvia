@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/app-image";
 import Link from "next/link";
 import { ArrowUpRight, MapPin, Ruler } from "lucide-react";
 import type { PublicProject } from "@/types/project";

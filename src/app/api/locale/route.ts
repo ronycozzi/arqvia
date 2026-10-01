@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server";
+import { cookiePath } from "@/lib/base-path";
 import {
   APP_LOCALE_COOKIE,
   APP_LOCALE_MAX_AGE,
   isAppLocale,
 } from "@/lib/locale";
+import { isTrustedOrigin } from "@/lib/request-security";
 
 export async function POST(request: Request) {
   const requestUrl = new URL(request.url);
   const origin = request.headers.get("origin");
-  if (origin && origin !== requestUrl.origin) {
+  if (origin && origin !== requestUrl.origin && !isTrustedOrigin(origin)) {
     return NextResponse.json({ error: "Origen no permitido" }, { status: 403 });
   }
 
@@ -33,7 +35,7 @@ export async function POST(request: Request) {
     value: locale,
     httpOnly: false,
     maxAge: APP_LOCALE_MAX_AGE,
-    path: "/",
+    path: cookiePath(),
     priority: "medium",
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

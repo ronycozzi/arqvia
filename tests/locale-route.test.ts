@@ -1,6 +1,6 @@
 // @vitest-environment node
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { POST } from "@/app/api/locale/route";
 
 function localeRequest(body: unknown, origin = "https://arqvia.test") {
@@ -41,5 +41,25 @@ describe("POST /api/locale", () => {
 
     expect(response.status).toBe(403);
     expect(response.headers.get("set-cookie")).toBeNull();
+  });
+});
+
+describe("POST /api/locale behind the public site rewrite", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("accepts the public origin and still rejects a foreign one", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://cozziinteractive.com/arqvia-demo");
+
+    const accepted = await POST(
+      localeRequest({ locale: "en" }, "https://cozziinteractive.com"),
+    );
+    expect(accepted.status).toBe(200);
+
+    const rejected = await POST(
+      localeRequest({ locale: "en" }, "https://malicious.example"),
+    );
+    expect(rejected.status).toBe(403);
   });
 });

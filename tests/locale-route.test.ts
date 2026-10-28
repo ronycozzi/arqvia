@@ -9,6 +9,7 @@ function localeRequest(body: unknown, origin = "https://arqvia.test") {
     headers: {
       "Content-Type": "application/json",
       Origin: origin,
+      Host: "arqvia.test",
     },
     method: "POST",
   });
@@ -41,5 +42,30 @@ describe("POST /api/locale", () => {
 
     expect(response.status).toBe(403);
     expect(response.headers.get("set-cookie")).toBeNull();
+  });
+
+  it("accepts a same-site browser when Next exposes an internal request URL", async () => {
+    const response = await POST(new Request("http://localhost:3127/api/locale", {
+      method: "POST", body: JSON.stringify({ locale: "en" }),
+      headers: { "Content-Type": "application/json", Host: "127.0.0.1:3127", Origin: "http://127.0.0.1:3127" },
+    }));
+    expect(response.status).toBe(200);
+    expect(response.headers.get("set-cookie")).toContain("arqvia_locale=en");
+  });
+
+  it("does not trust forwarded headers to authorize a foreign origin", async () => {
+    const response = await POST(new Request("http://localhost:3127/api/locale", {
+      method: "POST", body: JSON.stringify({ locale: "en" }),
+      headers: { Host: "arqvia.test", Origin: "https://malicious.example", "X-Forwarded-Host": "malicious.example" },
+    }));
+    expect(response.status).toBe(403);
+    expect(response.headers.get("set-cookie")).toBeNull();
+  });
+
+  it("requires a browser source for preference changes", async () => {
+    const response = await POST(new Request("https://arqvia.test/api/locale", {
+      method: "POST", body: JSON.stringify({ locale: "en" }), headers: { Host: "arqvia.test" },
+    }));
+    expect(response.status).toBe(403);
   });
 });

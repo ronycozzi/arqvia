@@ -1,67 +1,35 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, MapPin, Ruler } from "lucide-react";
+import { ArrowUpRight, MapPin } from "lucide-react";
 import type { PublicProject } from "@/types/project";
+import styles from "./arqvia-cards.module.css";
 
-export function ProjectCard({
-  priority = false,
-  project,
-}: {
-  priority?: boolean;
-  project: PublicProject;
-}) {
+export function ProjectCard({ priority = false, project, imageSizes = "(min-width: 1280px) 292px, (min-width: 1024px) calc(33vw - 32px), (min-width: 768px) calc(50vw - 32px), calc(100vw - 40px)" }: { priority?: boolean; project: PublicProject; imageSizes?: string }) {
   return (
-    <article className="group h-full border border-ink/12 bg-paper shadow-[0_10px_30px_rgba(28,33,29,0.06)] transition-[transform,border-color,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:border-bronze/45 hover:shadow-[0_18px_42px_rgba(28,33,29,0.1)] focus-within:-translate-y-1 focus-within:border-bronze/45 focus-within:shadow-[0_18px_42px_rgba(28,33,29,0.1)] motion-reduce:transform-none motion-reduce:transition-none">
-      <Link
-        href={`/proyectos/${project.slug}`}
-        className="flex h-full flex-col focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-bronze"
-      >
-        <div className="relative aspect-[3/2] overflow-hidden bg-stone">
+    <article className={styles.project}>
+      <Link href={`/proyectos/${project.slug}`} className={styles.projectLink}>
+        <div className={styles.projectMedia}>
           <Image
             src={project.coverImage}
             alt={project.imageAlt}
             fill
+            quality={88}
             loading={priority ? "eager" : "lazy"}
-            sizes="(min-width: 1280px) 292px, (min-width: 1024px) 309px, (min-width: 768px) calc(50vw - 40px), calc(100vw - 48px)"
-            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035] group-focus-within:scale-[1.035] motion-reduce:transform-none motion-reduce:transition-none"
+            sizes={imageSizes}
+            className={styles.image}
           />
-          <div className="absolute left-3 top-3 border border-paper/15 bg-graphite/90 px-3 py-2 text-xs font-semibold uppercase leading-none text-paper backdrop-blur-sm md:left-4 md:top-4">
-            {project.category}
-          </div>
+          <span className={styles.projectCategory}>{project.category}</span>
+          <span className={styles.projectExplore} aria-hidden="true"><ArrowUpRight size={21} strokeWidth={1.5} /></span>
+          {project.materials ? <span className={styles.projectMaterial}>{project.materials}</span> : null}
         </div>
-        <div className="flex flex-1 flex-col p-5">
-          <div className="mb-3 flex items-start justify-between gap-4">
-            <h3 className="font-serif text-2xl font-medium leading-[1.12] text-ink md:text-[1.7rem]">
-              <span className="sr-only">Ver proyecto: </span>
-              {project.title}
-            </h3>
-            <ArrowUpRight
-              className="mt-1 size-5 shrink-0 text-ink/40 transition-[color,transform] duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-bronze group-focus-within:-translate-y-0.5 group-focus-within:translate-x-0.5 group-focus-within:text-bronze motion-reduce:transform-none motion-reduce:transition-none"
-              aria-hidden="true"
-            />
-          </div>
-          <p className="line-clamp-2 text-sm leading-6 text-ink/72">
-            {project.summary}
-          </p>
-          <dl className="mt-auto grid grid-cols-2 gap-x-4 gap-y-3 border-t border-ink/10 pt-4 text-xs leading-5 text-ink/70">
-            <div className="flex min-w-0 items-start gap-2">
-              <dt className="sr-only">Ubicación</dt>
-              <MapPin className="mt-0.5 size-4 shrink-0 text-bronze" aria-hidden="true" />
-              <dd className="min-w-0 break-words">{project.location}</dd>
-            </div>
-            <div className="flex min-w-0 items-start gap-2">
-              <dt className="sr-only">Superficie</dt>
-              <Ruler className="mt-0.5 size-4 shrink-0 text-bronze" aria-hidden="true" />
-              <dd>{project.areaM2} m²</dd>
-            </div>
-            <div>
-              <dt className="sr-only">Año</dt>
-              <dd>{project.year}</dd>
-            </div>
-            <div>
-              <dt className="sr-only">Estado</dt>
-              <dd>{project.status}</dd>
-            </div>
+        <div className={styles.projectBody}>
+          <p className={styles.location}><MapPin size={13} aria-hidden="true" />{project.location}</p>
+          <h3 className={`font-serif ${styles.projectTitle}`}><span className="sr-only">Ver proyecto: </span>{project.title}</h3>
+          <p className={styles.description}>{project.summary}</p>
+          <dl className={styles.projectFacts}>
+            {project.areaM2 > 0 ? <div><dt>Superficie</dt><dd>{project.areaM2} <span>m²</span></dd></div> : null}
+            {project.year ? <div><dt>Año</dt><dd>{project.year}</dd></div> : null}
+            {project.status ? <div className={styles.statusFact}><dt>Estado</dt><dd>{project.status}</dd></div> : null}
           </dl>
         </div>
       </Link>

@@ -1,8 +1,7 @@
-import { testimonials as seedTestimonials } from "@/lib/content";
+import { projects as seedProjects, testimonials as seedTestimonials } from "@/lib/content";
 import { prisma } from "@/lib/db";
 import {
   fallbackPublicContent,
-  seedCollectionOrEmpty,
 } from "@/lib/public-content-policy";
 
 export type PublicTestimonial = {
@@ -13,6 +12,16 @@ export type PublicTestimonial = {
   result: string;
   quote: string;
 };
+
+export function isEditorialTestimonial(item: { quote: string }) {
+  const normalize = (value: string) => value.trim().replace(/\s+/g, " ").toLowerCase();
+  const quote = normalize(item.quote);
+  const seedQuotes = [
+    ...seedTestimonials.map((seed) => seed.quote),
+    ...seedProjects.map((seed) => seed.testimonial),
+  ];
+  return Boolean(quote) && !seedQuotes.some((seed) => seed && normalize(seed) === quote);
+}
 
 export async function getPublicTestimonials(
   limit = 3,
@@ -36,7 +45,7 @@ export async function getPublicTestimonials(
     });
 
     if (rows.length) {
-      return rows.map((item) => {
+      return rows.filter(isEditorialTestimonial).map((item) => {
         const publishedProject =
           item.project?.publicationStatus === "PUBLISHED" &&
           item.project.publishedAt &&
@@ -63,10 +72,10 @@ export async function getPublicTestimonials(
   } catch (error) {
     return fallbackPublicContent(
       "testimonials",
-      seedTestimonials.slice(0, limit),
+      [],
       error,
     );
   }
 
-  return seedCollectionOrEmpty(seedTestimonials).slice(0, limit);
+  return [];
 }

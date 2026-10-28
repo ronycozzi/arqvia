@@ -27,12 +27,12 @@ export function PublicPageLoading({
 }) {
   return (
     <div aria-busy="true" aria-live="polite" role="status">
-      <section className="mx-auto grid min-h-[72vh] max-w-7xl gap-10 px-5 py-12 md:px-8 md:py-16 lg:grid-cols-[0.92fr_1.08fr] lg:items-end">
+      <section className="mx-auto grid min-h-[40vh] max-w-7xl gap-10 px-5 py-12 md:px-8 md:py-16 lg:grid-cols-[0.92fr_1.08fr] lg:items-end">
         <div className="pb-4">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-bronze">
             {eyebrow}
           </p>
-          <p className="mt-5 max-w-3xl font-serif text-4xl leading-[1.02] text-ink sm:text-5xl md:text-6xl lg:text-7xl lg:leading-none">
+          <p className="mt-5 max-w-3xl font-serif text-2xl leading-tight text-ink md:text-3xl">
             {title}
           </p>
           <div className="mt-8 max-w-2xl space-y-3">
@@ -45,7 +45,7 @@ export function PublicPageLoading({
             <SkeletonBlock className="h-12 w-40" />
           </div>
         </div>
-        <div className="relative min-h-[360px] overflow-hidden bg-stone lg:min-h-[560px]">
+        <div className="relative min-h-[360px] overflow-hidden bg-stone lg:min-h-[360px]">
           <SkeletonBlock className="absolute inset-5" />
           <div className="absolute bottom-6 left-6 right-6 grid gap-3 sm:grid-cols-3">
             <SkeletonBlock className="h-20" />
@@ -79,7 +79,7 @@ export function ListingLoading({
       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-bronze">
         {eyebrow}
       </p>
-      <p className="mt-4 max-w-4xl font-serif text-4xl leading-tight text-ink sm:text-5xl md:text-6xl lg:text-7xl">
+      <p className="mt-4 max-w-4xl font-serif text-2xl leading-tight text-ink md:text-3xl">
         {title}
       </p>
       {filterCount > 0 ? (
@@ -160,7 +160,7 @@ export function NotFoundScreen() {
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-bronze-light">
             Arqvia / 404
           </p>
-          <h1 className="mt-5 max-w-3xl font-serif text-4xl leading-[1.02] sm:text-5xl md:text-7xl lg:text-8xl lg:leading-none">
+          <h1 className="mt-5 max-w-3xl font-serif text-3xl leading-tight md:text-4xl">
             Esta pagina no esta en el plano.
           </h1>
           <p className="mt-6 max-w-2xl text-base leading-8 text-paper/76">

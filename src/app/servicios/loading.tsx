@@ -1,11 +1,2 @@
-import { ListingLoading } from "@/components/loading-states";
-
-export default function Loading() {
-  return (
-    <ListingLoading
-      eyebrow="Servicios"
-      grouped
-      title="Cargando servicios de arquitectura, obra e interiores."
-    />
-  );
-}
+import { DossierLoading } from "@/components/dossier-loading";
+export default function Loading() { return <DossierLoading label="Cargando servicios" />; }

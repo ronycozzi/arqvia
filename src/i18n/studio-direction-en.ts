@@ -1,0 +1,17 @@
+export const studioDirectionEnglish: Record<string, string> = {
+  "Servicios / Alcance del encargo": "Services / Project scope",
+  "Qué necesitás resolver en tu espacio.": "What your space needs to do.",
+  "Distribución, materiales o una obra completa. Elegí un servicio para conocer qué incluye antes de consultar.": "Layout, materials or a complete build. Choose a service to see what's included before getting in touch.",
+  "Explorar servicios": "Explore services",
+  "Todos los servicios": "All services",
+  "Referencia de espacio y materialidad": "Spatial and material reference",
+  "Qué se define": "What we define",
+  "Ver alcance y entregables": "View scope and deliverables",
+  "Lo que cambia al repensar un baño.": "What changes when you rethink a bathroom.",
+  "La mampara deja pasar la luz, el mueble suspendido libera el piso y los revestimientos claros unifican el ambiente. Deslizá para comparar.": "The glass screen lets light through, the floating vanity frees up the floor and pale surfaces bring the room together. Slide to compare.",
+  "Estudio visual de remodelación · Imágenes de referencia": "Renovation study · Reference images",
+  "Casas y espacios que parten de cómo los usás.": "Homes and spaces shaped around how you use them.",
+  "Arquitectura, remodelación e interiores en Córdoba. Definimos la distribución, los materiales y el alcance de obra a partir del lugar y de lo que necesitás hacer en él.": "Architecture, renovation and interiors in Córdoba. We plan the layout, materials and scope around the site and what you need to do in it.",
+  "Selección de proyectos": "Selected projects",
+  "Ver el proyecto": "View project",
+};

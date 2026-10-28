@@ -32,7 +32,7 @@ export function AppChrome({
   }
 
   return (
-    <>
+    <div className="arqvia-public flex min-h-full flex-1 flex-col">
       <a
         href="#contenido-principal"
         className="sr-only fixed left-4 top-4 z-[120] bg-paper px-4 py-3 text-sm font-semibold text-ink shadow-premium focus:not-sr-only"
@@ -56,6 +56,6 @@ export function AppChrome({
         services={services}
       />
       <FloatingCta config={config} />
-    </>
+    </div>
   );
 }

@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { CheckCircle2, MessageCircle, MoveUpRight } from "lucide-react";
+import { MessageCircle, MoveUpRight } from "lucide-react";
 import { BeforeAfter } from "@/components/before-after";
 import { ArqviaArchitecturalHero } from "@/components/hero/arqvia-architectural-hero";
 import { JsonLd } from "@/components/json-ld";
-import { MetricCounter } from "@/components/metric-counter";
+import { ProjectStart } from "@/components/project-start";
 import { ScrollReveal } from "@/components/scroll-reveal";
-import { SectionHeading } from "@/components/section-heading";
-import { ServiceCard } from "@/components/service-card";
+import { ServiceStudio } from "@/components/service-studio";
 import { TrackedAnchor } from "@/components/tracked-anchor";
 import { getPublicAreas } from "@/lib/area-data";
 import { getClientConfig } from "@/lib/client-config";
@@ -17,6 +16,7 @@ import { getPublicServices } from "@/lib/service-data";
 import { getPublicTestimonials } from "@/lib/testimonial-data";
 import { siteConfig } from "@/lib/site-config";
 import { absoluteUrl, buildWhatsAppUrl } from "@/lib/utils";
+import "@/components/arqvia-public-refresh.css";
 
 export async function generateMetadata() {
   const [config, homeContent] = await Promise.all([
@@ -202,56 +202,17 @@ export default async function Home() {
         projects={todasLasObras}
       />
 
-      <section
-        aria-label="Indicadores de experiencia"
-        className="border-y border-paper/10 bg-graphite-soft text-paper"
-      >
-        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-px bg-paper/10 px-5 md:grid-cols-4 md:px-8">
-          {homeContent.trustMetrics.map((metric, index) => (
-            <ScrollReveal
-              key={metric.label}
-              delay={index * 60}
-              className="bg-graphite-soft py-6 md:px-6 md:py-8"
-            >
-              <p className="font-serif text-3xl tabular-nums text-bronze-light md:text-4xl">
-                <MetricCounter value={metric.value} delay={index * 55} />
-              </p>
-              <p className="mt-1 text-xs font-semibold text-paper/78 md:text-sm">
-                {metric.label}
-              </p>
-            </ScrollReveal>
-          ))}
-        </div>
-      </section>
+      <nav aria-label="Explorar esta página" className="arqvia-section-nav">
+        <Link href="/proyectos">Ver proyectos</Link>
+        <a href="#home-before-after">Antes y después</a>
+        <Link href="/proceso">Cómo trabajamos</Link>
+        <a href="#tu-proyecto">Pensar mi proyecto</a>
+      </nav>
 
-      <section
-        id="home-services"
-        aria-label="Servicios destacados"
-        className="mx-auto max-w-7xl px-5 py-14 md:px-8 md:py-16"
-      >
-        <ScrollReveal variant="right" className="mb-9">
-          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
-            <SectionHeading
-              eyebrow="Servicios"
-              title={homeContent.servicesTitle}
-              description={homeContent.servicesDescription}
-            />
-            <Link
-              href="/servicios"
-              className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-ink underline decoration-bronze underline-offset-4"
-            >
-              Ver servicios <MoveUpRight className="size-4" aria-hidden="true" />
-            </Link>
-          </div>
-        </ScrollReveal>
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {featuredServices.map((service, index) => (
-            <ScrollReveal key={service.slug} delay={index * 70}>
-              <ServiceCard service={service} />
-            </ScrollReveal>
-          ))}
-        </div>
-      </section>
+      <ServiceStudio services={featuredServices}
+        title={homeContent.servicesTitle === "Diseñamos, construimos y transformamos espacios." ? "Qué necesitás resolver en tu espacio." : homeContent.servicesTitle}
+        description={homeContent.servicesDescription === "Podemos resolver una etapa puntual o acompañar el proyecto completo." ? "Distribución, materiales o una obra completa. Elegí un servicio para conocer qué incluye antes de consultar." : homeContent.servicesDescription}
+      />
 
       <section
         id="home-before-after"
@@ -259,73 +220,12 @@ export default async function Home() {
         className="bg-mist px-5 py-14 md:px-8 md:py-16"
       >
         <div className="mx-auto max-w-7xl">
-          <ScrollReveal variant="media">
             <BeforeAfter
               compact
-              compactDescription={homeContent.beforeAfterDescription}
-              compactTitle={homeContent.beforeAfterTitle}
+              compactDescription={homeContent.beforeAfterDescription === "Comparamos el mismo baño desde un encuadre equivalente para mostrar cómo cambian los materiales, la iluminación y el uso cotidiano." ? "La mampara deja pasar la luz, el mueble suspendido libera el piso y los revestimientos claros unifican el ambiente. Deslizá para comparar." : homeContent.beforeAfterDescription}
+              compactTitle={homeContent.beforeAfterTitle === "El mismo espacio, antes y después." ? "Lo que cambia al repensar un baño." : homeContent.beforeAfterTitle}
             />
-          </ScrollReveal>
-        </div>
-      </section>
-
-      <section
-        id="home-process"
-        aria-labelledby="home-process-title"
-        className="bg-ink py-14 text-paper md:py-16"
-      >
-        <div className="mx-auto grid max-w-7xl gap-12 px-5 md:px-8 lg:grid-cols-[0.82fr_1.18fr]">
-          <ScrollReveal variant="left">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-bronze-light">
-                Cómo trabajamos
-              </p>
-              <h2 id="home-process-title" className="mt-3 font-serif text-4xl leading-tight md:text-5xl">
-                {homeContent.processTitle}
-              </h2>
-              <div className="mt-7 grid gap-3">
-                {homeContent.processReasons.map((reason) => (
-                  <p
-                    key={reason}
-                    className="flex items-center gap-3 text-sm font-semibold text-paper/78"
-                  >
-                    <CheckCircle2
-                      className="size-4 shrink-0 text-bronze-light"
-                      aria-hidden="true"
-                    />
-                    {reason}
-                  </p>
-                ))}
-              </div>
-              <Link
-                href="/proceso"
-                className="architectural-link mt-8 inline-flex min-h-11 items-center text-sm font-semibold text-bronze-light"
-              >
-                Ver cómo trabajamos
-              </Link>
-            </div>
-          </ScrollReveal>
-          <ScrollReveal
-            variant="scale"
-            className="process-grid grid gap-px border border-paper/10 bg-paper/10 sm:grid-cols-2"
-          >
-            {homeContent.processSteps.map((step, index) => (
-              <article
-                key={step.title}
-                className="process-step h-full bg-graphite-soft p-5 md:p-6"
-              >
-                <p className="font-serif text-3xl text-bronze-light">
-                  {String(index + 1).padStart(2, "0")}
-                </p>
-                <h3 className="mt-5 font-serif text-2xl text-paper">
-                  {step.title}
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-paper/68">
-                  {step.description}
-                </p>
-              </article>
-            ))}
-          </ScrollReveal>
+            <p className="arqvia-study-note">Estudio visual de remodelación · Imágenes de referencia</p>
         </div>
       </section>
 
@@ -354,46 +254,11 @@ export default async function Home() {
         </section>
       ) : null}
 
-      <section
-        id="home-contact"
-        aria-labelledby="home-contact-title"
-        className="mx-auto grid max-w-7xl gap-9 px-5 py-14 md:px-8 md:py-16 lg:grid-cols-[1fr_auto] lg:items-center"
-      >
-        <ScrollReveal variant="left">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-bronze">
-              Empecemos
-            </p>
-            <h2 id="home-contact-title" className="mt-3 font-serif text-4xl leading-tight text-ink md:text-5xl">
-              {homeContent.finalCtaTitle}
-            </h2>
-            <p className="mt-4 max-w-2xl text-lg leading-8 text-ink/72">
-              {homeContent.finalCtaDescription}
-            </p>
-            <p className="mt-4 text-sm text-ink/68">
-              Trabajamos en {publicAreas.map((area) => area.name).join(", ")}.
-            </p>
-          </div>
-        </ScrollReveal>
-        <ScrollReveal delay={90} variant="right">
-          <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
-            <Link
-              href="/contacto?origen=%2F"
-              className="inline-flex min-h-14 items-center justify-center bg-ink px-7 text-sm font-semibold text-paper transition hover:bg-bronze"
-            >
-              Solicitar presupuesto
-            </Link>
-            <TrackedAnchor
-              href={whatsappUrl}
-              eventName="whatsapp_click"
-              eventParams={{ source: "home_final_cta" }}
-              className="inline-flex min-h-14 items-center justify-center gap-2 border border-ink/15 px-7 text-sm font-semibold text-ink transition hover:border-bronze hover:text-bronze"
-            >
-              <MessageCircle className="size-4" aria-hidden="true" />
-              Escribir por WhatsApp
-            </TrackedAnchor>
-          </div>
-        </ScrollReveal>
+      <ProjectStart areas={publicAreas.map((area) => area.name)} />
+
+      <section id="home-contact" className="arqvia-coverage" aria-label="Zona de trabajo y contacto">
+        <div><span className="arqvia-overline">Córdoba y alrededores</span><p>{publicAreas.map((area) => area.name).join(" · ")}</p></div>
+        <TrackedAnchor href={whatsappUrl} eventName="whatsapp_click" eventParams={{ source: "home_final_cta" }} className="inline-flex min-h-11 shrink-0 items-center gap-2 text-sm font-semibold text-ink"><MessageCircle size={17} aria-hidden="true" /> Consultar por WhatsApp</TrackedAnchor>
       </section>
     </>
   );

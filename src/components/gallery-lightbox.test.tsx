@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { GalleryLightbox } from "./gallery-lightbox";
 
 const images = [
@@ -66,5 +66,43 @@ describe("GalleryLightbox", () => {
 
     expect(screen.queryByRole("button", { name: /imagen anterior/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /imagen siguiente/i })).not.toBeInTheDocument();
+  });
+
+  it("navigates a horizontal touch gesture but preserves vertical gestures", () => {
+    render(<GalleryLightbox images={images} title="Casa Patio Norte" />);
+    fireEvent.click(screen.getByRole("button", { name: /abrir imagen 1 de 2/i }));
+    const surface = screen.getByTestId("gallery-active-image");
+    surface.setPointerCapture = vi.fn();
+    surface.hasPointerCapture = vi.fn(() => true);
+    surface.releasePointerCapture = vi.fn();
+    const pointer = (name: string, x: number, y: number) => {
+      const event = new Event(name, { bubbles: true });
+      Object.assign(event, { pointerId: 9, pointerType: "touch", clientX: x, clientY: y, isPrimary: true });
+      fireEvent(surface, event);
+    };
+
+    pointer("pointerdown", 200, 200);
+    pointer("pointerup", 190, 350);
+    expect(within(screen.getByRole("dialog")).getByText("1 / 2")).toBeVisible();
+    pointer("pointerdown", 250, 200);
+    pointer("pointerup", 150, 205);
+    expect(within(screen.getByRole("dialog")).getByText("2 / 2")).toBeVisible();
+    expect(surface.releasePointerCapture).toHaveBeenCalledWith(9);
+  });
+
+  it("releases a canceled touch and does not navigate from its stale pointerup", () => {
+    render(<GalleryLightbox images={images} title="Casa Patio Norte" />);
+    fireEvent.click(screen.getByRole("button", { name: /abrir imagen 1 de 2/i }));
+    const surface = screen.getByTestId("gallery-active-image");
+    surface.setPointerCapture = vi.fn();
+    surface.hasPointerCapture = vi.fn(() => true);
+    surface.releasePointerCapture = vi.fn();
+    for (const [name, x] of [["pointerdown", 250], ["pointercancel", 200], ["pointerup", 100]] as const) {
+      const event = new Event(name, { bubbles: true });
+      Object.assign(event, { pointerId: 9, pointerType: "touch", clientX: x, clientY: 200, isPrimary: true });
+      fireEvent(surface, event);
+    }
+    expect(surface.releasePointerCapture).toHaveBeenCalledWith(9);
+    expect(within(screen.getByRole("dialog")).getByText("1 / 2")).toBeVisible();
   });
 });

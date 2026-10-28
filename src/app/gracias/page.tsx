@@ -72,10 +72,10 @@ export default async function ThankYouPage() {
           </div>
         </div>
         <div className="grid gap-4">
-          {nextSteps.map((step, index) => (
+          {nextSteps.map((step) => (
             <article key={step.title} className="premium-card bg-paper p-5">
               <p className="font-serif text-3xl text-bronze">
-                {String(index + 1).padStart(2, "0")}
+                <span aria-hidden="true">✓</span>
               </p>
               <h2 className="mt-3 font-serif text-3xl text-ink">{step.title}</h2>
               <p className="mt-2 text-sm leading-7 text-ink/75">{step.text}</p>

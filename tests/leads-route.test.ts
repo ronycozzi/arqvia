@@ -155,6 +155,35 @@ describe("POST /api/leads rate-limit compensation", () => {
     expect(mocks.removeStoredLeadAttachments).not.toHaveBeenCalled();
   });
 
+  it("releases reservations when the estimator changes after a valid preflight", async () => {
+    const config = {
+      enabled: true, version: 1,
+      essentialMultiplier: 1, balancedMultiplier: 1.2, premiumMultiplier: 1.5,
+    };
+    const rule = {
+      id: "rule-remodelacion", key: "remodelacion", label: "Remodelación", active: true,
+      minUsdPerM2: 100, maxUsdPerM2: 200, minimumProjectUsd: 1000,
+    };
+    const transactionForVersion = (version: number) => ({
+      estimateConfig: { findUnique: vi.fn().mockResolvedValue({ ...config, version }) },
+      estimateRule: { findUnique: vi.fn().mockResolvedValue(rule) },
+    });
+    mocks.transaction
+      .mockImplementationOnce((callback: (tx: object) => Promise<unknown>) => callback(transactionForVersion(1)))
+      .mockImplementationOnce((callback: (tx: object) => Promise<unknown>) => callback(transactionForVersion(2)));
+
+    const response = await POST(leadRequest({
+      ...validLead, estimateAreaM2: 80, estimateConfigVersion: 1,
+      estimateRuleId: rule.id, estimateTier: "BALANCED",
+    }));
+
+    expect(response.status).toBe(409);
+    expect(mocks.storeLeadAttachmentFiles).toHaveBeenCalledOnce();
+    expect(mocks.removeStoredLeadAttachments).toHaveBeenCalledWith([]);
+    expectAllAcceptedReservationsReleased();
+    expect(mocks.revalidateLeadSurfaces).not.toHaveBeenCalled();
+  });
+
   it("releases accepted reservations after a terminal persistence failure", async () => {
     const persistenceError = new Error("database unavailable");
     const releaseError = new Error("rate-limit store unavailable");

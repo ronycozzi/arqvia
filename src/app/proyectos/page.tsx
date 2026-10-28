@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { ProjectCard } from "@/components/project-card";
+import Image from "next/image";
+import { ArrowUpRight } from "lucide-react";
+import styles from "@/components/arqvia-dossier.module.css";
 import { ProjectFilters } from "@/components/project-filters";
-import { SectionHeading } from "@/components/section-heading";
 import { TrackedAnchor } from "@/components/tracked-anchor";
 import { getClientConfig } from "@/lib/client-config";
 import { getPublicProjects } from "@/lib/project-data";
@@ -46,76 +47,22 @@ export default async function ProjectsPage({
         );
 
   return (
-    <div className="bg-background">
-      <section className="mx-auto max-w-7xl px-5 py-12 md:px-8 md:py-16">
-        <SectionHeading
-          as="h1"
-          eyebrow="Portfolio"
-          title="Proyectos construidos para vivir, trabajar y crecer."
-          description="Explorá viviendas, remodelaciones, interiores y espacios comerciales realizados en Córdoba."
-        />
-        <ProjectFilters active={active} categories={projectCategories} />
-        {visibleProjects.length ? (
-          <section className="mt-10">
-            <h2 className="sr-only">Listado de proyectos</h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {visibleProjects.map((project, index) => (
-                <ProjectCard
-                  key={project.slug}
-                  priority={index === 0}
-                  project={project}
-                />
-              ))}
-            </div>
-          </section>
-        ) : (
-          <div className="premium-card mt-10 p-10 text-center">
-            <h2 className="font-serif text-3xl text-ink">
-              No encontramos proyectos con esos filtros.
-            </h2>
-            <p className="mt-3 text-sm text-ink/75">
-              Probá con otra categoría o contanos qué tipo de obra estás buscando.
-            </p>
-            <Link
-              href={contactHref}
-              className="mt-6 inline-flex h-11 items-center justify-center bg-ink px-5 text-sm font-semibold text-paper transition duration-300 hover:-translate-y-0.5 hover:bg-bronze"
-            >
-              Consultar por un proyecto similar
-            </Link>
-          </div>
-        )}
-        {visibleProjects.length ? (
-          <section className="mt-12 bg-ink px-6 py-8 text-paper md:flex md:items-center md:justify-between md:gap-10 md:px-8" aria-labelledby="projects-contact-title">
-            <div className="max-w-2xl">
-              <h2 id="projects-contact-title" className="font-serif text-3xl md:text-4xl">
-                ¿Querés evaluar un proyecto similar?
-              </h2>
-              <p className="mt-3 text-sm leading-7 text-paper/72">
-                Contanos ubicación, tipo de obra y etapa actual. Te orientamos
-                con el próximo paso.
-              </p>
-            </div>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row md:mt-0 md:shrink-0">
-              <Link
-                href={contactHref}
-                className="inline-flex h-12 items-center justify-center bg-bronze px-6 text-sm font-semibold text-paper transition hover:bg-paper hover:text-ink"
-              >
-                Solicitar presupuesto para mi proyecto
-              </Link>
-              <TrackedAnchor
-                href={buildWhatsAppUrl(
-                  `Hola, vi los proyectos de ${config.companyName} y quiero consultar por una obra similar.`,
-                  config.whatsapp,
-                )}
-                eventName="whatsapp_click"
-                eventParams={{ source: "projects_final_cta" }}
-                className="inline-flex h-12 items-center justify-center border border-paper/20 px-6 text-sm font-semibold text-paper transition hover:border-bronze-light hover:text-bronze-light"
-              >
-                Consultar por WhatsApp
-              </TrackedAnchor>
-            </div>
-          </section>
-        ) : null}
+    <div className={styles.shell}>
+      <header className={styles.header}>
+        <div><p className={styles.eyebrow}>Proyectos / Córdoba</p><h1>Casas, interiores y espacios de trabajo.</h1></div>
+        <p>Recorré los proyectos por uso. En cada ficha podés consultar la distribución, los materiales y el alcance de la intervención.</p>
+      </header>
+      <ProjectFilters active={active} categories={projectCategories} />
+      {visibleProjects.length ? <section className={styles.projects} aria-label="Listado de proyectos">
+        {visibleProjects.map((project, index) => <Link href={`/proyectos/${project.slug}`} key={project.slug} className={styles.projectLink}>
+          <div className={styles.projectImage}><Image src={project.coverImage} alt={project.imageAlt} fill quality={88} loading={index === 0 ? "eager" : "lazy"} sizes="(min-width: 1280px) 600px, (min-width: 641px) 50vw, 100vw" /></div>
+          <div className={styles.projectInfo}><div><p>{project.category} · {project.location}</p><h2>{project.title}</h2></div><ArrowUpRight size={20} aria-hidden="true" /></div>
+          <div className={styles.projectCaption}><p>{project.summary}</p><dl>{project.areaM2 > 0 ? <div><dt>Superficie</dt><dd>{project.areaM2} m²</dd></div> : null}{project.year ? <div><dt>Año</dt><dd>{project.year}</dd></div> : null}</dl></div>
+        </Link>)}
+      </section> : <section className={styles.callout}><div><h2>No hay proyectos en esta selección.</h2><p>Podés explorar otra categoría o contarnos qué tipo de espacio querés resolver.</p></div><Link href="/proyectos" className={styles.secondary}>Ver todos los proyectos</Link></section>}
+      <section className={styles.callout}>
+        <div><h2>¿Tenés un espacio en mente?</h2><p>Compartí la ubicación y lo que necesitás cambiar. Si ya tenés planos o medidas, podés sumarlos a la consulta.</p></div>
+        <div className={styles.actions}><Link href={contactHref} className={styles.primary}>Contar mi proyecto</Link><TrackedAnchor href={buildWhatsAppUrl(`Hola, vi los proyectos de ${config.companyName} y quiero consultar por una obra similar.`, config.whatsapp)} eventName="whatsapp_click" eventParams={{ source: "projects_final_cta" }} className={styles.secondary}>WhatsApp</TrackedAnchor></div>
       </section>
     </div>
   );

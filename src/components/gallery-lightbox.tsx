@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Maximize2, X } from "lucide-react";
 import {
   type PointerEvent as ReactPointerEvent,
   useCallback,
@@ -11,8 +11,19 @@ import {
 } from "react";
 import { cn } from "@/lib/utils";
 import type { PublicProjectImage } from "@/types/project";
+import styles from "./arqvia-cards.module.css";
 
 type GalleryImage = string | PublicProjectImage;
+
+const imageTypeLabels: Record<string, string> = {
+  final: "Espacio terminado",
+  before: "Antes de la intervención",
+  after: "Después de la intervención",
+  construction: "Durante la obra",
+  process: "Proceso de obra",
+  render: "Visualización arquitectónica",
+  plan: "Documentación del proyecto",
+};
 
 function getImageData(
   image: GalleryImage,
@@ -74,7 +85,7 @@ export function GalleryLightbox({
   }, [galleryImages.length]);
 
   function handleSwipeStart(event: ReactPointerEvent<HTMLDivElement>) {
-    if (!hasMultipleImages || event.pointerType === "mouse") return;
+    if (!hasMultipleImages || event.pointerType === "mouse" || event.isPrimary === false) return;
 
     swipeStartRef.current = {
       pointerId: event.pointerId,
@@ -107,6 +118,9 @@ export function GalleryLightbox({
   function handleSwipeCancel(event: ReactPointerEvent<HTMLDivElement>) {
     if (swipeStartRef.current?.pointerId !== event.pointerId) return;
     swipeStartRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
   }
 
   useEffect(() => {
@@ -181,22 +195,26 @@ export function GalleryLightbox({
               lastTriggerRef.current = event.currentTarget;
               setActiveIndex(index);
             }}
-            className="group relative aspect-[4/3] overflow-hidden bg-stone text-left focus:outline-none focus:ring-2 focus:ring-bronze focus:ring-offset-2"
+            className={styles.galleryTile}
           >
             <Image
               src={item.url}
               alt={item.altText}
               fill
+              quality={88}
               sizes={
-                galleryImages.length === 2
+                galleryImages.length === 1
+                  ? "(min-width: 768px) 768px, calc(100vw - 40px)"
+                  : galleryImages.length === 2
                   ? "(min-width: 1280px) 600px, (min-width: 768px) calc(50vw - 40px), calc(100vw - 40px)"
                   : "(min-width: 1280px) 400px, (min-width: 768px) calc(33vw - 32px), calc(100vw - 40px)"
               }
-              className="object-cover transition duration-500 group-hover:scale-105 motion-reduce:transform-none motion-reduce:transition-none"
+              className={styles.image}
             />
-            {item.caption || item.type ? (
-              <span className="absolute inset-x-0 bottom-0 bg-ink/72 px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-paper opacity-0 transition duration-300 group-hover:opacity-100 group-focus-visible:opacity-100">
-                {item.caption || item.type}
+            <span className={styles.galleryExpand} aria-hidden="true"><Maximize2 size={14} /></span>
+            {item.caption || imageTypeLabels[item.type] ? (
+              <span className={styles.galleryCaption}>
+                {item.caption || imageTypeLabels[item.type]}
               </span>
             ) : null}
           </button>
@@ -246,12 +264,14 @@ export function GalleryLightbox({
             onPointerCancel={handleSwipeCancel}
           >
             <Image
+              key={active.url}
               src={active.url}
               alt={active.altText}
               fill
-              sizes="100vw"
+              quality={88}
+              sizes="(min-width: 1200px) 1152px, calc(100vw - 24px)"
               draggable={false}
-              className="object-contain"
+              className={cn("object-contain", styles.galleryFrame)}
             />
             {active.caption ? (
               <p

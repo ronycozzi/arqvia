@@ -1,0 +1,25 @@
+.surface {
+  --comparison-position: 52%;
+  cursor: ew-resize;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.before {
+  clip-path: inset(0 calc(100% - var(--comparison-position)) 0 0);
+  transition: none;
+  will-change: clip-path;
+}
+
+.divider {
+  left: var(--comparison-position);
+  pointer-events: none;
+  transition: none;
+}
+
+/* Pointer gestures belong to the surface; the native range remains focusable
+   for keyboard and assistive technology, without a second competing drag. */
+.range {
+  pointer-events: none;
+}

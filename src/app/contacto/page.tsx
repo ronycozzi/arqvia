@@ -5,6 +5,7 @@ import { getPublicAreaLinks } from "@/lib/area-data";
 import { getPublicBlogPosts } from "@/lib/blog-data";
 import { getClientConfig } from "@/lib/client-config";
 import { resolveContactSource } from "@/lib/contact-source";
+import { readConsultationContext } from "@/lib/consultation-context";
 import { localSeoPages } from "@/lib/local-seo";
 import { getPublicProjects } from "@/lib/project-data";
 import { createPageMetadata } from "@/lib/seo";
@@ -19,11 +20,16 @@ export const generateMetadata = createPageMetadata({
 });
 
 type ContactPageProps = {
-  searchParams: Promise<{ origen?: string }>;
+  searchParams: Promise<{
+    origen?: string | string[]; tipo?: string | string[];
+    etapa?: string | string[]; zona?: string | string[];
+  }>;
 };
 
 export default async function ContactPage({ searchParams }: ContactPageProps) {
-  const { origen } = await searchParams;
+  const query = await searchParams;
+  const origen = typeof query.origen === "string" ? query.origen : undefined;
+  const initialDetails = readConsultationContext(query);
   const [config, projects, services, posts, areas] = await Promise.all([
     getClientConfig(),
     getPublicProjects(),
@@ -76,10 +82,19 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
               Podés sumar detalles para adaptar la evaluación a tu caso.
             </div>
           ) : null}
+          {initialDetails.projectType || initialDetails.currentStatus || initialDetails.city ? (
+            <aside className="mt-6 border-l-2 border-bronze bg-mist/60 p-4" aria-label="Tu punto de partida">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-bronze">Tu punto de partida</p>
+              <p className="mt-2 text-sm leading-6 text-ink/75">
+                {[initialDetails.projectType, initialDetails.currentStatus, initialDetails.city].filter(Boolean).join(" · ")}
+              </p>
+              <p className="mt-2 text-xs leading-5 text-ink/65">Ya incorporamos estas elecciones al formulario. Podés ajustarlas antes de enviar.</p>
+            </aside>
+          ) : null}
         </div>
 
         <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
-          <QuoteForm sourcePage={sourcePage} />
+          <QuoteForm sourcePage={sourcePage} initialDetails={initialDetails} />
         </div>
 
         <div className="lg:col-start-1">

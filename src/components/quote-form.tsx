@@ -20,6 +20,7 @@ import {
   type UseFormRegisterReturn,
 } from "react-hook-form";
 import { trackEvent } from "@/lib/analytics";
+import { consultationProjectTypes, consultationStages, type ConsultationPrefill } from "@/lib/consultation-context";
 import {
   type EstimateSelection,
 } from "@/lib/estimator";
@@ -35,24 +36,8 @@ import type { z } from "zod";
 
 type LeadFormValues = z.input<typeof leadSchema>;
 
-const projectTypes = [
-  "Obra nueva",
-  "Remodelación",
-  "Ampliación",
-  "Diseño interior",
-  "Dirección y administración de obra",
-  "Local comercial",
-  "Oficina",
-  "Otro",
-];
-
-const currentStatuses = [
-  "Tengo una idea",
-  "Tengo terreno",
-  "Tengo planos",
-  "Ya empecé la obra",
-  "Necesito remodelar un espacio existente",
-];
+const projectTypes = consultationProjectTypes;
+const currentStatuses = consultationStages;
 
 const budgetRanges = [
   "A definir",
@@ -67,10 +52,12 @@ export function QuoteForm({
   sourcePage,
   compact = false,
   initialEstimate,
+  initialDetails,
 }: {
   sourcePage: string;
   compact?: boolean;
   initialEstimate?: EstimateSelection;
+  initialDetails?: ConsultationPrefill;
 }) {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
@@ -86,7 +73,10 @@ export function QuoteForm({
     resolver: zodResolver(leadSchema),
     defaultValues: {
       sourcePage,
-      projectType: initialEstimate?.ruleLabel || "",
+      projectType: initialEstimate?.ruleLabel || initialDetails?.projectType || "",
+      currentStatus: initialDetails?.currentStatus || "",
+      city: initialDetails?.city || "",
+      message: initialDetails?.message || "",
       areaM2: initialEstimate ? `${initialEstimate.areaM2} m²` : "",
       budgetRange: "",
       estimateRuleId: initialEstimate?.ruleId || "",
@@ -153,13 +143,27 @@ export function QuoteForm({
       return;
     }
 
-    if (responsePayload?.estimate) {
-      window.sessionStorage.setItem(
-        "arqvia:last-estimate",
-        JSON.stringify(responsePayload.estimate),
+    if (responsePayload?.ok !== true) {
+      setServerError(
+        "No recibimos la confirmación del servidor. Tus datos siguen en el formulario; intentá nuevamente.",
       );
-    } else {
-      window.sessionStorage.removeItem("arqvia:last-estimate");
+      trackEvent("quote_form_submit", { sourcePage, status: "invalid_response" });
+      return;
+    }
+
+    // The consultation is already persisted. Browser storage is optional and
+    // must never turn a successful submission into an apparent failed send.
+    try {
+      if (responsePayload.estimate) {
+        window.sessionStorage.setItem(
+          "arqvia:last-estimate",
+          JSON.stringify(responsePayload.estimate),
+        );
+      } else {
+        window.sessionStorage.removeItem("arqvia:last-estimate");
+      }
+    } catch {
+      // Privacy settings or a full quota may make sessionStorage unavailable.
     }
     trackEvent("quote_form_submit", { sourcePage, status: "success" });
     trackEvent("generate_lead", {
@@ -237,7 +241,7 @@ export function QuoteForm({
             <select {...register("projectType")} required>
               <option value="">Seleccionar</option>
               {projectTypes.map((item) => (
-                <option key={item}>{item}</option>
+                <option key={item} value={item}>{item}</option>
               ))}
             </select>
           </Field>
@@ -254,7 +258,7 @@ export function QuoteForm({
               <select {...register("currentStatus")}>
                 <option value="">Seleccionar</option>
                 {currentStatuses.map((item) => (
-                  <option key={item}>{item}</option>
+                  <option key={item} value={item}>{item}</option>
                 ))}
               </select>
             </Field>
@@ -262,7 +266,7 @@ export function QuoteForm({
               <select {...register("budgetRange")}>
                 <option value="">Seleccionar</option>
                 {budgetRanges.map((item) => (
-                  <option key={item}>{item}</option>
+                  <option key={item} value={item}>{item}</option>
                 ))}
               </select>
             </Field>
@@ -303,17 +307,17 @@ export function QuoteForm({
               <Field label="Tipo de cliente">
                 <select {...register("clientType")}>
                   <option value="">Seleccionar</option>
-                  <option>Particular</option>
-                  <option>Empresa</option>
-                  <option>Desarrollador</option>
-                  <option>Profesional</option>
+                  <option value="Particular">Particular</option>
+                  <option value="Empresa">Empresa</option>
+                  <option value="Desarrollador">Desarrollador</option>
+                  <option value="Profesional">Profesional</option>
                 </select>
               </Field>
               <Field label="Estado actual">
                 <select {...register("currentStatus")}>
                   <option value="">Seleccionar</option>
                   {currentStatuses.map((item) => (
-                    <option key={item}>{item}</option>
+                    <option key={item} value={item}>{item}</option>
                   ))}
                 </select>
               </Field>
@@ -328,7 +332,7 @@ export function QuoteForm({
                 <select {...register("budgetRange")}>
                   <option value="">Seleccionar</option>
                   {budgetRanges.map((item) => (
-                    <option key={item}>{item}</option>
+                    <option key={item} value={item}>{item}</option>
                   ))}
                 </select>
               </Field>
@@ -476,7 +480,7 @@ function TechnicalVisitPreferenceFields({
           <input
             type="date"
             min={minimumDate}
-            {...register("visitPreferredDate")}
+            {...register("visitPreferredDate", { shouldUnregister: true })}
           />
         </Field>
         <Field
@@ -484,7 +488,7 @@ function TechnicalVisitPreferenceFields({
           error={errors.visitAddress?.message}
         >
           <input
-            {...register("visitAddress")}
+            {...register("visitAddress", { shouldUnregister: true })}
             autoComplete="street-address"
             maxLength={180}
             placeholder="Ej: barrio, calle o punto de referencia"
@@ -510,7 +514,7 @@ function TechnicalVisitPreferenceFields({
                 type="radio"
                 value={value}
                 className="size-4 accent-bronze"
-                {...register("visitPreferredWindow")}
+                {...register("visitPreferredWindow", { shouldUnregister: true })}
               />
               {label}
             </label>
@@ -524,7 +528,7 @@ function TechnicalVisitPreferenceFields({
         error={errors.visitNotes?.message}
       >
         <textarea
-          {...register("visitNotes")}
+          {...register("visitNotes", { shouldUnregister: true })}
           maxLength={500}
           rows={compact ? 3 : 4}
           placeholder="Accesos, disponibilidad, qué espacio revisar o cualquier dato útil."

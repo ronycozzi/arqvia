@@ -30,10 +30,10 @@ export function ThankYouEstimate({
   const [estimate, setEstimate] = useState<SavedEstimate | null>(null);
 
   useEffect(() => {
-    const raw = window.sessionStorage.getItem("arqvia:last-estimate");
-    if (!raw) return;
     let timer: number | undefined;
     try {
+      const raw = window.sessionStorage.getItem("arqvia:last-estimate");
+      if (!raw) return;
       const parsed = JSON.parse(raw) as SavedEstimate;
       timer = window.setTimeout(() => {
         setEstimate(parsed);
@@ -43,7 +43,12 @@ export function ThankYouEstimate({
         });
       }, 0);
     } catch {
-      window.sessionStorage.removeItem("arqvia:last-estimate");
+      // Showing the confirmation must not depend on browser storage access.
+      try {
+        window.sessionStorage.removeItem("arqvia:last-estimate");
+      } catch {
+        // Storage can be disabled by the browser's privacy settings.
+      }
     }
     return () => {
       if (timer !== undefined) window.clearTimeout(timer);

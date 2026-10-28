@@ -5,11 +5,12 @@ import Link from "next/link";
 import { ChevronsLeftRight } from "lucide-react";
 import {
   type PointerEvent as ReactPointerEvent,
+  useEffect,
   useRef,
-  useState,
 } from "react";
 import { imageKit } from "@/lib/content";
 import type { PublicBeforeAfter } from "@/types/project";
+import styles from "./before-after.module.css";
 
 const defaultComparison: PublicBeforeAfter = {
   beforeImage: imageKit.bathroomBefore,
@@ -43,26 +44,55 @@ export function BeforeAfter({
   compactDescription?: string;
   compactTitle?: string;
 }) {
-  const [position, setPosition] = useState(52);
-  const [isDragging, setIsDragging] = useState(false);
+  const surfaceRef = useRef<HTMLDivElement>(null);
+  const rangeRef = useRef<HTMLInputElement>(null);
   const dragRef = useRef<{
     pointerId: number;
     startX: number;
     startY: number;
     horizontal: boolean;
+    bounds: DOMRect;
   } | null>(null);
 
-  function updatePositionFromPointer(
-    event: ReactPointerEvent<HTMLInputElement>,
-  ) {
-    const bounds = event.currentTarget.getBoundingClientRect();
-    if (!bounds.width) return;
-
-    const nextPosition = ((event.clientX - bounds.left) / bounds.width) * 100;
-    setPosition(Math.round(Math.min(85, Math.max(15, nextPosition))));
+  // Only the clipping boundary changes during a gesture. Keeping pointer updates
+  // outside React avoids re-rendering two large images on every movement, and a
+  // separate hit area prevents native range dragging fighting our coordinates.
+  function paintPosition(value: number) {
+    if (!Number.isFinite(value)) return;
+    const next = Math.min(100, Math.max(0, value));
+    const accessibleValue = Math.round(next);
+    surfaceRef.current?.style.setProperty("--comparison-position", `${next}%`);
+    if (rangeRef.current) {
+      rangeRef.current.value = String(accessibleValue);
+      rangeRef.current.setAttribute(
+        "aria-valuetext",
+        `${accessibleValue}% antes / ${100 - accessibleValue}% después`,
+      );
+    }
   }
 
-  function handlePointerDown(event: ReactPointerEvent<HTMLInputElement>) {
+  function updatePositionFromPointer(clientX: number) {
+    const bounds = dragRef.current?.bounds;
+    if (!bounds?.width) return;
+    paintPosition(((clientX - bounds.left) / bounds.width) * 100);
+  }
+
+  function capturePointer(element: HTMLDivElement, pointerId: number) {
+    try {
+      element.setPointerCapture(pointerId);
+    } catch {
+      // A browser may have canceled a touch for page scrolling already.
+    }
+  }
+
+  function releasePointer(element: HTMLDivElement, pointerId: number) {
+    if (element.hasPointerCapture?.(pointerId)) {
+      element.releasePointerCapture(pointerId);
+    }
+  }
+
+  function handlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.isPrimary === false || dragRef.current) return;
     if (event.pointerType === "mouse" && event.button !== 0) return;
 
     dragRef.current = {
@@ -70,16 +100,19 @@ export function BeforeAfter({
       startX: event.clientX,
       startY: event.clientY,
       horizontal: event.pointerType === "mouse",
+      bounds: event.currentTarget.getBoundingClientRect(),
     };
-    event.currentTarget.setPointerCapture(event.pointerId);
 
     if (event.pointerType === "mouse") {
-      setIsDragging(true);
-      updatePositionFromPointer(event);
+      event.preventDefault();
+      rangeRef.current?.focus({ preventScroll: true });
+      capturePointer(event.currentTarget, event.pointerId);
+      event.currentTarget.dataset.dragging = "true";
+      updatePositionFromPointer(event.clientX);
     }
   }
 
-  function handlePointerMove(event: ReactPointerEvent<HTMLInputElement>) {
+  function handlePointerMove(event: ReactPointerEvent<HTMLDivElement>) {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
 
@@ -88,16 +121,23 @@ export function BeforeAfter({
 
     if (!drag.horizontal) {
       if (Math.abs(deltaX) < 5 && Math.abs(deltaY) < 5) return;
-      if (Math.abs(deltaY) > Math.abs(deltaX)) return;
+      if (Math.abs(deltaY) > Math.abs(deltaX)) {
+        // Lock a vertical gesture to scrolling; do not turn it into a drag if
+        // the finger drifts sideways later in the same gesture.
+        dragRef.current = null;
+        releasePointer(event.currentTarget, event.pointerId);
+        return;
+      }
       drag.horizontal = true;
-      setIsDragging(true);
+      capturePointer(event.currentTarget, event.pointerId);
+      event.currentTarget.dataset.dragging = "true";
     }
 
-    updatePositionFromPointer(event);
+    updatePositionFromPointer(event.clientX);
   }
 
   function finishPointerInteraction(
-    event: ReactPointerEvent<HTMLInputElement>,
+    event: ReactPointerEvent<HTMLDivElement>,
   ) {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
@@ -106,28 +146,56 @@ export function BeforeAfter({
       Math.abs(event.clientX - drag.startX) >= 5 ||
       Math.abs(event.clientY - drag.startY) >= 5;
 
-    if (!moved) updatePositionFromPointer(event);
+    if (drag.horizontal || !moved) updatePositionFromPointer(event.clientX);
 
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
     dragRef.current = null;
-    setIsDragging(false);
+    event.currentTarget.dataset.dragging = "false";
+    releasePointer(event.currentTarget, event.pointerId);
   }
 
   function cancelPointerInteraction(
-    event: ReactPointerEvent<HTMLInputElement>,
+    event: ReactPointerEvent<HTMLDivElement>,
   ) {
     if (dragRef.current?.pointerId !== event.pointerId) return;
     dragRef.current = null;
-    setIsDragging(false);
+    event.currentTarget.dataset.dragging = "false";
+    releasePointer(event.currentTarget, event.pointerId);
   }
+
+  useEffect(() => {
+    const surface = surfaceRef.current;
+    if (!surface) return;
+    const refreshBounds = () => {
+      if (dragRef.current) dragRef.current.bounds = surface.getBoundingClientRect();
+    };
+    const observer = typeof ResizeObserver !== "undefined"
+      ? new ResizeObserver(refreshBounds)
+      : null;
+    observer?.observe(surface);
+    window.addEventListener("resize", refreshBounds);
+    window.addEventListener("scroll", refreshBounds, { capture: true, passive: true });
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", refreshBounds);
+      window.removeEventListener("scroll", refreshBounds, true);
+      const pointerId = dragRef.current?.pointerId;
+      dragRef.current = null;
+      if (pointerId !== undefined) releasePointer(surface, pointerId);
+    };
+  }, []);
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_0.82fr] lg:items-center">
       <div
-        className="image-sheen relative aspect-[16/10] overflow-hidden border border-ink/10 bg-stone shadow-premium"
-        data-dragging={isDragging ? "true" : "false"}
+        ref={surfaceRef}
+        className={`${styles.surface} image-sheen relative aspect-[16/10] overflow-hidden border border-ink/10 bg-stone shadow-premium`}
+        data-testid="before-after-surface"
+        data-dragging="false"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={finishPointerInteraction}
+        onPointerCancel={cancelPointerInteraction}
+        onLostPointerCapture={cancelPointerInteraction}
       >
         <Image
           src={comparison.afterImage}
@@ -135,11 +203,11 @@ export function BeforeAfter({
           fill
           sizes="(min-width: 1280px) 680px, (min-width: 1024px) 55vw, calc(100vw - 40px)"
           className="object-cover"
+          draggable={false}
           data-testid="before-after-image-after"
         />
         <div
-          className="absolute inset-0 overflow-hidden"
-          style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
+          className={`${styles.before} absolute inset-0 overflow-hidden`}
         >
           <Image
             src={comparison.beforeImage}
@@ -147,12 +215,12 @@ export function BeforeAfter({
             fill
             sizes="(min-width: 1280px) 680px, (min-width: 1024px) 55vw, calc(100vw - 40px)"
             className="object-cover"
+            draggable={false}
             data-testid="before-after-image-before"
           />
         </div>
         <div
-          className="absolute inset-y-0 w-px bg-paper"
-          style={{ left: `${position}%` }}
+          className={`${styles.divider} absolute inset-y-0 w-px bg-paper`}
           aria-hidden="true"
         >
           <span
@@ -180,19 +248,16 @@ export function BeforeAfter({
           </span>
         </div>
         <input
+          ref={rangeRef}
           data-testid="before-after-range"
           aria-label="Comparar antes y después"
-          aria-valuetext={`${position}% antes / ${100 - position}% después`}
+          aria-valuetext="52% antes / 48% después"
           type="range"
-          min="15"
-          max="85"
-          value={position}
-          onChange={(event) => setPosition(Number(event.target.value))}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={finishPointerInteraction}
-          onPointerCancel={cancelPointerInteraction}
-          className="before-after-range absolute inset-0 z-20 h-full w-full cursor-ew-resize touch-pan-y"
+          min="0"
+          max="100"
+          defaultValue="52"
+          onChange={(event) => paintPosition(Number(event.target.value))}
+          className={`${styles.range} before-after-range absolute inset-0 z-20 h-full w-full cursor-ew-resize touch-pan-y`}
         />
       </div>
       <div>

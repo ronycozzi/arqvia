@@ -561,6 +561,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     } catch (error) {
       if (error instanceof EstimateVersionConflictError) {
         await removeStoredLeadAttachments(storedAttachments);
+        // Preflight accepted this version. An administrator changed it while
+        // files were stored, so the visitor must be able to recalculate/retry.
+        await releaseAcceptedRateLimitReservations(
+          acceptedRateLimitReservations,
+          "estimate_version_conflict",
+        );
         return NextResponse.json(
           {
             message:

@@ -15,6 +15,7 @@ import {
 } from "@/lib/public-content-policy";
 import { rankRelatedProjects } from "@/lib/project-recommendations";
 import { getRecommendedProjectSlugs } from "@/lib/service-project-mapping";
+import { isEditorialTestimonial } from "@/lib/testimonial-data";
 import type {
   PublicBeforeAfter,
   PublicProject,
@@ -34,7 +35,7 @@ const projectInclude = {
   category: true,
   service: true,
   images: { orderBy: { sortOrder: "asc" as const } },
-  testimonials: { where: { featured: true }, take: 1 },
+  testimonials: { where: { featured: true }, orderBy: { createdAt: "desc" as const } },
 };
 
 function toPublicProject(project: ProjectWithRelations): PublicProject {
@@ -100,7 +101,7 @@ function toPublicProject(project: ProjectWithRelations): PublicProject {
     seoDescription: project.seoDescription,
     imageAlt: project.imageAlt,
     updatedAt: project.updatedAt,
-    testimonial: project.testimonials[0]?.quote,
+    testimonial: project.testimonials.find(isEditorialTestimonial)?.quote,
   };
 }
 
@@ -159,7 +160,7 @@ function seedToPublicProject(project: SeedProject): PublicProject {
     seoTitle: project.seoTitle,
     seoDescription: project.seoDescription,
     imageAlt: project.imageAlt,
-    testimonial: project.testimonial,
+    testimonial: undefined,
     updatedAt: new Date("2026-07-01T12:00:00.000Z"),
   };
 }

@@ -1,39 +1,12 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { PublicClientConfig } from "@/lib/client-config";
 import type { PublicProject } from "@/types/project";
 
-/**
- * La portada es el índice de obra del estudio.
- *
- * El patrón que se repetía en todas las portadas del estudio era el mismo:
- * etiqueta chica, título enorme, párrafo, dos botones y algo visual al
- * costado. Cambiar la foto o la tipografía no lo rompe, porque lo que se
- * repite no es la estética sino la estructura: promesa primero, evidencia
- * después, y la única acción del visitante es leer.
- *
- * Acá se invierte. La primera pantalla no anuncia: enumera. Cuatro obras
- * reales, cada una un renglón a ancho completo con su localidad, su rubro, su
- * superficie y su año. El renglón abierto muestra la obra; los demás quedan
- * como líneas de un índice. Quien llega ve de una que el estudio hace
- * residencial, oficinas, comercial y remodelación en cuatro puntos distintos
- * de Córdoba, que es la pregunta que trae —"¿hacen lo mío?"— y que ningún
- * eslogan contesta.
- *
- * Decisiones que sostienen eso:
- *
- * - No hay título gigante. La promesa se reduce a una línea sobre el índice,
- *   porque la evidencia la da la lista.
- * - Se construye con `<details>` nativos. El teclado, el lector de pantalla y
- *   la navegación sin JavaScript funcionan sin reimplementar nada, y el
- *   atributo `name` hace que abrir uno cierre el otro. Donde el navegador no
- *   soporte `name`, quedan varios abiertos: sigue siendo utilizable.
- * - La apertura anima la altura con `grid-template-rows`, que tiene soporte
- *   parejo, y se desactiva con `prefers-reduced-motion`.
- * - Cada renglón lleva su miniatura, así que en táctil —donde no hay hover—
- *   la lista se entiende sin abrir nada.
- */
 export function ArqviaArchitecturalHero({
   config,
   eyebrow,
@@ -50,10 +23,11 @@ export function ArqviaArchitecturalHero({
   // El índice se ordena por superficie: la obra mayor abre la portada porque
   // es la que mejor sostiene el alcance del estudio.
   const indice = [...projects].sort((a, b) => b.areaM2 - a.areaM2).slice(0, 5);
+  const [activeId, setActiveId] = useState(indice[0]?.id ?? "");
   const formatoArea = new Intl.NumberFormat("es-AR");
 
   return (
-    <section className="obra-index" aria-labelledby="obra-index-claim">
+    <section id="home-projects" className="obra-index" aria-labelledby="obra-index-claim">
       <div className="obra-index__shell">
         <div className="obra-index__head-main">
           <p className="obra-index__eyebrow">
@@ -61,12 +35,12 @@ export function ArqviaArchitecturalHero({
             {eyebrow}
           </p>
           <h1 id="obra-index-claim" className="hero-reveal obra-index__claim">
-            {config.heroTitle}
+            {config.heroTitle === "Arquitectura pensada para construirse bien." ? "Casas y espacios que parten de cómo los usás." : config.heroTitle}
           </h1>
         </div>
 
         <div className="obra-index__head-aside">
-          <p className="obra-index__lead">{config.heroSubtitle}</p>
+          <p className="obra-index__lead">{config.heroSubtitle === "Diseñamos, planificamos y acompañamos proyectos residenciales y comerciales desde la primera idea hasta la entrega final." ? "Arquitectura, remodelación e interiores en Córdoba. Definimos la distribución, los materiales y el alcance de obra a partir del lugar y de lo que necesitás hacer en él." : config.heroSubtitle}</p>
           <Link href="/contacto" className="obra-index__cta">
             {config.primaryCtaLabel}
             <ArrowRight className="size-4" aria-hidden="true" />
@@ -76,10 +50,10 @@ export function ArqviaArchitecturalHero({
         {indice.length > 0 ? (
           <>
             <p className="obra-index__rotulo">
-              <span>Obra construida</span>
+              <span>Selección de proyectos</span>
               <span aria-hidden="true" className="obra-index__rotulo-rule" />
               <span className="obra-index__rotulo-count">
-                {indice.length} {indice.length === 1 ? "obra" : "obras"}
+                {indice.length} {indice.length === 1 ? "proyecto" : "proyectos"}
               </span>
               <Link href="/proyectos" className="obra-index__rotulo-link">
                 {config.secondaryCtaLabel}
@@ -88,18 +62,13 @@ export function ArqviaArchitecturalHero({
             </p>
 
             <ol className="obra-index__list">
-              {indice.map((project, posicion) => {
-                const abierto = posicion === 0;
-                const orden = String(posicion + 1).padStart(2, "0");
+              {indice.map((project) => {
+                const abierto = activeId === project.id;
 
                 return (
                   <li key={project.id} className="obra-index__item">
-                    <details name="obra-index" open={abierto}>
-                      <summary className="obra-index__summary">
-                        <span className="obra-index__order" aria-hidden="true">
-                          {orden}
-                        </span>
-
+                    <div className="obra-index__disclosure" data-open={abierto}>
+                      <button type="button" className="obra-index__summary" aria-expanded={abierto} aria-controls={`obra-panel-${project.id}`} id={`obra-trigger-${project.id}`} onClick={() => setActiveId(abierto ? "" : project.id)}>
                         <span className="obra-index__thumb" aria-hidden="true">
                           <Image
                             src={project.coverImage}
@@ -129,17 +98,17 @@ export function ArqviaArchitecturalHero({
                         </span>
 
                         <span aria-hidden="true" className="obra-index__chevron" />
-                      </summary>
+                      </button>
 
-                      <div className="obra-index__panel">
+                      <div className="obra-index__panel" id={`obra-panel-${project.id}`} role="region" aria-labelledby={`obra-trigger-${project.id}`} inert={!abierto}>
                         <div className="obra-index__panel-inner">
                           <div className="obra-index__figure">
                             <Image
                               src={project.coverImage}
                               alt={project.imageAlt || imageAlt}
                               fill
-                              priority={abierto}
-                              loading={abierto ? "eager" : "lazy"}
+                              priority={project.id === indice[0]?.id}
+                              loading={project.id === indice[0]?.id ? "eager" : "lazy"}
                               sizes="(min-width: 1024px) 64vw, 100vw"
                               className="obra-index__figure-img"
                               {...(abierto
@@ -156,13 +125,13 @@ export function ArqviaArchitecturalHero({
                               href={`/proyectos/${project.slug}`}
                               className="obra-index__open"
                             >
-                              Ver la obra
+                              Ver el proyecto
                               <ArrowRight className="size-4" aria-hidden="true" />
                             </Link>
                           </div>
                         </div>
                       </div>
-                    </details>
+                    </div>
                   </li>
                 );
               })}

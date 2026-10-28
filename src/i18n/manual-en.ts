@@ -1,4 +1,23 @@
+import { publicRefreshEnglish } from "./public-refresh-en";
+import { journalEnglish } from "./journal-en";
+import { institutionalRefreshEnglish } from "./institutional-refresh-en";
+import { dossierEnglish } from "./dossier-en";
+import { studioDirectionEnglish } from "./studio-direction-en";
+
 export const manualEnglishTranslations: Record<string, string> = {
+  ...publicRefreshEnglish,
+  ...journalEnglish,
+  ...institutionalRefreshEnglish,
+  ...dossierEnglish,
+  ...studioDirectionEnglish,
+  "Córdoba y alrededores": "Córdoba and surrounding areas",
+  "Arquitectura en contexto": "Architecture in context",
+  "Un lugar. Una forma de habitarlo.": "A place. A way of living.",
+  "Explorar proyectos": "Explore projects",
+  "Casas, espacios de trabajo y reformas. Mirá cómo cambian las decisiones según el uso y el lugar.": "Homes, workplaces and renovations. Explore how each use and setting shapes the design.",
+  "Seleccionar proyecto": "Select a project",
+  "Ver ficha": "View project",
+  "Información legal": "Legal information",
   "Abrir módulos del panel": "Open admin modules",
   "Acceso al panel": "Admin access",
   "Acceso privado": "Private access",

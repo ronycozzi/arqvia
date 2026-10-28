@@ -1,11 +1,2 @@
-import { ListingLoading } from "@/components/loading-states";
-
-export default function Loading() {
-  return (
-    <ListingLoading
-      eyebrow="Proyectos"
-      filterCount={6}
-      title="Cargando obras, casos y referencias."
-    />
-  );
-}
+import { DossierLoading } from "@/components/dossier-loading";
+export default function Loading() { return <DossierLoading label="Cargando proyectos" />; }

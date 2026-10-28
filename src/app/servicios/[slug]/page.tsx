@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
-import { ArrowRight, MessageCircle } from "lucide-react";
+import { ArrowRight, ArrowLeft, Check } from "lucide-react";
+import styles from "@/components/arqvia-dossier.module.css";
 import { FaqAccordion } from "@/components/faq-accordion";
 import { JsonLd } from "@/components/json-ld";
 import { ProjectCard } from "@/components/project-card";
@@ -139,155 +140,34 @@ export default async function ServiceDetailPage({ params }: PageProps) {
           ],
         }}
       />
-      <section className="grid min-h-[70vh] bg-paper lg:grid-cols-2">
-        <div className="flex items-end px-5 py-16 md:px-8 lg:px-[max(2rem,calc((100vw-80rem)/2))]">
-          <div className="max-w-2xl">
-            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.24em] text-bronze">
-              Servicio
-            </p>
-            <h1 className="font-serif text-4xl leading-[1.02] text-ink sm:text-5xl md:text-6xl lg:text-7xl lg:leading-none">
-              {service.title}
-            </h1>
-            <p className="mt-6 text-lg leading-8 text-ink/75">
-              {service.description}
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href={contactHref}
-                className="inline-flex h-12 items-center justify-center gap-2 bg-ink px-6 text-sm font-semibold text-paper"
-              >
-                Solicitar presupuesto <ArrowRight className="size-4" />
-              </Link>
-              <TrackedAnchor
-                href={buildWhatsAppUrl(service.whatsappMessage, config.whatsapp)}
-                eventName="whatsapp_click"
-                eventParams={{ source: "service_detail", service: service.slug }}
-                className="inline-flex h-12 items-center justify-center gap-2 border border-ink/15 px-6 text-sm font-semibold text-ink"
-              >
-                <MessageCircle className="size-4" />
-                Consultar por WhatsApp
-              </TrackedAnchor>
-            </div>
-          </div>
-        </div>
-        <div className="relative min-h-[420px]">
-          <Image
-            src={service.coverImage}
-            alt={`Imagen del servicio ${service.title}`}
-            fill
-            preload
-            sizes="(min-width: 1024px) 50vw, 100vw"
-            className="object-cover"
-          />
-        </div>
-      </section>
-
-      <section className="mx-auto grid max-w-7xl gap-10 px-5 py-16 md:px-8 lg:grid-cols-[0.8fr_1.2fr]">
-        <aside className="premium-card h-fit p-6 lg:sticky lg:top-28">
-          <h2 className="font-serif text-3xl text-ink">Beneficio principal</h2>
-          <p className="mt-4 text-sm leading-7 text-ink/75">{service.mainBenefit}</p>
-          <h3 className="mt-8 text-xs font-semibold uppercase tracking-[0.18em] text-bronze">
-            Para quién es
-          </h3>
-          <p className="mt-3 text-sm leading-7 text-ink/75">{service.audience}</p>
-        </aside>
-
-        <div className="space-y-12">
-          {service.benefits.length ? (
-            <section>
-              <h2 className="font-serif text-4xl text-ink">
-                Beneficios para el proyecto
-              </h2>
-              <div className="mt-6 grid gap-4 md:grid-cols-3">
-                {service.benefits.map((benefit, index) => (
-                  <div
-                    key={benefit}
-                    className="premium-card group relative overflow-hidden p-5 transition duration-300 hover:-translate-y-1 hover:border-bronze/35"
-                  >
-                    <span
-                      aria-hidden="true"
-                      className="absolute inset-x-0 top-0 h-px origin-left scale-x-0 bg-bronze transition duration-500 group-hover:scale-x-100"
-                    />
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-bronze">
-                      Beneficio {index + 1}
-                    </p>
-                    <p className="mt-3 text-sm leading-7 text-ink/72">{benefit}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-          ) : null}
-
-          <section>
-            <h2 className="font-serif text-4xl text-ink">Qué incluye</h2>
-            <div className="mt-6 grid gap-3 md:grid-cols-2">
-              {service.included.map((item) => (
-                <div key={item} className="premium-card p-4 text-sm text-ink/70">
-                  {item}
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section>
-            <h2 className="font-serif text-4xl text-ink">Proceso</h2>
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              {service.process.map((item, index) => (
-                <div key={item} className="premium-card border-l-2 border-bronze bg-mist p-5">
-                  <p className="text-xs uppercase tracking-[0.18em] text-ink/75">
-                    Paso {index + 1}
-                  </p>
-                  <p className="mt-2 font-medium text-ink">{item}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section>
-            <h2 className="mb-6 font-serif text-4xl text-ink">Preguntas frecuentes</h2>
-            <FaqAccordion items={service.faq} />
-          </section>
-
-          {relatedProjects.length ? (
-            <section>
-              <h2 className="font-serif text-4xl text-ink">Proyectos relacionados</h2>
-              <div
-                className={
-                  relatedProjects.length === 1
-                    ? "mt-6 grid max-w-sm gap-5"
-                    : "mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3"
-                }
-              >
-                {relatedProjects.map((project) => (
-                  <ProjectCard
-                    key={project.slug}
-                    project={project}
-                  />
-                ))}
-              </div>
-            </section>
-          ) : null}
-        </div>
-      </section>
-
-      <section className="bg-mist py-16">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 md:px-8 lg:grid-cols-[0.8fr_1.2fr]">
+      <div className={styles.shell}>
+        <nav className={styles.breadcrumb} aria-label="Ruta de navegación"><Link href="/servicios"><ArrowLeft size={14} className="inline" aria-hidden="true" /> Todos los servicios</Link><span aria-hidden="true">/</span><span>{service.categoryName}</span></nav>
+        <section className={styles.serviceOverview}>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-bronze">
-              Consulta específica
-            </p>
-            <h2 className="mt-3 font-serif text-4xl leading-tight text-ink md:text-5xl">
-              Pedí una evaluación para {service.title.toLowerCase()}.
-            </h2>
-            <p className="mt-5 text-base leading-8 text-ink/75">
-              Contanos en qué etapa está tu proyecto y qué necesitás resolver.
-              Con esa información podemos orientarte mejor antes de avanzar con
-              una propuesta.
-            </p>
+            <p className={styles.eyebrow}>{service.categoryName}</p>
+            <h1>{service.title}</h1>
+            <p className={styles.summary}>{service.description}</p>
+            <div className={styles.actions}><a href="#consulta-servicio" className={styles.primary}>Consultar por este servicio <ArrowRight size={15} aria-hidden="true" /></a><TrackedAnchor href={buildWhatsAppUrl(service.whatsappMessage, config.whatsapp)} eventName="whatsapp_click" eventParams={{ source: "service_detail", service: service.slug }} className={styles.secondary}>WhatsApp</TrackedAnchor></div>
+            <div className={styles.serviceVisual}><Image src={service.coverImage} alt={`Imagen del servicio ${service.title}`} fill preload quality={88} sizes="(min-width:1280px) 600px, (min-width:641px) 50vw, 100vw" /></div>
           </div>
+          <aside className={styles.scope}>
+            <p className={styles.scopeLabel}>Alcance del servicio</p><h2>Qué podemos resolver</h2><p>{service.mainBenefit}</p>
+            <h3 className="text-xs font-semibold">Qué incluye</h3>
+            <ul className={styles.checklist}>{service.included.map((item) => <li key={item}><Check size={15} aria-hidden="true" />{item}</li>)}</ul>
+            {service.audience ? <div className="mt-5 border-t border-ink/15 pt-4"><h3 className="text-xs font-semibold">Para quién es</h3><p className="mt-2 text-xs leading-6 text-ink/70">{service.audience}</p></div> : null}
+          </aside>
+        </section>
+        <section className={`${styles.section} ${styles.serviceDetails}`}>
+          <div><h2>Cómo lo abordamos</h2><ul className={styles.steps}>{service.process.map((item) => <li key={item}>{item}</li>)}</ul></div>
+          <div><h2>Qué buscamos mejorar</h2><ul className={styles.checklist}>{service.benefits.map((item) => <li key={item}><Check size={15} aria-hidden="true" />{item}</li>)}</ul></div>
+        </section>
+        {service.faq.length ? <section className={styles.section}><div className={styles.sectionHead}><h2>Antes de empezar</h2><p>Alcance, decisiones y dudas frecuentes.</p></div><FaqAccordion items={service.faq} /></section> : null}
+        {relatedProjects.length ? <section className={styles.section}><div className={styles.sectionHead}><h2>Este servicio, en proyectos</h2><Link href="/proyectos" className="text-xs underline underline-offset-4">Ver todos los proyectos</Link></div><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{relatedProjects.map((project) => <ProjectCard key={project.slug} project={project} />)}</div></section> : null}
+        <section id="consulta-servicio" className={`${styles.section} ${styles.quote}`}>
+          <div><p className={styles.eyebrow}>Hablemos de tu proyecto</p><h2>Contanos qué necesitás resolver.</h2><p>Ubicación, etapa actual y una idea del espacio. Esa información nos ayuda a orientarte y preparar una propuesta acorde.</p><Link href={contactHref} className={`${styles.secondary} mt-5`}>Abrir formulario completo</Link></div>
           <QuoteForm sourcePage={`/servicios/${service.slug}`} compact />
-        </div>
-      </section>
+        </section>
+      </div>
     </article>
   );
 }

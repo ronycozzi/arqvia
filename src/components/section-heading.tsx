@@ -22,7 +22,7 @@ export function SectionHeading({
   return (
     <div
       className={cn(
-        "max-w-4xl",
+        "section-heading max-w-4xl",
         align === "center" && "mx-auto text-center",
         className,
       )}
@@ -36,8 +36,8 @@ export function SectionHeading({
         className={cn(
           "text-balance font-serif font-medium text-ink",
           as === "h1"
-            ? "text-4xl leading-[1.04] md:text-5xl"
-            : "text-3xl leading-[1.08] md:text-4xl",
+            ? "text-3xl leading-[1.15] md:text-4xl"
+            : "text-2xl leading-[1.2] md:text-3xl",
         )}
       >
         {title}
@@ -45,7 +45,7 @@ export function SectionHeading({
       {description ? (
         <p
           className={cn(
-            "mt-4 max-w-2xl text-pretty text-base leading-7 text-ink/72 md:text-lg md:leading-8",
+            "mt-3 max-w-2xl text-pretty text-base leading-7 text-ink/72",
             align === "center" && "mx-auto",
           )}
         >

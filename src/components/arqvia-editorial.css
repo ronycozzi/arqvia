@@ -1,0 +1,62 @@
+/* Public editorial system. Admin and its saved typography settings remain independent. */
+.arqvia-public{--brand-font-heading:var(--font-dm-sans);--brand-font-body:var(--font-dm-sans);font-family:var(--font-dm-sans),Arial,sans-serif;background:var(--paper);font-weight:400}
+.arqvia-public :is(h1,h2,h3,h4,.font-serif){font-family:var(--font-dm-sans),Arial,sans-serif;font-weight:500;letter-spacing:-.025em!important}
+.arqvia-public h1{font-size:clamp(1.85rem,3.3vw,2.8rem);line-height:1.14;max-width:24ch}
+.arqvia-public h2{font-size:clamp(1.5rem,2.5vw,2.15rem);line-height:1.2}
+.arqvia-public h3{font-size:clamp(1.12rem,1.7vw,1.4rem);line-height:1.3}
+.arqvia-public .section-heading{max-width:720px}
+.arqvia-public .section-heading p{max-width:65ch}
+.arqvia-public .obra-index__name{font-family:var(--font-dm-sans),Arial,sans-serif;font-size:clamp(1rem,1.8vw,1.4rem);font-weight:500}
+.arqvia-public .obra-index__claim{font-family:var(--font-dm-sans),Arial,sans-serif}
+.obra-index__summary{width:100%;text-align:left;grid-template-columns:auto 1fr auto}
+@media(min-width:1024px){.obra-index__summary{grid-template-columns:auto minmax(200px,1fr) auto auto}}
+.obra-index__disclosure{overflow-anchor:none}
+.obra-index__disclosure .obra-index__panel{grid-template-rows:0fr;opacity:0;transition:grid-template-rows 650ms cubic-bezier(.22,1,.36,1),opacity 400ms ease}
+.obra-index__disclosure[data-open=true] .obra-index__panel{grid-template-rows:1fr;opacity:1}
+.obra-index__disclosure .obra-index__panel-inner{padding-bottom:0}
+.obra-index__disclosure .obra-index__figure{margin-bottom:22px}
+.obra-index__disclosure .obra-index__detail{padding-bottom:22px}
+.obra-index__disclosure .obra-index__figure-img{transform:scale(1.035);transition:transform 950ms cubic-bezier(.22,1,.36,1)}
+.obra-index__disclosure[data-open=true] .obra-index__figure-img{transform:scale(1)}
+.obra-index__disclosure[data-open=true] .obra-index__chevron::after{transform:scaleY(0)}
+.arqvia-public .project-start{padding-block:50px;gap:48px;border-top:1px solid rgb(28 33 29/.12);grid-template-columns:.85fr 1.15fr}
+.arqvia-public .project-start__intro h2{font-size:clamp(1.6rem,2.7vw,2.3rem);margin-block:12px 16px}
+.arqvia-public .project-start__intro>p{font-size:.92rem;line-height:1.75}
+.arqvia-public .project-start__fields{gap:15px;padding:20px 24px;grid-template-columns:1fr 1fr}
+.arqvia-public .project-start__fields label:last-child{grid-column:1/-1}
+.arqvia-public .project-start__continue{padding:18px 24px}
+.project-selection{max-width:1280px;padding:56px 32px;margin:auto;scroll-margin-top:100px}
+.project-selection__heading{display:flex;justify-content:space-between;gap:32px;align-items:end;margin-bottom:26px}
+.project-selection__heading h2{margin-top:10px;max-width:540px}
+.project-selection__heading>a,.project-selection__caption>a{display:inline-flex;align-items:center;gap:14px;font-size:.82rem;font-weight:600;min-height:44px;border-bottom:1px solid var(--bronze);white-space:nowrap}
+.project-selection__layout{display:grid;grid-template-columns:minmax(220px,.7fr) minmax(0,1.3fr);gap:40px}
+.project-selection__index>p{font-size:.88rem;line-height:1.8;max-width:330px;color:rgb(28 33 29/.7);margin-bottom:24px}
+.project-selection__tabs{border-top:1px solid rgb(28 33 29/.18)}
+.project-selection__tabs button{display:flex;width:100%;align-items:center;justify-content:space-between;gap:18px;padding:17px 12px 17px 0;text-align:left;border-bottom:1px solid rgb(28 33 29/.16);color:rgb(28 33 29/.65);transition:padding .35s,background .35s,color .35s;cursor:pointer}
+.project-selection__tabs button span{display:grid;gap:4px}
+.project-selection__tabs small{font-size:.7rem}
+.project-selection__tabs strong{font-weight:500;font-size:1.08rem}
+.project-selection__tabs button[aria-selected=true]{padding-left:16px;background:rgb(132 87 47/.07);color:var(--ink);box-shadow:inset 2px 0 var(--bronze)}
+.project-selection__tabs button svg{transition:transform .35s;color:var(--bronze)}
+.project-selection__tabs button:hover svg{transform:translate(2px,-2px)}
+.project-selection__media{position:relative;aspect-ratio:1.65;background:var(--stone);overflow:hidden}
+.project-selection__media img{object-fit:cover;opacity:0;transform:scale(1.035);transition:opacity .6s ease,transform .9s cubic-bezier(.22,1,.36,1)}
+.project-selection__media img.is-selected{opacity:1;transform:scale(1)}
+.project-selection__location{position:absolute;bottom:16px;left:16px;display:flex;align-items:center;gap:7px;background:rgb(20 24 21/.85);color:var(--paper);padding:7px 11px;font-size:.72rem}
+.project-selection__caption{display:flex;align-items:start;justify-content:space-between;gap:30px;padding-top:15px;animation:editorial-enter .45s ease both}
+.project-selection__caption p{font-size:.85rem;line-height:1.7;max-width:480px;color:rgb(28 33 29/.75)}
+@keyframes editorial-enter{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.arqvia-study-note{margin-top:18px;font-size:11px;line-height:1.6;color:var(--bronze)}
+/* Keep reading stationary; reserve movement for media and deliberate selections. */
+.arqvia-public .scroll-reveal:not([data-reveal="media"]){transform:none!important;transition:none;will-change:auto}
+.arqvia-public #home-contact{padding-block:36px;border-top:1px solid rgb(28 33 29/.12)}
+.arqvia-public #home-contact p{font-size:.9rem;line-height:1.7}
+.arqvia-public footer h2{font-size:.7rem;font-weight:600;letter-spacing:.07em!important}
+.arqvia-public footer .footer-grid{padding-block:32px;gap:28px}
+.arqvia-public footer .footer-contact{margin-top:16px;display:grid;gap:8px}
+.arqvia-public footer .footer-intro{margin-top:16px;line-height:1.7;max-width:340px}
+@media(max-width:900px){.arqvia-public .project-start{grid-template-columns:1fr;gap:24px}.project-selection__layout{gap:24px;grid-template-columns:.8fr 1.2fr}.project-selection__caption{display:block}.project-selection__media{aspect-ratio:1.15}}
+@media(max-width:640px){.project-selection{padding:38px 20px}.project-selection__heading{display:block}.project-selection__heading>a{margin-top:10px}.project-selection__layout{grid-template-columns:1fr;gap:20px}.project-selection__index>p{max-width:none;margin-bottom:16px}.project-selection__tabs{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}.project-selection__tabs button{padding:12px 8px;min-height:76px}.project-selection__tabs strong{font-size:.9rem}.project-selection__tabs small{font-size:.64rem}.project-selection__tabs button[aria-selected=true]{padding-left:10px}.project-selection__tabs button svg{width:14px;flex-shrink:0}.project-selection__media{aspect-ratio:1.4}.project-selection__caption{display:flex;gap:20px}.arqvia-public .project-start__fields{grid-template-columns:1fr;padding:18px}.arqvia-public .project-start{padding-block:38px}.arqvia-public footer .footer-grid{gap:20px;padding-block:26px}.arqvia-public h1{max-width:none}.arqvia-section-nav{display:none!important}}
+@media(prefers-reduced-motion:reduce){.obra-index__disclosure .obra-index__panel,.obra-index__disclosure .obra-index__figure-img,.project-selection__media img,.project-selection__tabs button,.project-selection__tabs button svg{transition:none}.project-selection__caption{animation:none}}
+
+.arqvia-coverage{max-width:1216px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:40px;padding:26px 0}.arqvia-coverage p{max-width:760px;margin-top:10px;font-size:.8rem!important}.arqvia-public #home-contact{padding-block:26px}@media(max-width:1280px){.arqvia-coverage{margin-inline:32px}}@media(max-width:640px){.arqvia-coverage{margin-inline:20px;display:block}.arqvia-coverage>a{margin-top:14px}}

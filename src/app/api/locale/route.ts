@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isSameOriginRequest } from "@/lib/request-security";
 import {
   APP_LOCALE_COOKIE,
   APP_LOCALE_MAX_AGE,
@@ -6,9 +7,9 @@ import {
 } from "@/lib/locale";
 
 export async function POST(request: Request) {
-  const requestUrl = new URL(request.url);
-  const origin = request.headers.get("origin");
-  if (origin && origin !== requestUrl.origin) {
+  // Next can expose an internal URL behind its proxy. Validate the browser's
+  // Origin against the actual Host, just like the other mutation endpoints.
+  if (!isSameOriginRequest(request, { requireSource: true })) {
     return NextResponse.json({ error: "Origen no permitido" }, { status: 403 });
   }
 

@@ -7,7 +7,6 @@ import {
   ExternalLink,
   Mail,
   MapPin,
-  MessageCircle,
   Phone,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -57,7 +56,7 @@ export function SiteFooter({
       className="architectural-grid min-w-0 border-t border-paper/15 bg-graphite pb-[calc(5.5rem+env(safe-area-inset-bottom))] text-paper md:pb-0"
       style={{ overflowWrap: "anywhere" }}
     >
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-2 md:px-8 lg:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr]">
+      <div className="footer-grid mx-auto grid max-w-7xl gap-7 px-5 py-8 md:grid-cols-2 md:px-8 lg:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr]">
         <div className="min-w-0">
           <Link href="/" className="inline-flex min-w-0 items-center gap-3">
             <BrandMark companyName={config.companyName} logoUrl={config.logoUrl} />
@@ -70,12 +69,7 @@ export function SiteFooter({
               </span>
             </span>
           </Link>
-          <p className="mt-6 max-w-sm text-sm leading-7 text-paper/78">
-            Arquitectura, obra e interiores para proyectos residenciales,
-            comerciales y remodelaciones con planificación, criterio técnico y
-            seguimiento profesional.
-          </p>
-          <address className="mt-6 space-y-3 text-sm not-italic text-paper/78">
+          <address className="footer-contact text-sm not-italic text-paper/78">
             <p>
               <a
                 href={`tel:${config.phone.replace(/[^+\d]/g, "")}`}
@@ -103,23 +97,6 @@ export function SiteFooter({
               <span className="min-w-0">{config.businessHours}</span>
             </p>
           </address>
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row md:flex-col">
-            <Link
-              href={contactHref}
-              className="inline-flex h-12 items-center justify-center bg-bronze px-5 text-sm font-semibold text-paper transition duration-300 hover:-translate-y-0.5 hover:bg-paper hover:text-ink"
-            >
-              {config.primaryCtaLabel}
-            </Link>
-            <TrackedAnchor
-              href={whatsappUrl}
-              eventName="whatsapp_click"
-              eventParams={{ source: "footer_cta" }}
-              className="inline-flex h-12 items-center justify-center gap-2 border border-paper/20 px-5 text-sm font-semibold text-paper transition duration-300 hover:-translate-y-0.5 hover:border-bronze-light hover:text-bronze-light"
-            >
-              <MessageCircle className="size-4" aria-hidden="true" />
-              WhatsApp
-            </TrackedAnchor>
-          </div>
           {socialLinks.length ? (
             <div className="mt-6 flex flex-wrap gap-2">
               {socialLinks.map((item) => (
@@ -136,7 +113,7 @@ export function SiteFooter({
               ))}
             </div>
           ) : null}
-          <div className="mt-7 border-t border-paper/12 pt-5">
+          <div className="mt-4 border-t border-paper/12 pt-3">
             <LanguageSwitcher theme="dark" />
           </div>
         </div>
@@ -162,7 +139,7 @@ export function SiteFooter({
 
           <FooterList title="Recursos">
             <Link href="/proceso">Cómo trabajamos</Link>
-            <Link href="/blog">Blog</Link>
+            <Link href="/blog">Opiniones y guías</Link>
             <Link href="/faq">Preguntas frecuentes</Link>
             <Link href="/proyectos">Ver proyectos</Link>
             <Link href={contactHref}>Solicitar presupuesto</Link>
@@ -173,19 +150,21 @@ export function SiteFooter({
             >
               WhatsApp
             </TrackedAnchor>
-            <Link href="/privacidad">Privacidad</Link>
-            <Link href="/terminos">Términos</Link>
-            <Link href="/cookies">Cookies</Link>
-            {analyticsEnabled ? <CookiePreferencesButton /> : null}
-            <Link href="/aviso-presupuestos">Aviso sobre presupuestos</Link>
           </FooterList>
         </div>
       </div>
       <div className="border-t border-paper/10 px-5 py-5 text-xs">
-        <div className="mx-auto max-w-7xl text-center">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-7 gap-y-3">
           <p className="text-paper/78">
             {config.companyName} · {siteConfig.tagline} · Córdoba, Argentina.
           </p>
+          <nav aria-label="Información legal" className="flex flex-wrap gap-x-5 gap-y-2 text-paper/70">
+            <Link href="/privacidad" className="inline-flex min-h-9 items-center">Privacidad</Link>
+            <Link href="/terminos" className="inline-flex min-h-9 items-center">Términos</Link>
+            <Link href="/cookies" className="inline-flex min-h-9 items-center">Cookies</Link>
+            <Link href="/aviso-presupuestos" className="inline-flex min-h-9 items-center">Aviso sobre presupuestos</Link>
+            {analyticsEnabled ? <CookiePreferencesButton /> : null}
+          </nav>
         </div>
       </div>
       <style>{`
@@ -219,7 +198,7 @@ function FooterList({
   children: React.ReactNode;
 }) {
   const linksClassName =
-    "flex flex-col gap-1 text-sm text-paper/78 lg:gap-3 [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center [&_a]:transition [&_a:hover]:text-paper lg:[&_a]:min-h-6";
+    "flex flex-col gap-1 text-sm text-paper/78 lg:gap-2 [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center [&_a]:transition [&_a:hover]:text-paper lg:[&_a]:min-h-6";
 
   return (
     <div className="min-w-0" data-footer-group={title}>

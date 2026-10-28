@@ -18,15 +18,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     getPublicServices(),
   ]);
   const base = siteConfig.url;
-  const staticLastModified = new Date("2026-07-01T12:00:00.000Z");
   const route = (
     url: string,
     priority = 0.7,
     changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"] = "monthly",
-    lastModified: Date = staticLastModified,
+    lastModified?: Date,
   ) => ({
     url,
-    lastModified,
+    ...(lastModified ? { lastModified } : {}),
     changeFrequency,
     priority,
   });
@@ -54,7 +53,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         `${base}/${page.slug}`,
         0.2,
         "yearly",
-        page.updatedAt || staticLastModified,
+        page.updatedAt || undefined,
       ),
     ),
     ...projects.map((project) =>
@@ -62,7 +61,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         `${base}/proyectos/${project.slug}`,
         0.86,
         "monthly",
-        project.updatedAt || staticLastModified,
+        project.updatedAt || undefined,
       ),
     ),
     ...services.map((service) =>
@@ -70,7 +69,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         `${base}/servicios/${service.slug}`,
         0.84,
         "monthly",
-        service.updatedAt || staticLastModified,
+        service.updatedAt || undefined,
       ),
     ),
     ...blogPosts.map((post) =>
@@ -78,7 +77,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         `${base}/blog/${post.slug}`,
         0.64,
         "monthly",
-        post.updatedAt || post.publishedAt || staticLastModified,
+        post.updatedAt || post.publishedAt || undefined,
       ),
     ),
     ...localSeoPages.map((page) => route(`${base}/${page.slug}`, 0.82, "monthly")),
@@ -87,7 +86,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         `${base}/zonas/${area.slug}`,
         0.76,
         "monthly",
-        area.updatedAt || staticLastModified,
+        area.updatedAt || undefined,
       ),
     ),
   ];

@@ -2,6 +2,8 @@
 .git
 .vercel
 .agents
+.codex-runtime
+.codex-artifacts
 .next
 node_modules
 coverage

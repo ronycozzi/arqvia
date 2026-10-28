@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
-import { ArrowRight, MessageCircle } from "lucide-react";
+import { ArrowRight, ArrowLeft } from "lucide-react";
+import { ProjectDossier } from "@/components/project-dossier";
+import styles from "@/components/arqvia-dossier.module.css";
 import { BeforeAfter } from "@/components/before-after";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { JsonLd } from "@/components/json-ld";
@@ -84,7 +86,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const projectFacts: Array<[string, string | number]> = [
     ["Ubicación", project.location],
     ["Año", project.year],
-    ["Superficie", `${project.areaM2} m²`],
+    ...(project.areaM2 > 0 ? [["Superficie", `${project.areaM2} m²`] as [string, string]] : []),
     ["Estado", project.status],
     ["Cliente", project.clientType],
     ["Servicio", project.servicePerformed],
@@ -147,140 +149,54 @@ export default async function ProjectDetailPage({ params }: PageProps) {
           ],
         }}
       />
-      <section className="relative min-h-[72vh] overflow-hidden bg-ink text-paper">
-        <Image
-          src={project.coverImage}
-          alt={project.imageAlt}
-          fill
-          preload
-          sizes="100vw"
-          className="object-cover opacity-55"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/55 to-transparent" />
-        <div className="relative mx-auto flex min-h-[72vh] max-w-7xl flex-col justify-end px-5 py-14 md:px-8">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.24em] text-bronze-light">
-            {project.category} · {project.location}
-          </p>
-          <h1 className="max-w-4xl font-serif text-4xl leading-[1.02] sm:text-5xl md:text-6xl lg:text-7xl lg:leading-none">
-            {project.title}
-          </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-paper/75">
-            {project.summary}
-          </p>
-        </div>
-      </section>
-
-      <section className="mx-auto grid max-w-7xl gap-10 px-5 py-16 md:px-8 lg:grid-cols-[0.72fr_1.28fr]">
-        <aside className="premium-card h-fit p-6 lg:sticky lg:top-28">
-          <h2 className="font-serif text-3xl text-ink">Ficha del proyecto</h2>
-          <dl className="mt-6 grid gap-4 text-sm">
-            {projectFacts.map(([label, value]) => (
-              <div key={label} className="border-b border-ink/10 pb-3">
-                <dt className="text-xs uppercase tracking-[0.16em] text-ink/75">
-                  {label}
-                </dt>
-                <dd className="mt-1 font-medium text-ink">{value}</dd>
-              </div>
-            ))}
-          </dl>
-          <TrackedAnchor
-            href={whatsapp}
-            eventName="whatsapp_click"
-            eventParams={{ source: "project_sidebar", project: project.slug }}
-            className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 bg-olive px-5 text-sm font-semibold text-paper transition hover:bg-bronze"
-          >
-            <MessageCircle className="size-4" />
-            Quiero un proyecto similar
-          </TrackedAnchor>
-        </aside>
-
-        <div className="space-y-14">
-          <section>
-            <h2 className="mb-6 font-serif text-4xl text-ink">Galería</h2>
-            <GalleryLightbox
-              images={project.galleryImages || project.gallery}
-              title={project.title}
-            />
-          </section>
-
-          <Narrative title="El desafío" text={project.challenge} />
-          <Narrative title="La solución" text={project.solution} />
-          <Narrative title="Cómo se ejecutó" text={project.process} />
-          <Narrative title="Resultado final" text={project.result} />
-
-          <div className="grid gap-4 md:grid-cols-3">
-            {[
-              ["Materiales", project.materials],
-              ["Qué se optimizó", project.optimized],
-              ["Qué lo hizo especial", project.specialNote],
-            ].map(([title, text]) => (
-              <div key={title} className="premium-card p-5">
-                <h2 className="font-serif text-2xl text-ink">{title}</h2>
-                <p className="mt-3 text-sm leading-7 text-ink/75">{text}</p>
-              </div>
-            ))}
+      <div className={styles.shell}>
+        <nav className={styles.breadcrumb} aria-label="Ruta de navegación">
+          <Link href="/proyectos"><ArrowLeft size={14} className="inline" aria-hidden="true" /> Todos los proyectos</Link>
+          <span aria-hidden="true">/</span><span>{project.category}</span>
+        </nav>
+        <section className={styles.overview} aria-label="Resumen del proyecto">
+          <div className={styles.cover}>
+            <Image src={project.coverImage} alt={project.imageAlt} fill preload quality={88} sizes="(min-width: 1280px) 610px, (min-width: 641px) 50vw, 100vw" />
+            {project.status ? <span className={styles.coverLabel}>{project.status}</span> : null}
           </div>
-
-          {project.beforeAfter ? (
-            <BeforeAfter comparison={project.beforeAfter} />
-          ) : null}
-
-          {project.testimonial ? (
-            <figure className="premium-card border-l-4 border-bronze bg-mist p-6">
-              <blockquote className="font-serif text-3xl leading-10 text-ink">
-                “{project.testimonial}”
-              </blockquote>
-              <figcaption className="mt-4 text-sm text-ink/75">
-                Cliente de {project.category} · {project.location}
-              </figcaption>
-            </figure>
-          ) : null}
-
-          <div className="premium-card-dark p-8 text-paper">
-            <h2 className="font-serif text-4xl">¿Querés una obra como esta?</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-paper/78">
-              Si estás pensando en una obra similar, podemos ayudarte a evaluar
-              terreno, superficie, etapas, materiales y próximos pasos.
-            </p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <TrackedAnchor
-                href={whatsapp}
-                eventName="whatsapp_click"
-                eventParams={{ source: "project_final_cta", project: project.slug }}
-                className="inline-flex h-12 items-center justify-center bg-bronze px-6 text-sm font-semibold text-paper"
-              >
-                Consultar por una obra como esta
-              </TrackedAnchor>
-              <Link
-                href={contactHref}
-                className="inline-flex h-12 items-center justify-center gap-2 border border-paper/20 px-6 text-sm font-semibold text-paper"
-              >
-                Pedir presupuesto <ArrowRight className="size-4" />
-              </Link>
+          <div className={styles.intro}>
+            <p className={styles.eyebrow}>{project.category} · {project.location}</p>
+            <h1>{project.title}</h1>
+            <p className={styles.summary}>{project.summary}</p>
+            <div className={styles.factTitle}><h2>Ficha del proyecto</h2><span>{project.category}</span></div>
+            <dl className={styles.facts}>
+              {projectFacts.filter(([, value]) => Boolean(value)).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
+            </dl>
+            <div className={styles.actions}>
+              <Link href={contactHref} className={styles.primary}>Pensar un proyecto similar <ArrowRight size={15} aria-hidden="true" /></Link>
+              <a href="#proyecto-galeria" className={styles.secondary}>Ver imágenes</a>
             </div>
           </div>
+        </section>
+        <ProjectDossier sections={[
+          { title: "El desafío", text: project.challenge },
+          { title: "La solución", text: project.solution },
+          { title: "La ejecución", text: project.process },
+          { title: "El resultado", text: project.result },
+        ]} />
+        <div className={styles.detailGrid}>
+          {[["Materiales", project.materials], ["Distribución y uso", project.optimized], ["Decisiones de diseño", project.specialNote]].filter(([, text]) => Boolean(text)).map(([title, text]) => <div key={title}><h3>{title}</h3><p>{text}</p></div>)}
         </div>
-      </section>
-
-      <section className="bg-mist py-16">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <h2 className="font-serif text-4xl text-ink">Proyectos relacionados</h2>
-          <div className="mt-8 grid gap-5 md:grid-cols-3">
-            {related.map((item) => (
-              <ProjectCard key={item.slug} project={item} />
-            ))}
-          </div>
-        </div>
-      </section>
+        <section id="proyecto-galeria" className={`${styles.section} ${styles.gallery}`}>
+          <div className={styles.sectionHead}><h2>El proyecto, en detalle</h2><p>Tocá una imagen para ampliarla.</p></div>
+          <GalleryLightbox images={project.galleryImages || project.gallery} title={project.title} />
+        </section>
+        {project.beforeAfter ? <section className={styles.section} aria-label="Transformación del espacio"><BeforeAfter comparison={project.beforeAfter} /></section> : null}
+        {project.testimonial ? <figure className={styles.callout}><blockquote className="max-w-3xl text-base leading-8">“{project.testimonial}”</blockquote><figcaption className="text-xs">Cliente de {project.category} · {project.location}</figcaption></figure> : null}
+        <section className={styles.callout}>
+          <div><h2>Conversemos sobre tu espacio.</h2><p>Podés compartir ubicación, ideas o planos. Revisamos el punto de partida antes de definir el alcance.</p></div>
+          <TrackedAnchor href={whatsapp} eventName="whatsapp_click" eventParams={{ source: "project_final_cta", project: project.slug }} className={styles.primary}>Consultar por esta obra <ArrowRight size={15} aria-hidden="true" /></TrackedAnchor>
+        </section>
+        {related.length ? <section className={styles.section}>
+          <div className={styles.sectionHead}><h2>Otros proyectos del estudio</h2><Link href="/proyectos" className="text-xs underline underline-offset-4">Ver todos</Link></div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{related.map((item) => <ProjectCard key={item.slug} project={item} />)}</div>
+        </section> : null}
+      </div>
     </article>
-  );
-}
-
-function Narrative({ title, text }: { title: string; text: string }) {
-  return (
-    <section className="max-w-3xl">
-      <h2 className="font-serif text-4xl text-ink">{title}</h2>
-      <p className="mt-4 text-lg leading-9 text-ink/75">{text}</p>
-    </section>
   );
 }

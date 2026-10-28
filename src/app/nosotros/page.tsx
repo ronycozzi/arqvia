@@ -1,169 +1,61 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MessageCircle } from "lucide-react";
-import { SectionHeading } from "@/components/section-heading";
+import { ArrowUpRight, Check, MessageCircle } from "lucide-react";
 import { TrackedAnchor } from "@/components/tracked-anchor";
+import styles from "@/components/institutional-pages.module.css";
 import { getClientConfig } from "@/lib/client-config";
-import { getHomeContent } from "@/lib/home-data";
+import { team as exampleTeam } from "@/lib/content";
 import { getInstitutionalPage } from "@/lib/institutional-data";
 import { buildPageMetadata } from "@/lib/seo";
 import { getPublicTeamMembers } from "@/lib/team-data";
 import { buildWhatsAppUrl } from "@/lib/utils";
 
 export async function generateMetadata() {
-  const [config, page] = await Promise.all([
-    getClientConfig(),
-    getInstitutionalPage("nosotros"),
-  ]);
-  return buildPageMetadata(
-    {
-      canonical: "/nosotros",
-      title: page.seoTitle,
-      description: page.seoDescription,
-    },
-    config,
-  );
+  const [config, page] = await Promise.all([getClientConfig(), getInstitutionalPage("nosotros")]);
+  return buildPageMetadata({ canonical: "/nosotros", title: page.seoTitle, description: page.seoDescription }, config);
 }
 
 export default async function AboutPage() {
-  const [config, teamMembers, homeContent, page] = await Promise.all([
-    getClientConfig(),
-    getPublicTeamMembers(),
-    getHomeContent(),
-    getInstitutionalPage("nosotros"),
-  ]);
-  const contactHref = "/contacto?origen=%2Fnosotros";
-
+  const [config, teamMembers, page] = await Promise.all([getClientConfig(), getPublicTeamMembers(), getInstitutionalPage("nosotros")]);
+  const exampleNames = new Set(exampleTeam.map((member) => member.name));
+  const publishedTeam = teamMembers.filter((member) => !exampleNames.has(member.name));
   return (
-    <>
-      <section className="bg-paper">
-        <div className="mx-auto grid max-w-7xl gap-8 px-5 py-12 md:px-8 md:py-16 lg:grid-cols-[0.85fr_1.15fr] lg:items-end">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-bronze">
-              {page.eyebrow}
-            </p>
-            <h1 className="mt-4 font-serif text-4xl leading-tight text-ink sm:text-5xl md:text-6xl lg:text-7xl">
-              {page.title}
-            </h1>
-          </div>
-          <p className="text-lg leading-9 text-ink/75">
-            {page.introduction}
-          </p>
+    <div className={styles.page}>
+      <section className={styles.aboutLead} aria-labelledby="about-title">
+        <div>
+          <span className={styles.eyebrow}>El estudio · Arqvia</span>
+          <h1 id="about-title">El espacio se dibuja.<br />La forma de vivirlo se conversa.</h1>
+          <p>Antes de definir una fachada o elegir un revestimiento, hay que entender el lugar: la luz que recibe, los recorridos cotidianos y lo que hoy falta. Ese es el punto de partida para una vivienda, una reforma o un espacio de trabajo.</p>
+          <div className={styles.actions}><Link href="/proceso" className={styles.button}>Nuestra forma de trabajar<ArrowUpRight size={16} aria-hidden="true" /></Link>{publishedTeam.length > 0 && <Link href="#equipo" className={styles.quietLink}>Conocer al equipo</Link>}</div>
+        </div>
+        <div className={styles.leadImage}>
+          <Image src="/images/arqvia-casa-patio-norte-gallery.webp" alt="Relación entre materiales, interiores y patio en Casa Patio Norte" fill quality={88} sizes="(min-width: 1280px) 620px, (min-width: 640px) 55vw, 100vw" priority />
+          <span className={styles.imageCaption}>Interior y patio · visualización conceptual</span>
         </div>
       </section>
-
-      <section className="mx-auto max-w-7xl px-5 py-12 md:px-8 md:py-16">
-        <div className="grid gap-5 md:grid-cols-4">
-          {homeContent.trustMetrics.map((metric) => (
-            <div key={metric.label} className="premium-card p-6">
-              <p className="font-serif text-4xl text-ink">{metric.value}</p>
-              <p className="mt-2 text-sm text-ink/75">{metric.label}</p>
-            </div>
-          ))}
-        </div>
+      <section className={styles.decision} aria-labelledby="decisions-title">
+        <div><span className={styles.eyebrow}>{page.payload.decision.eyebrow}</span><h2 id="decisions-title" className={styles.sectionTitle}>Qué revisamos antes de proponer.</h2><p className={styles.description}>El uso de cada ambiente, el presupuesto disponible y las condiciones para construir. Las decisiones de materiales también consideran su mantenimiento después de la entrega.</p></div>
+        <div className={styles.decisionItems}>{page.payload.decision.items.map((item) => <p key={item}><Check size={15} aria-hidden="true" />{item}</p>)}</div>
       </section>
-
-      <section className="mx-auto grid max-w-7xl gap-10 px-5 py-12 md:px-8 md:py-16 lg:grid-cols-[0.8fr_1.2fr]">
-        <SectionHeading
-          eyebrow={page.payload.decision.eyebrow}
-          title={page.payload.decision.title}
-          description={page.payload.decision.description}
-        />
-        <div className="grid gap-4 md:grid-cols-2">
-          {page.payload.decision.items.map((item) => (
-            <div key={item} className="premium-card p-5 text-sm leading-7 text-ink/75">
-              {item}
-            </div>
-          ))}
-        </div>
+      {publishedTeam.length > 0 ? <section id="equipo" className={styles.team} aria-labelledby="team-title">
+        <header className={styles.teamHeader}><div><span className={styles.eyebrow}>{page.payload.team.eyebrow}</span><h2 id="team-title" className={styles.sectionTitle}>Quién se ocupa de cada área.</h2></div><p className={styles.description}>{page.payload.team.description}</p></header>
+        <div className={styles.teamGrid}>{publishedTeam.map((member) => <article key={member.name} className={styles.member}>
+          <div className={styles.portrait}><Image src={member.imageUrl} alt={`${member.name}, ${member.role}`} fill quality={88} sizes="(min-width: 1280px) 380px, (min-width: 640px) 33vw, 105px" /></div>
+          <h3>{member.name}</h3><p className={styles.role}>{member.role}</p><p>{member.specialty}</p>
+          <details><summary>Conocer su enfoque</summary><p>{member.bio}</p>{member.licenseNumber && <p className={styles.license}>{member.licenseNumber}</p>}</details>
+        </article>)}</div>
+      </section> : <section className={styles.disciplines} aria-labelledby="disciplines-title">
+        <header><span className={styles.eyebrow}>Áreas de trabajo</span><h2 id="disciplines-title" className={styles.sectionTitle}>Del espacio al detalle constructivo.</h2></header>
+        <dl>
+          <div><dt>Arquitectura</dt><dd>Implantación, distribución y relación entre los ambientes. Planos para definir cómo se organiza el conjunto.</dd></div>
+          <div><dt>Interiorismo</dt><dd>Materiales, iluminación y mobiliario. Decisiones que cambian el uso diario de cada ambiente.</dd></div>
+          <div><dt>Coordinación de obra</dt><dd>Secuencia de trabajos, consultas técnicas y revisión de avances. El alcance se acuerda para cada encargo.</dd></div>
+        </dl>
+      </section>}
+      <section className={styles.contact} aria-labelledby="about-contact-title">
+        <div><h2 id="about-contact-title">¿Ya tenés un lugar en mente?</h2><p>Contanos dónde está, cómo lo usás hoy y qué necesitás cambiar. No hace falta tener un proyecto dibujado para hacer la primera consulta.</p></div>
+        <div className={styles.actions}><Link href="/contacto?origen=%2Fnosotros" className={styles.button}>Conversar mi proyecto<ArrowUpRight size={16} aria-hidden="true" /></Link><TrackedAnchor href={buildWhatsAppUrl(page.whatsappMessage, config.whatsapp)} eventName="whatsapp_click" eventParams={{ source: "about_final_cta" }} className={styles.quietLink}><MessageCircle size={15} aria-hidden="true" />WhatsApp</TrackedAnchor></div>
       </section>
-
-      <section className="bg-mist py-12 md:py-16">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <SectionHeading
-            eyebrow={page.payload.philosophy.eyebrow}
-            title={page.payload.philosophy.title}
-            description={page.payload.philosophy.description}
-          />
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {page.payload.philosophy.items.map((item) => (
-              <article key={item.title} className="premium-card p-6">
-                <h2 className="font-serif text-3xl text-ink">{item.title}</h2>
-                <p className="mt-3 text-sm leading-7 text-ink/75">
-                  {item.description}
-                </p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-5 py-12 md:px-8 md:py-16">
-        <SectionHeading
-          eyebrow={page.payload.team.eyebrow}
-          title={page.payload.team.title}
-          description={page.payload.team.description}
-        />
-        <div className="mt-10 grid gap-5 md:grid-cols-3">
-          {teamMembers.map((member) => (
-            <article key={member.name} className="premium-card overflow-hidden">
-              <div className="image-sheen relative aspect-[4/3]">
-                <Image
-                  src={member.imageUrl}
-                  alt={`Retrato profesional de ${member.name}, responsable de ${member.role.toLowerCase()} en Arqvia.`}
-                  fill
-                  sizes="(min-width: 768px) 33vw, 100vw"
-                  className="object-cover"
-                />
-              </div>
-              <div className="p-6">
-                <h2 className="font-serif text-3xl text-ink">{member.name}</h2>
-                <p className="mt-1 text-sm font-semibold text-bronze">
-                  {member.role}
-                </p>
-                <p className="mt-2 text-sm text-ink/75">{member.specialty}</p>
-                <p className="mt-4 text-sm leading-7 text-ink/75">{member.bio}</p>
-                {member.licenseNumber ? (
-                  <p className="mt-4 text-xs uppercase tracking-[0.16em] text-ink/75">
-                    {member.licenseNumber}
-                  </p>
-                ) : null}
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="bg-ink py-12 text-paper md:py-16">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <h2 className="max-w-3xl font-serif text-4xl leading-tight md:text-5xl">
-            {page.finalCtaTitle}
-          </h2>
-          <p className="mt-5 max-w-2xl text-base leading-8 text-paper/78">
-            {page.finalCtaDescription}
-          </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href={contactHref}
-              className="inline-flex h-12 items-center justify-center bg-bronze px-6 text-sm font-semibold text-paper"
-            >
-              {page.primaryCtaLabel}
-            </Link>
-            <TrackedAnchor
-              href={buildWhatsAppUrl(
-                page.whatsappMessage,
-                config.whatsapp,
-              )}
-              eventName="whatsapp_click"
-              eventParams={{ source: "about_final_cta" }}
-              className="inline-flex h-12 items-center justify-center gap-2 border border-paper/20 px-6 text-sm font-semibold text-paper"
-            >
-              <MessageCircle className="size-4" />
-              {page.secondaryCtaLabel}
-            </TrackedAnchor>
-          </div>
-        </div>
-      </section>
-    </>
+    </div>
   );
 }

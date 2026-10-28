@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope, Newsreader } from "next/font/google";
+import { DM_Sans, Manrope, Newsreader } from "next/font/google";
 import Script from "next/script";
 import { AppChrome } from "@/components/app-chrome";
 import { I18nProvider } from "@/components/i18n-provider";
@@ -9,8 +9,12 @@ import { buildBrandCssVariables, buildBrandTheme } from "@/lib/brand-theme";
 import { getClientConfig } from "@/lib/client-config";
 import { getPublicServiceLinks } from "@/lib/service-data";
 import { siteConfig } from "@/lib/site-config";
+import { publicSearchRobots } from "@/lib/search-indexing";
 import { APP_LOCALE_COOKIE } from "@/lib/locale";
 import "./styles.css";
+import "@/components/arqvia-editorial.css";
+
+const dmSans = DM_Sans({ variable: "--font-dm-sans", subsets: ["latin"], display: "swap" });
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -56,7 +60,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
       images: [config.heroImage],
     },
-    robots: { index: true, follow: true },
+    robots: publicSearchRobots(siteConfig.url),
     manifest: "/manifest.webmanifest",
     icons: {
       icon: [
@@ -105,7 +109,7 @@ export default async function RootLayout({
   return (
     <html
       lang="es-AR"
-      className={`${manrope.variable} ${newsreader.variable} h-full antialiased`}
+      className={`${dmSans.variable} ${manrope.variable} ${newsreader.variable} h-full antialiased`}
       data-scroll-behavior="smooth"
       data-locale="es"
       suppressHydrationWarning

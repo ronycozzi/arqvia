@@ -257,11 +257,8 @@ export async function LocalSeoPage({ page }: { page: LocalSeoPage }) {
             Cómo ordenamos una consulta en esta zona
           </h2>
           <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {processSteps.slice(0, 4).map((step, index) => (
+            {processSteps.slice(0, 4).map((step) => (
               <article key={step.title} className="premium-card bg-mist p-5">
-                <p className="font-serif text-3xl text-bronze">
-                  {String(index + 1).padStart(2, "0")}
-                </p>
                 <h3 className="mt-4 font-serif text-2xl text-ink">{step.title}</h3>
                 <p className="mt-3 text-sm leading-7 text-ink/75">
                   {step.description}

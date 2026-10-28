@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import Image from "@/components/app-image";
 import { ArrowUpRight } from "lucide-react";
 import styles from "@/components/arqvia-dossier.module.css";
 import { ProjectFilters } from "@/components/project-filters";

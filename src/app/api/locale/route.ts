@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cookiePath } from "@/lib/base-path";
 import { isSameOriginRequest } from "@/lib/request-security";
 import {
   APP_LOCALE_COOKIE,
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
     value: locale,
     httpOnly: false,
     maxAge: APP_LOCALE_MAX_AGE,
-    path: "/",
+    path: cookiePath(),
     priority: "medium",
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

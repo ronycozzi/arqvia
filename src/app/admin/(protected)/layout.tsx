@@ -8,6 +8,7 @@ import {
   Menu,
 } from "lucide-react";
 import { signOut } from "../../../../auth";
+import { withBasePath } from "@/lib/base-path";
 import {
   canViewLeadPII,
   getVerifiedAdminSession,
@@ -138,7 +139,7 @@ export default async function AdminLayout({
               <form
                 action={async () => {
                   "use server";
-                  await signOut({ redirectTo: "/" });
+                  await signOut({ redirectTo: withBasePath("/") });
                 }}
               >
                 <button
@@ -243,7 +244,7 @@ export default async function AdminLayout({
                 <form
                   action={async () => {
                     "use server";
-                    await signOut({ redirectTo: "/" });
+                    await signOut({ redirectTo: withBasePath("/") });
                   }}
                 >
                   <button

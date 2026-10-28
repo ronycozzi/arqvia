@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/components/app-image";
 import { ArrowLeft, ArrowRight, Check, Compass, HardHat, PenTool, KeyRound } from "lucide-react";
 import { useId, useRef, useState } from "react";
 import styles from "./project-journey.module.css";

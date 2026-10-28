@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { basePath, joinSiteUrl } from "@/lib/base-path";
 import type { PublicClientConfig } from "@/lib/client-config";
 import { getClientConfig } from "@/lib/client-config";
 import { siteConfig } from "@/lib/site-config";
@@ -22,6 +23,10 @@ export function buildPageMetadata({
   title: string;
 }, brand?: Pick<PublicClientConfig, "companyName" | "heroImage">): Metadata {
   const companyName = brand?.companyName || siteConfig.name;
+  // Next resolves "/" against a metadataBase with a path as ".../base/", which
+  // then redirects. Under a base path the home canonical is the bare prefix.
+  const canonicalUrl =
+    canonical === "/" && basePath ? joinSiteUrl(siteConfig.url, "/") : canonical;
   const ogImage = brand?.heroImage
     ? {
         url: brand.heroImage,
@@ -37,12 +42,12 @@ export function buildPageMetadata({
     description,
     robots: publicSearchRobots(siteConfig.url),
     alternates: {
-      canonical,
+      canonical: canonicalUrl,
     },
     openGraph: {
       title: socialTitle,
       description,
-      url: canonical,
+      url: canonicalUrl,
       type: "website",
       locale: "es_AR",
       siteName: companyName,

@@ -3,6 +3,7 @@
 import { AlertTriangle, Loader2, ShieldCheck, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useId, useRef, useState } from "react";
+import { withBasePath } from "@/lib/base-path";
 
 const confirmationToken = "ELIMINAR";
 
@@ -71,7 +72,7 @@ export function LeadPrivacyEraser({
     setIsDeleting(true);
     setError("");
 
-    const response = await fetch(`/api/admin/leads/${leadId}/privacy`, {
+    const response = await fetch(withBasePath(`/api/admin/leads/${leadId}/privacy`), {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ confirmation }),

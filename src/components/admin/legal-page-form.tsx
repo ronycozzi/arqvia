@@ -7,6 +7,7 @@ import {
   type LegalPageActionState,
 } from "@/app/admin/(protected)/legal/actions";
 import type { LegalPageSlug } from "@/lib/legal-content";
+import { withBasePath } from "@/lib/base-path";
 
 export type AdminLegalPageFormValue = {
   content: string;
@@ -69,7 +70,7 @@ export function LegalPageForm({ page }: { page: AdminLegalPageFormValue }) {
           </div>
           <a
             className="inline-flex min-h-11 items-center justify-center gap-2 border border-ink/15 px-4 text-sm font-semibold text-ink transition hover:border-bronze hover:text-bronze"
-            href={`/${page.slug}`}
+            href={withBasePath(`/${page.slug}`)}
             rel="noreferrer"
             target="_blank"
           >

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useAppLocale } from "@/components/i18n-provider";
 import type { AppLocale } from "@/lib/locale";
 import { cn } from "@/lib/utils";
+import { withBasePath } from "@/lib/base-path";
 
 export function LanguageSwitcher({
   compact = false,
@@ -25,7 +26,7 @@ export function LanguageSwitcher({
     setError(false);
     setPending(true);
     try {
-      const response = await fetch("/api/locale", {
+      const response = await fetch(withBasePath("/api/locale"), {
         body: JSON.stringify({ locale: nextLocale }),
         headers: { "Content-Type": "application/json" },
         method: "POST",

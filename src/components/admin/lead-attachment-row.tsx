@@ -4,6 +4,7 @@ import { Download, FileText, ImageIcon } from "lucide-react";
 import { useState } from "react";
 import { DeleteLeadAttachmentButton } from "@/components/admin/delete-lead-attachment-button";
 import { formatAttachmentBytes } from "@/lib/lead-attachment-config";
+import { withBasePath } from "@/lib/base-path";
 
 export function LeadAttachmentRow({
   attachment,
@@ -46,7 +47,7 @@ export function LeadAttachmentRow({
       </div>
       <div className="flex items-center gap-2">
         <a
-          href={`/api/admin/leads/${leadId}/attachments/${attachment.id}`}
+          href={withBasePath(`/api/admin/leads/${leadId}/attachments/${attachment.id}`)}
           download
           className="inline-flex h-10 items-center justify-center gap-2 border border-ink/15 px-3 text-xs font-semibold text-ink transition hover:border-bronze hover:text-bronze"
         >

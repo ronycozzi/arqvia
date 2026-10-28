@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { withBasePath } from "@/lib/base-path";
 
 function initials(companyName: string) {
   const words = companyName.trim().split(/\s+/).filter(Boolean);
@@ -32,7 +33,7 @@ export function BrandMark({
         // Logos administrados viven en /public o en el storage autorizado por CSP.
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={logoUrl}
+          src={withBasePath(logoUrl)}
           alt={`Logo de ${companyName}`}
           className="size-full object-contain p-1.5"
         />

@@ -2,6 +2,10 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { loadEnvConfig } from "@next/env";
 import {
+  isDemoDeployProfile,
+  isUrlInsideDemoBasePath,
+} from "../src/lib/deploy-profile";
+import {
   hasExplicitLeadRetentionEnvironment,
   readLeadRetentionConfig,
 } from "../src/lib/lead-retention-config";
@@ -51,7 +55,10 @@ function isUsableSecret(value: string | undefined) {
   );
 }
 
-function publicOrigin(value: string | undefined) {
+function publicOrigin(
+  value: string | undefined,
+  options: { allowPath?: boolean } = {},
+) {
   try {
     const url = new URL(value || "");
     const hostname = url.hostname.toLowerCase();
@@ -64,7 +71,7 @@ function publicOrigin(value: string | undefined) {
       hostname.includes("example") ||
       url.username ||
       url.password ||
-      url.pathname !== "/" ||
+      (!options.allowPath && url.pathname !== "/") ||
       url.search ||
       url.hash
     ) {
@@ -86,8 +93,17 @@ function check(id: string, label: string, ok: boolean, detail: string): Environm
 }
 
 export function validateProductionEnvironment(env: Environment = process.env) {
-  const siteOrigin = publicOrigin(env.NEXT_PUBLIC_SITE_URL);
-  const authOrigin = publicOrigin(env.AUTH_URL);
+  // Demo profile: the public URL carries the base path and AUTH_URL points at
+  // <site>/api/auth. Both must stay on the same origin and inside the prefix.
+  // Any other deployment keeps the strict "origin only" rule.
+  const demoProfile = isDemoDeployProfile(env);
+  const siteOrigin = publicOrigin(env.NEXT_PUBLIC_SITE_URL, {
+    allowPath: demoProfile,
+  });
+  const authOrigin =
+    demoProfile && !isUrlInsideDemoBasePath(env.AUTH_URL, env)
+      ? null
+      : publicOrigin(env.AUTH_URL, { allowPath: demoProfile });
   const analyticsProvider = env.NEXT_PUBLIC_ANALYTICS_PROVIDER?.trim() || "";
   const analyticsId = env.NEXT_PUBLIC_ANALYTICS_ID?.trim() || "";
   const analyticsReady =

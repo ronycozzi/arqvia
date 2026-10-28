@@ -4,6 +4,7 @@ import type { LeadStatus } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { leadStatusClassNames, leadStatusOptions } from "@/lib/lead-utils";
+import { withBasePath } from "@/lib/base-path";
 
 export function LeadStatusSelect({
   leadId,
@@ -26,7 +27,7 @@ export function LeadStatusSelect({
     setSaving(true);
 
     try {
-      const response = await fetch(`/api/admin/leads/${leadId}`, {
+      const response = await fetch(withBasePath(`/api/admin/leads/${leadId}`), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: nextStatus }),

@@ -31,6 +31,7 @@ import { prisma } from "@/lib/db";
 import { formatUsd } from "@/lib/estimator";
 import { buildLeadInactivityWhere } from "@/lib/lead-activity";
 import { formatDate } from "@/lib/utils";
+import { withBasePath } from "@/lib/base-path";
 
 export const metadata: Metadata = {
   title: "Leads",
@@ -344,7 +345,7 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
           </div>
           {canManage ? (
             <a
-              href={exportHref}
+              href={withBasePath(exportHref)}
               className="inline-flex h-12 items-center justify-center gap-2 border border-ink/15 px-5 text-sm font-semibold text-ink transition hover:border-bronze hover:text-bronze"
             >
               <Download className="size-4" />

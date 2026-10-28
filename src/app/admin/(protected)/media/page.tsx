@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Image from "next/image";
+import Image from "@/components/app-image";
 import { redirect } from "next/navigation";
 import type { Prisma } from "@prisma/client";
 import { Copy, ImageIcon, Info } from "lucide-react";

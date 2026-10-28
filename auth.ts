@@ -2,6 +2,8 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { compare } from "bcryptjs";
+import { buildAuthCookieOverrides } from "@/lib/auth-cookies";
+import { basePath, withBasePath } from "@/lib/base-path";
 import { prisma } from "@/lib/db";
 import { getAuthErrorType, isExpiredAuthSessionError } from "@/lib/auth-error";
 import {
@@ -27,8 +29,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     maxAge: ADMIN_SESSION_MAX_AGE_SECONDS,
   },
   pages: {
-    signIn: "/admin/login",
+    // Auth.js builds this redirect itself, so it does not get Next's basePath.
+    signIn: withBasePath("/admin/login"),
   },
+  // Own cookie names and Path when the app shares its domain (base path).
+  ...(buildAuthCookieOverrides(basePath) ?? {}),
   logger: {
     error(error) {
       const errorType = getAuthErrorType(error);

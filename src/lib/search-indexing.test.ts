@@ -11,4 +11,9 @@ describe("search indexing boundaries", () => {
   it("allows the production site and useful large image previews", () => {
     expect(publicSearchRobots("https://arqvia.example", { VERCEL_ENV: "production" })).toMatchObject({ index: true, follow: true });
   });
+  it("does not index or follow the declared showcase under its public base path", () => {
+    const env = { VERCEL_ENV: "production", ARQVIA_DEPLOY_PROFILE: "demo", NEXT_PUBLIC_SITE_URL: "https://cozziinteractive.com/arqvia", NEXT_PUBLIC_BASE_PATH: "/arqvia" };
+    expect(isSearchIndexable(env.NEXT_PUBLIC_SITE_URL, env)).toBe(false);
+    expect(publicSearchRobots(env.NEXT_PUBLIC_SITE_URL, env)).toMatchObject({ index: false, follow: false });
+  });
 });

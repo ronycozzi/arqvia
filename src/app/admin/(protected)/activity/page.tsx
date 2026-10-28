@@ -33,6 +33,7 @@ import {
 } from "@/lib/audit-export";
 import { prisma } from "@/lib/db";
 import { formatDate } from "@/lib/utils";
+import { withBasePath } from "@/lib/base-path";
 
 export const metadata: Metadata = {
   title: "Actividad",
@@ -293,7 +294,7 @@ export default async function ActivityPage({ searchParams }: ActivityPageProps) 
                 </span>
               ) : (
                 <Link
-                  href={exportHref}
+                  href={withBasePath(exportHref)}
                   prefetch={false}
                   className="inline-flex h-12 items-center justify-center gap-2 border border-ink/15 px-5 text-sm font-semibold text-ink transition hover:border-bronze hover:text-bronze focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bronze focus-visible:ring-offset-2"
                 >

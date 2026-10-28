@@ -2,11 +2,11 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, LockKeyhole } from "lucide-react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { loginWithCredentials } from "@/app/admin/login/actions";
 import { loginSchema } from "@/lib/validations";
 
 type LoginValues = z.infer<typeof loginSchema>;
@@ -24,13 +24,14 @@ export function LoginForm({ callbackUrl = "/admin" }: { callbackUrl?: string }) 
 
   async function onSubmit(values: LoginValues) {
     setError("");
-    const response = await signIn("credentials", {
-      email: values.email,
-      password: values.password,
-      redirect: false,
-    });
+    let signedIn = false;
+    try {
+      signedIn = (await loginWithCredentials(values)).ok;
+    } catch {
+      signedIn = false;
+    }
 
-    if (response?.error) {
+    if (!signedIn) {
       setError("Credenciales inválidas o usuario inactivo.");
       return;
     }

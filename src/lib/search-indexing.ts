@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { isDemoDeployProfile } from "./deploy-profile";
 
 /** Preview and local installations must not compete with the public site. */
 export function isSearchIndexable(siteUrl: string, env: Record<string, string | undefined> = process.env) {
+  if (isDemoDeployProfile(env)) return false;
   if (env.VERCEL_ENV === "preview" || env.VERCEL_ENV === "development") return false;
   try {
     const host = new URL(siteUrl).hostname.toLowerCase();
@@ -14,5 +16,5 @@ export function isSearchIndexable(siteUrl: string, env: Record<string, string | 
 export function publicSearchRobots(siteUrl: string, env: Record<string, string | undefined> = process.env): Metadata["robots"] {
   return isSearchIndexable(siteUrl, env)
     ? { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large" } }
-    : { index: false, follow: true };
+    : { index: false, follow: !isDemoDeployProfile(env) };
 }

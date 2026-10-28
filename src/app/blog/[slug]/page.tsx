@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
 import styles from "../journal.module.css";
 import { publicSearchRobots } from "@/lib/search-indexing";
-import Image from "next/image";
+import Image from "@/components/app-image";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { JsonLd } from "@/components/json-ld";

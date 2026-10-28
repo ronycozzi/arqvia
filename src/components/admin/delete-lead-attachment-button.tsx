@@ -3,6 +3,7 @@
 import { Loader2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { withBasePath } from "@/lib/base-path";
 
 export function DeleteLeadAttachmentButton({
   attachmentId,
@@ -31,7 +32,7 @@ export function DeleteLeadAttachmentButton({
     setIsDeleting(true);
     setError("");
     const response = await fetch(
-      `/api/admin/leads/${leadId}/attachments/${attachmentId}`,
+      withBasePath(`/api/admin/leads/${leadId}/attachments/${attachmentId}`),
       { method: "DELETE" },
     ).catch(() => null);
 

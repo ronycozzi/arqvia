@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/app-image";
 import Link from "next/link";
 import { ArrowUpRight, MessageSquare, Quote } from "lucide-react";
 import { getPublicBlogPosts } from "@/lib/blog-data";

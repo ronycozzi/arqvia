@@ -20,6 +20,7 @@ import {
   type TechnicalVisitStatusValue,
   type VisitWindowValue,
 } from "@/lib/technical-visit-config";
+import { withBasePath } from "@/lib/base-path";
 
 type VisitFormValue = {
   address: string;
@@ -179,7 +180,7 @@ export function TechnicalVisitForm({
         <div className="flex flex-wrap gap-2">
           {calendarVisitId && hasScheduledVisit ? (
             <a
-              href={`/api/admin/visitas/${calendarVisitId}/calendar`}
+              href={withBasePath(`/api/admin/visitas/${calendarVisitId}/calendar`)}
               className="inline-flex h-11 items-center gap-2 border border-ink/15 px-4 text-sm font-semibold text-ink transition hover:border-bronze hover:text-bronze"
             >
               <CalendarDays className="size-4" aria-hidden="true" />

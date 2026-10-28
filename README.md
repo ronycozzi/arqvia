@@ -398,6 +398,8 @@ Requeridas:
 - `S3_BUCKET`, `S3_REGION`, `S3_PUBLIC_BASE_URL`, `S3_ACCESS_KEY_ID` y `S3_SECRET_ACCESS_KEY` cuando se usa S3.
 - `S3_ENDPOINT` y `S3_FORCE_PATH_STYLE` opcionales para R2 u otros proveedores compatibles.
 - `ARQVIA_STRICT_PUBLIC_URL` opcional, usar `true` en hosting para bloquear despliegues con `NEXT_PUBLIC_SITE_URL` apuntando a `localhost`.
+- `NEXT_PUBLIC_BASE_PATH` opcional, variable de build: subruta bajo la que se sirve la app (por ejemplo `/arqvia-demo`). Vacía = raíz del dominio.
+- `ARQVIA_DEPLOY_PROFILE` opcional: `demo` declara una demo servida bajo una subruta de otro dominio. Ver "Servir la app bajo una subruta".
 - `LEAD_AUTOMATION_CAPTURE_ENABLED`: captura altas y reconsultas en el outbox aunque el despacho esté pausado; si se omite, hereda `LEAD_AUTOMATION_ENABLED` por compatibilidad.
 - `LEAD_AUTOMATION_ENABLED`: kill switch del despacho externo; con `false` el worker no reclama eventos pendientes.
 - `LEAD_WEBHOOK_URL`: URL HTTPS del receptor neutral (CRM, Google Sheets mediante un intermediario, Make, Zapier o servicio propio).
@@ -413,6 +415,48 @@ Requeridas:
 - `PRIVATE_OBJECT_DELETION_CRON_SECRET`: secreto privado de al menos 32 caracteres para `GET` o `POST /api/cron/private-object-deletions`.
 
 `NEXT_PUBLIC_SITE_URL` alimenta canonical URLs, Open Graph, JSON-LD y sitemap. En local puede usar `http://localhost:3000`; antes de publicar debe usar el dominio final del cliente, por ejemplo `https://arqvia.com.ar`.
+
+### Servir la app bajo una subruta
+
+Con `NEXT_PUBLIC_BASE_PATH=/arqvia-demo` la app completa (páginas, `/_next`,
+`/api`, imágenes, manifest) vive bajo ese prefijo, pensada para publicarse como
+`https://otro-dominio.com/arqvia-demo` mediante un rewrite hacia el despliegue.
+Sin la variable nada cambia. Con ella:
+
+- `NEXT_PUBLIC_SITE_URL` debe terminar en el prefijo
+  (`https://otro-dominio.com/arqvia-demo`) y `AUTH_URL` apuntar a
+  `<NEXT_PUBLIC_SITE_URL>/api/auth`; el build falla si no coinciden.
+- Las rutas guardadas en contenido y base de datos siguen siendo relativas a la
+  app (`/images/...`, `/uploads/media/...`); el prefijo se agrega al renderizar
+  con `withBasePath` (`src/lib/base-path.ts`) y con el componente
+  `@/components/app-image`, que reemplaza a `next/image` (ESLint lo exige).
+- El origen público de `NEXT_PUBLIC_SITE_URL` se acepta en el chequeo de origen
+  de las APIs y en Server Actions, además del host propio del despliegue.
+- Las cookies de sesión y de idioma llevan nombre propio y `Path` del prefijo.
+- No se registra el service worker y el manifest queda acotado al prefijo
+  (ver `docs/PWA.md`).
+- Cualquier ruta fuera del prefijo en el despliegue redirige (308) a la URL
+  pública conservando la ruta.
+
+`ARQVIA_DEPLOY_PROFILE=demo` mantiene el build normal en Production (sin la
+compuerta de release) y admite el WhatsApp de ejemplo. Sólo se respeta si el
+despliegue realmente es de subruta: `NEXT_PUBLIC_BASE_PATH` definido y
+`NEXT_PUBLIC_SITE_URL` https con esa misma ruta. Un sitio en la raíz de su
+propio dominio nunca califica.
+
+Verificación local, directa y a través de un origen público simulado:
+
+```bash
+NEXT_PUBLIC_BASE_PATH=/arqvia-demo NEXT_PUBLIC_SITE_URL=http://localhost:3415/arqvia-demo npm run build
+NEXT_PUBLIC_BASE_PATH=/arqvia-demo PLAYWRIGHT_PORT=3415 npm run e2e
+
+node tests/e2e/support/public-origin-proxy.mjs 3417 3418 &
+NEXT_PUBLIC_BASE_PATH=/arqvia-demo NEXT_PUBLIC_SITE_URL=http://localhost:3417/arqvia-demo npm run build
+NEXT_PUBLIC_BASE_PATH=/arqvia-demo PLAYWRIGHT_PORT=3418 PLAYWRIGHT_BASE_URL=http://localhost:3417 npm run e2e
+```
+
+Con la variable definida Playwright corre sólo `tests/e2e/base-path.spec.ts`;
+el resto de la suite navega a rutas de raíz y sigue corriendo sin prefijo.
 
 La analítica permanece desactivada con `NEXT_PUBLIC_ANALYTICS_PROVIDER=none`.
 Cuando se configura GA4 o GTM, el script externo se inserta únicamente después

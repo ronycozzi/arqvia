@@ -14,6 +14,7 @@ import {
   leadStatusOptions,
 } from "@/lib/lead-utils";
 import { formatDate } from "@/lib/utils";
+import { withBasePath } from "@/lib/base-path";
 
 export const metadata: Metadata = {
   title: "Reportes",
@@ -218,7 +219,7 @@ export default async function ReportsPage({
           </div>
           <div className="lg:max-w-64">
             <Link
-              href={exportHref}
+              href={withBasePath(exportHref)}
               className="inline-flex h-12 w-full items-center justify-center gap-2 border border-ink/15 px-5 text-sm font-semibold text-ink transition hover:border-bronze hover:text-bronze"
             >
               <Download className="size-4" />

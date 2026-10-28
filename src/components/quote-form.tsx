@@ -33,6 +33,7 @@ import {
 } from "@/lib/lead-attachment-config";
 import { leadSchema, type LeadInput } from "@/lib/validations";
 import type { z } from "zod";
+import { withBasePath } from "@/lib/base-path";
 
 type LeadFormValues = z.input<typeof leadSchema>;
 
@@ -120,7 +121,7 @@ export function QuoteForm({
     let response: Response;
 
     try {
-      response = await fetch("/api/leads", {
+      response = await fetch(withBasePath("/api/leads"), {
         method: "POST",
         body,
       });

@@ -3,6 +3,7 @@
 import { useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Trash2, X } from "lucide-react";
+import { withBasePath } from "@/lib/base-path";
 
 export function DeleteMediaButton({
   id,
@@ -29,7 +30,7 @@ export function DeleteMediaButton({
     setError("");
 
     try {
-      const response = await fetch(`/api/admin/media/${id}`, {
+      const response = await fetch(withBasePath(`/api/admin/media/${id}`), {
         method: "DELETE",
       });
       const result = (await response.json().catch(() => null)) as

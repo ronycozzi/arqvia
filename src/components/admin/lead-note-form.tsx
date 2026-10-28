@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useState } from "react";
+import { withBasePath } from "@/lib/base-path";
 
 export function LeadNoteForm({ leadId }: { leadId: string }) {
   const router = useRouter();
@@ -34,7 +35,7 @@ export function LeadNoteForm({ leadId }: { leadId: string }) {
     const noteBody = body.trim();
 
     try {
-      const response = await fetch(`/api/admin/leads/${leadId}/notes`, {
+      const response = await fetch(withBasePath(`/api/admin/leads/${leadId}/notes`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ body }),

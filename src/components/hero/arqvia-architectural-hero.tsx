@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import Image from "@/components/app-image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { PublicClientConfig } from "@/lib/client-config";

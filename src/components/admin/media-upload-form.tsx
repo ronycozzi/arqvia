@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
+import Image from "@/components/app-image";
 import { useRouter } from "next/navigation";
 import { ImagePlus, UploadCloud } from "lucide-react";
 import type { MediaActionState } from "@/lib/media-upload";
@@ -12,6 +12,7 @@ import {
   mediaAssetCategories,
   mediaUploadMaxBytes,
 } from "@/lib/media";
+import { withBasePath } from "@/lib/base-path";
 
 const initialState: MediaActionState = {
   errors: {},
@@ -48,7 +49,7 @@ export function MediaUploadForm({ canManage }: { canManage: boolean }) {
         setState(initialState);
 
         try {
-          const response = await fetch("/api/admin/media", {
+          const response = await fetch(withBasePath("/api/admin/media"), {
             body: new FormData(form),
             method: "POST",
           });

@@ -270,6 +270,8 @@ function matchSourceCase(source: string, translated: string) {
 function translateValue(value: string, dictionary: TranslationDictionary) {
   const normalized = normalizeText(value);
   if (!normalized) return value;
+  // Contact addresses are identifiers, even when an automatic catalog contains a translation.
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) return value;
 
   const exactTranslation = dictionary[normalized];
   const caseInsensitiveTranslation = dictionary[normalized.toLocaleLowerCase("es")];

@@ -1,5 +1,6 @@
 "use client";
 
+import { createPortal } from "react-dom";
 import Image from "@/components/app-image";
 import { ChevronLeft, ChevronRight, Maximize2, X } from "lucide-react";
 import {
@@ -221,7 +222,7 @@ export function GalleryLightbox({
         ))}
       </div>
 
-      {active ? (
+      {active ? createPortal(
         <div
           className="fixed inset-0 z-[80] grid place-items-center bg-ink p-3 sm:p-4 md:bg-ink/96"
           role="dialog"
@@ -299,7 +300,7 @@ export function GalleryLightbox({
               <ChevronRight className="size-6" aria-hidden="true" />
             </button>
           ) : null}
-        </div>
+        </div>, document.body
       ) : null}
     </>
   );

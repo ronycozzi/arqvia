@@ -94,6 +94,17 @@ describe("BeforeAfter interaction", () => {
     expect(range).toHaveValue("30");
   });
 
+  it("keeps dragging when implicit capture transfers from an image to the surface", () => {
+    const { surface, range } = comparison();
+    const image = screen.getByTestId("before-after-image-after");
+    fireEvent.pointerDown(image, { pointerId: 2, pointerType: "touch", clientX: 360, clientY: 100 });
+    fireEvent.pointerMove(image, { pointerId: 2, pointerType: "touch", clientX: 390, clientY: 100 });
+    fireEvent.lostPointerCapture(image, { pointerId: 2, pointerType: "touch" });
+    fireEvent.pointerMove(surface, { pointerId: 2, pointerType: "touch", clientX: 490, clientY: 100 });
+    expect(range).toHaveValue("78");
+    expect(surface).toHaveAttribute("data-dragging", "true");
+  });
+
   it("ignores additional pointers, canceled gestures, and right clicks", () => {
     const { surface, range } = comparison();
     fireEvent.pointerDown(surface, { pointerId: 1, clientX: 200, button: 2 });

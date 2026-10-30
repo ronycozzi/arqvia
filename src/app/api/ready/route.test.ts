@@ -16,7 +16,7 @@ vi.mock("@/lib/db", () => ({
   },
 }));
 
-import { GET, READINESS_TIMEOUT_MS } from "@/app/api/ready/route";
+import { GET } from "@/app/api/ready/route";
 
 describe("GET /api/ready", () => {
   beforeEach(() => {
@@ -59,8 +59,21 @@ describe("GET /api/ready", () => {
       await vi.advanceTimersByTimeAsync(3_000);
       const response = await responsePromise;
 
-      expect(READINESS_TIMEOUT_MS).toBeGreaterThan(3_000);
+      // A slow but healthy cold start must remain inside the readiness budget.
       expect(response.status).toBe(200);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("returns 503 when a database stays unresponsive for eight seconds", async () => {
+    vi.useFakeTimers();
+    database.queryRaw.mockImplementation(() => new Promise(() => {}));
+    try {
+      const responsePromise = GET();
+      await vi.advanceTimersByTimeAsync(8_000);
+      expect((await responsePromise).status).toBe(503);
+      expect(database.clientConfigFindFirst).not.toHaveBeenCalled();
     } finally {
       vi.useRealTimers();
     }

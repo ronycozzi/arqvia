@@ -195,7 +195,11 @@ export function BeforeAfter({
         onPointerMove={handlePointerMove}
         onPointerUp={finishPointerInteraction}
         onPointerCancel={cancelPointerInteraction}
-        onLostPointerCapture={cancelPointerInteraction}
+        onLostPointerCapture={(event) => {
+          // Touch starts with implicit capture on the image. Its loss bubbles
+          // when the surface takes over; only losing our own capture ends a drag.
+          if (event.target === event.currentTarget) cancelPointerInteraction(event);
+        }}
       >
         <Image
           src={comparison.afterImage}

@@ -16,7 +16,7 @@
 .project-start__note svg{color:var(--bronze);flex-shrink:0;margin-top:4px}
 .project-start__brief{background:var(--paper);border:1px solid rgb(28 33 29/.15);box-shadow:0 20px 50px rgb(28 33 29/.04)}
 .project-start__brief-head{display:flex;justify-content:space-between;gap:16px;padding:18px 25px;border-bottom:1px solid rgb(28 33 29/.1);font-size:.72rem;font-weight:650}
-.project-start__brief-head span+span{font-weight:400;color:rgb(28 33 29/.6)}
+.project-start__brief-head span+span{font-weight:400;color:rgb(28 33 29/.72)}
 .project-start__fields{display:grid;gap:20px;padding:28px}
 .project-start__fields label>span{display:flex;align-items:center;gap:9px;font-size:.78rem;font-weight:650;margin-bottom:9px}
 .project-start__fields svg{color:var(--bronze)}

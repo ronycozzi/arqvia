@@ -2546,10 +2546,13 @@ test("lead API isolates repeated public submissions as possible duplicates", asy
   const suffix = Date.now();
   const name = `Consulta Arqvia Dedupe ${suffix}`;
   const email = `consulta-dedupe-${suffix}@example.com`;
-  const phone = "+54 351 555 7788";
+  const localNumber = `7${String(suffix).slice(-6)}`;
+  const phone = `+54 351 ${localNumber}`;
+  // Keep this scenario's requests together without sharing other tests' IP quota.
+  const headers = { ...leadRequestHeaders, "x-forwarded-for": "203.0.113.78" };
 
   const firstResponse = await request.post("/api/leads", {
-    headers: leadRequestHeaders,
+    headers,
     data: {
       name,
       email,
@@ -2588,11 +2591,11 @@ test("lead API isolates repeated public submissions as possible duplicates", asy
   });
 
   const secondResponse = await request.post("/api/leads", {
-    headers: leadRequestHeaders,
+    headers,
     data: {
       name,
       email: email.toUpperCase(),
-      phone: "+54 (351) 555-7788",
+      phone: `+54 (351) ${localNumber.slice(0, 3)}-${localNumber.slice(3)}`,
       city: "Villa Allende",
       clientType: "Particular",
       projectType: "Construcción llave en mano",
@@ -2667,11 +2670,11 @@ test("lead API isolates repeated public submissions as possible duplicates", asy
     .toBe(1);
 
   const differentIdentityResponse = await request.post("/api/leads", {
-    headers: leadRequestHeaders,
+    headers,
     data: {
       name: `Consulta Arqvia Identidad Separada ${suffix}`,
       email,
-      phone: "+54 351 555 9900",
+      phone: `+54 351 8${String(suffix).slice(-6)}`,
       city: "La Calera",
       clientType: "Particular",
       projectType: "Ampliación",
@@ -3239,6 +3242,8 @@ test("admin can publish a team member that appears on the about page", async ({
   await page.goto("/nosotros");
   await expect(page.getByText(name)).toBeVisible();
   await expect(page.getByText(/dirección técnica/i).first()).toBeVisible();
+  const publishedMember = page.locator("article").filter({ has: page.getByRole("heading", { name, exact: true }) });
+  await publishedMember.locator("summary").click();
   await expect(page.getByText(/perfil creado desde el CMS/i)).toBeVisible();
 
   await page.goto(`/admin/team?activo=visible&q=${encodeURIComponent(name)}`);

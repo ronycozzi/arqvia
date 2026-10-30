@@ -153,14 +153,14 @@ test("home exposes conversion paths and portfolio", async ({ page }) => {
   await page.goto("/");
   await expect(
     page.getByRole("heading", {
-      name: /arquitectura pensada para construirse bien/i,
+      name: /casas y espacios que parten de cómo los usás/i,
     }),
   ).toBeVisible();
   await expect(page.getByRole("link", { name: /solicitar presupuesto/i }).first()).toBeVisible();
   await page.getByRole("link", { name: /ver proyectos/i }).first().click();
   await expect(page).toHaveURL(/\/proyectos/);
   await expect(
-    page.getByRole("heading", { name: /proyectos construidos para vivir/i }),
+    page.getByRole("heading", { name: /casas, interiores y espacios de trabajo/i }),
   ).toBeVisible();
 
   expect(pageErrors).toEqual([]);
@@ -260,7 +260,7 @@ test("footer keeps desktop columns and groups long navigation on mobile", async 
     .locator('[data-footer-group="Recursos"]')
     .locator("details");
   await resourcesGroup.locator("summary").press("Enter");
-  await resourcesGroup.getByRole("link", { name: "Blog", exact: true }).click();
+  await resourcesGroup.getByRole("link", { name: "Opiniones y guías", exact: true }).click();
   await expect(page).toHaveURL(/\/blog$/);
 });
 
@@ -324,7 +324,7 @@ test("header identifies the active public section", async ({ page }) => {
   );
 });
 
-test("home reveals sections on scroll without moving the hero image", async ({
+test("home reveals the selected service without moving the hero image", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
@@ -334,16 +334,20 @@ test("home reveals sections on scroll without moving the hero image", async ({
   await expect(heroImage).toBeVisible();
   expect(
     await heroImage.evaluate((element) => getComputedStyle(element).transform),
-  ).toBe("none");
+  ).toMatch(/^(none|matrix\(1, 0, 0, 1, 0, 0\))$/);
 
-  const process = page.locator(".process-grid.scroll-reveal");
-  await process.scrollIntoViewIfNeeded();
-  await expect(process).toHaveClass(/is-visible/);
+  const services = page.locator("#home-services");
+  const nextService = services.getByRole("tab").nth(1);
+  await nextService.click();
+  await expect(nextService).toHaveAttribute("aria-selected", "true");
+  const details = services.getByRole("tabpanel").locator(":scope > div").last();
+  await details.scrollIntoViewIfNeeded();
+  await expect(details).toBeVisible();
   await expect
-    .poll(() => process.evaluate((element) => getComputedStyle(element).opacity))
+    .poll(() => details.evaluate((element) => getComputedStyle(element).opacity))
     .toBe("1");
   await expect
-    .poll(() => process.evaluate((element) => getComputedStyle(element).transform))
+    .poll(() => details.evaluate((element) => getComputedStyle(element).transform))
     .toMatch(/^(none|matrix\(1, 0, 0, 1, 0, 0\))$/);
 });
 
@@ -352,10 +356,14 @@ test("reduced motion keeps animated content in its final state", async ({ page }
   await page.goto("/");
 
   const heroTitle = page.locator(".hero-reveal").first();
-  const process = page.locator(".process-grid.scroll-reveal");
-  await process.scrollIntoViewIfNeeded();
+  const services = page.locator("#home-services");
+  const nextService = services.getByRole("tab").nth(1);
+  await nextService.click();
+  await expect(nextService).toHaveAttribute("aria-selected", "true");
+  const details = services.getByRole("tabpanel").locator(":scope > div").last();
+  await details.scrollIntoViewIfNeeded();
 
-  for (const element of [heroTitle, process]) {
+  for (const element of [heroTitle, details]) {
     await expect(element).toBeVisible();
     await expect
       .poll(() =>
@@ -636,8 +644,9 @@ test("robots and sitemap expose public SEO routes only", async ({ request }) => 
   const robots = await request.get("/robots.txt");
   expect(robots.status()).toBe(200);
   const robotsText = await robots.text();
-  expect(robotsText).toContain("Disallow: /admin");
-  expect(robotsText).toContain("Sitemap:");
+  // This suite runs against the intentionally non-indexable local installation.
+  expect(robotsText).toMatch(/^Disallow: \/$/m);
+  expect(robotsText).not.toContain("Sitemap:");
 
   const sitemap = await request.get("/sitemap.xml");
   expect(sitemap.status()).toBe(200);
@@ -726,7 +735,7 @@ test("home exposes structured business data for local search", async ({ page }) 
 test("service pages expose commercial service schema", async ({ page }) => {
   await page.goto("/servicios/construccion-llave-en-mano");
   await expect(
-    page.getByRole("heading", { name: /beneficios para el proyecto/i }),
+    page.getByRole("heading", { name: /qué buscamos mejorar/i }),
   ).toBeVisible();
   await expect(
     page.getByText(/presupuesto por etapas|un solo equipo coordina/i).first(),
@@ -828,7 +837,7 @@ test("blog guide uses editorial sections, functional anchors and one contextual 
   );
 
   const relatedContent = page.getByRole("heading", {
-    name: "Contenido relacionado",
+    name: "Para seguir explorando",
   });
   await expect(relatedContent).toBeVisible();
   const relatedSection = relatedContent.locator("xpath=ancestor::section[1]");
@@ -921,12 +930,12 @@ test("public discovery pages lead with useful content instead of repeated guidan
   await expect(page.getByLabel(/filtros de proyectos/i)).toBeVisible();
   await expect(page.getByText(/buscás un resultado similar/i)).toHaveCount(0);
   await expect(
-    page.getByRole("heading", { name: /querés evaluar un proyecto similar/i }),
+    page.getByRole("heading", { name: /tenés un espacio en mente/i }),
   ).toBeVisible();
 
   await page.goto("/servicios");
   await expect(
-    page.getByRole("heading", { name: /diseño, obra e interiores con un alcance claro/i }),
+    page.getByRole("heading", { name: /diseño, dirección y construcción/i }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: /qué servicio necesitás según tu etapa/i }),
@@ -934,7 +943,7 @@ test("public discovery pages lead with useful content instead of repeated guidan
 
   await page.goto("/servicios/construccion-llave-en-mano");
   await expect(
-    page.getByRole("heading", { name: /beneficio principal/i }),
+    page.getByRole("heading", { name: /qué podemos resolver/i }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: /qué incluye/i }),
@@ -982,12 +991,12 @@ test("public discovery pages expose active filters and direct contact paths", as
 
   await page.goto("/servicios");
   await expect(
-    page.getByRole("link", { name: /consultar por whatsapp/i }),
+    page.getByRole("main").getByRole("link", { name: "WhatsApp", exact: true }),
   ).toBeVisible();
 
   await page.goto("/proceso");
   await expect(
-    page.getByRole("link", { name: /consultar por whatsapp/i }),
+    page.getByRole("main").getByRole("link", { name: "WhatsApp", exact: true }),
   ).toBeVisible();
 });
 
@@ -1161,9 +1170,9 @@ test("contact form preserves project source from detail CTA", async ({ page }) =
 
   await page.goto("/proyectos/casa-patio-norte");
   await expect(
-    page.getByRole("link", { name: /pedir presupuesto/i }),
+    page.getByRole("link", { name: /pensar un proyecto similar/i }),
   ).toHaveAttribute("href", /origen=%2Fproyectos%2Fcasa-patio-norte/);
-  await page.getByRole("link", { name: /pedir presupuesto/i }).click();
+  await page.getByRole("link", { name: /pensar un proyecto similar/i }).click();
   await expect(
     page.getByText(/tomamos como referencia inicial/i),
   ).toBeVisible();
@@ -1315,22 +1324,22 @@ test("commercial CTAs preserve page source across public sections", async ({ pag
     {
       path: "/proyectos",
       expected: "origen=%2Fproyectos",
-      name: /solicitar presupuesto para mi proyecto/i,
+      name: /contar mi proyecto/i,
     },
     {
       path: "/servicios",
       expected: "origen=%2Fservicios",
-      name: /solicitar presupuesto para un servicio/i,
+      name: /contar mi idea/i,
     },
     {
       path: "/proceso",
       expected: "origen=%2Fproceso",
-      name: /coordinar evaluaci/i,
+      name: /conversar mi proyecto/i,
     },
     {
       path: "/nosotros",
       expected: "origen=%2Fnosotros",
-      name: /solicitar evaluaci.n con arqvia/i,
+      name: /conversar mi proyecto/i,
     },
     {
       path: "/faq",
@@ -1345,7 +1354,7 @@ test("commercial CTAs preserve page source across public sections", async ({ pag
     {
       path: "/blog/anteproyecto-vs-proyecto-ejecutivo",
       expected: "origen=%2Fblog%2Fanteproyecto-vs-proyecto-ejecutivo",
-      name: /evaluar mi proyecto/i,
+      name: /conversar sobre esta guía/i,
     },
   ];
 
@@ -1539,12 +1548,10 @@ test("project portfolio covers load visible architectural images", async ({ page
   await page.route("**/_next/image**", blockOptimizedImages);
   await page.goto("/proyectos", { waitUntil: "domcontentloaded" });
 
-  const projectCards = page.locator("article").filter({
-    has: page.getByRole("link", { name: /ver proyecto|ver/i }),
-  });
+  const projectCards = page.getByRole("region", { name: "Listado de proyectos" }).locator(':scope > a');
   await expect(
     page.getByRole("heading", {
-      name: /proyectos construidos para vivir, trabajar y crecer/i,
+      name: /casas, interiores y espacios de trabajo/i,
     }),
   ).toBeVisible({ timeout: 15_000 });
   await expect(projectCards.first()).toBeVisible({ timeout: 15_000 });
@@ -1784,6 +1791,12 @@ for (const path of [
 ]) {
   test(`axe accessibility scan: ${path}`, async ({ page }) => {
     await page.goto(path);
+    // Measure the rendered design, after finite entrance animations settle.
+    await page.evaluate(async () => {
+      await Promise.all(document.getAnimations()
+        .filter((animation) => animation.effect?.getTiming().iterations !== Infinity)
+        .map((animation) => animation.finished.catch(() => {})));
+    });
     const scan = await new AxeBuilder({ page }).analyze();
 
     expect(scan.violations).toEqual([]);

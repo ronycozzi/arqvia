@@ -3,7 +3,7 @@ import { withTimeout } from "@/lib/promise-timeout";
 
 export const dynamic = "force-dynamic";
 
-export const READINESS_TIMEOUT_MS = 8_000;
+const READINESS_TIMEOUT_MS = 8_000;
 
 const responseHeaders = {
   "Cache-Control": "no-store, max-age=0",

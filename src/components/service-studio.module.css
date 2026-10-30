@@ -6,7 +6,7 @@
 .layout{display:grid;grid-template-columns:minmax(240px,.7fr) minmax(0,1.3fr);gap:56px}
 .directory{display:flex;flex-direction:column}
 .tabs{border-top:1px solid color-mix(in srgb,var(--ink) 20%,transparent)}
-.tabs button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:22px 12px 22px 0;border-bottom:1px solid color-mix(in srgb,var(--ink) 18%,transparent);text-align:left;cursor:pointer;color:color-mix(in srgb,var(--ink) 60%,transparent);transition:color .25s,background .25s,padding .3s}
+.tabs button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:22px 12px 22px 0;border-bottom:1px solid color-mix(in srgb,var(--ink) 18%,transparent);text-align:left;cursor:pointer;color:color-mix(in srgb,var(--ink) 72%,transparent);transition:color .25s,background .25s,padding .3s}
 .tabs button span{display:grid;gap:8px}.tabs small{font-size:10px;letter-spacing:.04em}.tabs strong{font-size:clamp(17px,1.7vw,22px);font-weight:500;line-height:1.25}
 .tabs svg{flex-shrink:0;transition:transform .3s}
 .tabs button[aria-selected=true]{color:var(--ink);background:color-mix(in srgb,var(--bronze) 7%,transparent);padding-left:16px;box-shadow:inset 2px 0 var(--bronze)}

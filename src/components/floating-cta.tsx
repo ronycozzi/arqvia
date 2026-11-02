@@ -28,10 +28,17 @@ export function FloatingCta({ config }: { config: PublicClientConfig }) {
     let footerIsVisible = false;
     const revealThreshold = () =>
       Math.min(420, Math.max(260, window.innerHeight * 0.45));
-    const updateVisibility = () => {
-      const editing = document.activeElement instanceof HTMLElement &&
-        document.activeElement.matches("input, select, textarea, [contenteditable='true']");
+    const updateVisibility = (focusedElement: EventTarget | null) => {
+      const editing = focusedElement instanceof HTMLElement &&
+        (focusedElement.closest("form") !== null ||
+          focusedElement.matches("input, select, textarea, [contenteditable='true']"));
       setIsVisible(window.scrollY > revealThreshold() && !footerIsVisible && !editing);
+    };
+    const updateFromViewport = () => updateVisibility(document.activeElement);
+    const updateFromFocus = (event: FocusEvent) => {
+      // During blur activeElement can be the body. Use the destination so the
+      // bar cannot appear over a form control between pointerdown and click.
+      updateVisibility(event.type === "focusout" ? event.relatedTarget : event.target);
     };
 
     const footer = document.querySelector("footer");
@@ -40,25 +47,25 @@ export function FloatingCta({ config }: { config: PublicClientConfig }) {
         ? new IntersectionObserver(
             ([entry]) => {
               footerIsVisible = entry.isIntersecting;
-              updateVisibility();
+              updateFromViewport();
             },
             { rootMargin: "0px 0px 96px 0px" },
           )
         : null;
 
     footerObserver?.observe(footer!);
-    window.addEventListener("scroll", updateVisibility, { passive: true });
-    window.addEventListener("resize", updateVisibility);
-    document.addEventListener("focusin", updateVisibility);
-    document.addEventListener("focusout", updateVisibility);
-    updateVisibility();
+    window.addEventListener("scroll", updateFromViewport, { passive: true });
+    window.addEventListener("resize", updateFromViewport);
+    document.addEventListener("focusin", updateFromFocus);
+    document.addEventListener("focusout", updateFromFocus);
+    updateFromViewport();
 
     return () => {
       footerObserver?.disconnect();
-      window.removeEventListener("scroll", updateVisibility);
-      window.removeEventListener("resize", updateVisibility);
-      document.removeEventListener("focusin", updateVisibility);
-      document.removeEventListener("focusout", updateVisibility);
+      window.removeEventListener("scroll", updateFromViewport);
+      window.removeEventListener("resize", updateFromViewport);
+      document.removeEventListener("focusin", updateFromFocus);
+      document.removeEventListener("focusout", updateFromFocus);
     };
   }, [hiddenOnCurrentPage, pathname]);
 

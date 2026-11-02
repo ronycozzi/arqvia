@@ -50,3 +50,9 @@
   .image, .serviceAction svg, .projectExplore { transition: none; transform: none !important; }
   .galleryFrame { animation: none; }
 }
+
+.serviceCategory,.projectCategory,.location,.projectFacts dt,.projectFacts dd span { font-size:.75rem; }
+.description { font-size:1rem; line-height:1.7; }
+.deliverables,.serviceAction,.statusFact dd,.projectMaterial,.galleryCaption { font-size:.875rem; }
+.projectFacts dt { color:color-mix(in srgb,var(--ink) 75%,transparent); }
+.projectFacts dd { font-size:1rem; }

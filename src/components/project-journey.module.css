@@ -11,3 +11,17 @@
 @media(max-width:1000px){.body{padding:24px}.details>div{grid-template-columns:1fr;gap:5px}.visual{min-height:540px}.tabs button{padding:18px 12px;gap:8px}.tabArrow{display:none}}
 @media(max-width:720px){.panel{grid-template-columns:1fr}.visual{min-height:0;height:auto;aspect-ratio:1.35}.body{padding:23px 21px}.details>div{grid-template-columns:120px 1fr;gap:10px}.tabs button{min-height:68px;display:flex;flex-direction:column;justify-content:center;gap:7px;font-size:.7rem;padding:12px 4px}.tabs button>svg{width:16px;height:16px}.body h2{font-size:1.5rem}.caption{font-size:.61rem}.arrows{justify-content:space-between}}
 @media(prefers-reduced-motion:reduce){.image,.tabs button,.arrows button{transition:none}.body{animation:none}.image{transform:none}}
+
+.body>p,.details dd { font-size:1rem; line-height:1.7; }
+.tabs button,.details dt,.deliverable strong,.arrows span { font-size:.875rem; }
+.caption,.kicker,.deliverable span { font-size:.75rem; }
+.kicker { color:#c8a375; }
+.light .kicker { color:#84572f; }
+.arrows button { width:44px; height:44px; }
+@media(max-width:720px) {
+  .tabs { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .tabs button { flex-direction:row; justify-content:flex-start; padding:14px 12px; min-height:52px; }
+  .tabs button:nth-child(2) { border-inline-end:0; }
+  .tabs button:nth-child(-n+2) { border-bottom:1px solid var(--journey-line); }
+  .details>div { grid-template-columns:1fr; gap:6px; }
+}

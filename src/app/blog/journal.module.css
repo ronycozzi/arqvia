@@ -7,3 +7,9 @@
 @media(max-width:760px){.journal,.article{padding:28px 20px 40px}.header{grid-template-columns:1fr;gap:18px}.sectionNav{gap:18px}.sectionNav a:last-child{margin-left:0}.conversations{grid-template-columns:1fr;gap:24px}.empty{padding:24px}.sectionHeading{display:block}.sectionHeading>p{margin-top:12px}.category{grid-template-columns:1fr;gap:18px}.articleCard{grid-template-columns:110px 1fr;gap:16px;align-items:start}.articleCard h4{font-size:.9rem}.articleCard p{display:none}.articleImage{aspect-ratio:1}.articleHeader{grid-template-columns:1fr;gap:24px}.cover{max-height:240px}.articleBody{grid-template-columns:1fr;gap:24px}.toc{position:static;padding:16px;border:1px solid var(--stone)}.toc ul{gap:8px}.related{grid-template-columns:1fr}.prose p{font-size:.92rem}}
 @media(prefers-reduced-motion:reduce){.articleImage img,.action,.topics a,.related a{transition:none}}
 .empty{border:0;border-left:1px solid var(--stone);background:none;padding:18px 28px;align-self:center;gap:10px}.empty>svg{color:var(--bronze)}.empty h3{margin:0}.conversations{align-items:start}.header h1{max-width:620px;font-size:clamp(1.8rem,3.1vw,2.7rem)}@media(max-width:760px){.empty{padding:18px 20px;border-left:2px solid var(--stone)}}
+
+.header>p,.sectionHeading>p,.conversationIntro>p:not(.eyebrow),.empty p,.articleCard p,.articleHeader p:not(.eyebrow),.prose p,.context p,.related p { font-size:1rem; line-height:1.75; }
+.eyebrow,.conversationIntro small,.empty>span:last-child,.articleHeader small,.related span { font-size:.75rem; }
+.action,.quote figcaption,.topics a,.category>h3,.articleCard span,.back,.toc h2,.toc a,.sectionNav a { font-size:.875rem; }
+.topics a,.back,.sectionNav a { min-height:44px; display:inline-flex; align-items:center; }
+.toc a { min-height:44px; display:flex; align-items:center; }

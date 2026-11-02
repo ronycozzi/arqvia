@@ -94,4 +94,14 @@ describe("FloatingCta", () => {
       unmount();
     }
   });
+
+  it("keeps the mobile action bar out of the way while editing a field", () => {
+    render(<><label>Ciudad<input /></label><FloatingCta config={fallbackClientConfig} /></>);
+    act(() => setScrollY(500));
+    expect(screen.getByRole("navigation", { name: "Acciones rápidas" })).toBeVisible();
+    act(() => screen.getByRole("textbox", { name: "Ciudad" }).focus());
+    expect(screen.queryByRole("navigation", { name: "Acciones rápidas" })).not.toBeInTheDocument();
+    act(() => screen.getByRole("textbox", { name: "Ciudad" }).blur());
+    expect(screen.getByRole("navigation", { name: "Acciones rápidas" })).toBeVisible();
+  });
 });

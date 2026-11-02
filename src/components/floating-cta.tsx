@@ -29,7 +29,9 @@ export function FloatingCta({ config }: { config: PublicClientConfig }) {
     const revealThreshold = () =>
       Math.min(420, Math.max(260, window.innerHeight * 0.45));
     const updateVisibility = () => {
-      setIsVisible(window.scrollY > revealThreshold() && !footerIsVisible);
+      const editing = document.activeElement instanceof HTMLElement &&
+        document.activeElement.matches("input, select, textarea, [contenteditable='true']");
+      setIsVisible(window.scrollY > revealThreshold() && !footerIsVisible && !editing);
     };
 
     const footer = document.querySelector("footer");
@@ -47,12 +49,16 @@ export function FloatingCta({ config }: { config: PublicClientConfig }) {
     footerObserver?.observe(footer!);
     window.addEventListener("scroll", updateVisibility, { passive: true });
     window.addEventListener("resize", updateVisibility);
+    document.addEventListener("focusin", updateVisibility);
+    document.addEventListener("focusout", updateVisibility);
     updateVisibility();
 
     return () => {
       footerObserver?.disconnect();
       window.removeEventListener("scroll", updateVisibility);
       window.removeEventListener("resize", updateVisibility);
+      document.removeEventListener("focusin", updateVisibility);
+      document.removeEventListener("focusout", updateVisibility);
     };
   }, [hiddenOnCurrentPage, pathname]);
 

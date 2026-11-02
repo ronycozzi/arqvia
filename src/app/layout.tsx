@@ -11,7 +11,7 @@ import { getClientConfig } from "@/lib/client-config";
 import { getPublicServiceLinks } from "@/lib/service-data";
 import { siteConfig } from "@/lib/site-config";
 import { publicSearchRobots } from "@/lib/search-indexing";
-import { APP_LOCALE_COOKIE } from "@/lib/locale";
+import { localeBootstrapScript } from "@/lib/locale-bootstrap";
 import "./styles.css";
 import "@/components/arqvia-editorial.css";
 
@@ -118,7 +118,7 @@ export default async function RootLayout({
     >
       <body className="flex min-h-full flex-col">
         <Script id="arqvia-locale-bootstrap" strategy="beforeInteractive">
-          {`try{var match=document.cookie.match(/(?:^|;\\s*)${APP_LOCALE_COOKIE}=([^;]+)/);var locale=match&&match[1]==="en"?"en":"es";document.documentElement.dataset.locale=locale;document.documentElement.lang=locale==="en"?"en":"es-AR";if(locale==="en")document.documentElement.classList.add("i18n-pending");}catch(_error){}`}
+          {localeBootstrapScript}
         </Script>
         <Script id="zod-csp-mode" strategy="beforeInteractive">
           {`globalThis.__zod_globalConfig = { ...(globalThis.__zod_globalConfig || {}), jitless: true };`}

@@ -153,6 +153,17 @@ export function SiteFooter({
           </FooterList>
         </div>
       </div>
+      <div className="border-t border-paper/10 px-5 py-3 text-xs text-paper/78 md:px-8">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-1">
+          <p>Desarrollado por JAC</p>
+          <a
+            href="https://cozziinteractive.com/inmobiliarias-y-constructoras#contacto"
+            className="inline-flex min-h-11 items-center gap-2 underline decoration-paper/40 underline-offset-4 transition-colors hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-paper"
+          >
+            Quiero un sistema así <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </div>
       <div className="border-t border-paper/10 px-5 py-5 text-xs">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-7 gap-y-3">
           <p className="text-paper/78">

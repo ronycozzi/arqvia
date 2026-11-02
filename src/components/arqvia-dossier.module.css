@@ -101,3 +101,19 @@
 @keyframes skeletonFade { from {opacity:.55;} to {opacity:1;} }
 @media(prefers-reduced-motion:reduce) { .skeleton {animation:none;} }
 
+/* Project information stays readable at its actual mobile display size. */
+.breadcrumb,.primary,.secondary,.serviceNav a { font-size:.875rem; }
+.eyebrow,.coverLabel,.factTitle span,.facts dt,.projectInfo p,.projectCaption dt,.scope .scopeLabel { font-size:.75rem; }
+.header p:not(.eyebrow),.summary,.storyPanel,.detailGrid p,.callout p,.serviceLink p,.scope > p,.checklist li,.steps li,.quote p { font-size:1rem; line-height:1.7; }
+.facts dd,.sectionHead p,.detailGrid h3,.projectCaption>p,.projectCaption dd { font-size:.875rem; line-height:1.6; }
+.facts dt { text-transform:none; }
+.storyTabs { gap:20px; }
+.storyTabs button { font-size:.875rem; min-height:44px; }
+.serviceNav a { min-height:44px; display:inline-flex; align-items:center; }
+@media(max-width:640px) {
+  .storyTabs { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 18px; overflow:visible; }
+  .storyTabs button { white-space:normal; text-align:left; padding:12px 0; }
+  .projectCaption { grid-template-columns:minmax(0,1fr); }
+  .projectCaption dl { flex-direction:row; flex-wrap:wrap; gap:12px 24px; }
+}
+

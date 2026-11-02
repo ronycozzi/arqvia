@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { cloneElement, type ReactElement, useId, useState } from "react";
+import { cloneElement, type ReactElement, useId, useRef, useState } from "react";
 import {
   useForm,
   useWatch,
@@ -61,6 +61,7 @@ export function QuoteForm({
   initialDetails?: ConsultationPrefill;
 }) {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
   const [serverError, setServerError] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
   const [attachmentError, setAttachmentError] = useState("");
@@ -177,7 +178,17 @@ export function QuoteForm({
 
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      ref={formRef}
+      onSubmit={(event) => {
+        void handleSubmit(onSubmit, (validationErrors) => {
+          const firstField = Object.keys(validationErrors)[0];
+          const control = firstField ? formRef.current?.elements.namedItem(firstField) : null;
+          if (!(control instanceof HTMLElement)) return;
+          const details = control.closest("details");
+          if (details) details.open = true;
+          requestAnimationFrame(() => control.focus());
+        })(event);
+      }}
       onFocus={() => {
         if (!started) {
           setStarted(true);
@@ -605,7 +616,7 @@ function LeadAttachmentPicker({
               >
                 <Icon className="size-4 shrink-0 text-bronze" aria-hidden="true" />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium text-ink">
+                  <span className="block break-words text-sm font-medium text-ink [overflow-wrap:anywhere]">
                     {file.name}
                   </span>
                   <span className="block text-xs text-ink/55">

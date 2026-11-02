@@ -19,13 +19,13 @@ export function ProjectStart({ areas }: { areas: string[] }) {
   return (
     <section className="project-start" id="tu-proyecto" aria-labelledby="project-start-title">
       <div className="project-start__intro">
-        <span className="arqvia-overline">Tu punto de partida</span>
-        <h2 id="project-start-title">¿Qué espacio tenés en mente?</h2>
-        <p>Una casa desde cero, un ambiente que ya no funciona o un espacio para tu negocio. Empecemos por lo que necesitás resolver.</p>
+        <span className="arqvia-overline">Consulta de obra</span>
+        <h2 id="project-start-title">Contanos qué querés construir o renovar.</h2>
+        <p>Desde una casa nueva hasta la reforma de un ambiente. Elegí el tipo de obra y contanos en qué etapa está.</p>
         <p className="project-start__note"><Check size={16} aria-hidden="true" /> No necesitás tener planos para consultar.</p>
       </div>
       <div className="project-start__brief">
-        <div className="project-start__brief-head"><span>Una primera idea</span><span>Podés cambiarla después</span></div>
+        <div className="project-start__brief-head"><span>Datos del proyecto</span><span>Podés cambiarlos después</span></div>
         <div className="project-start__fields">
           <label><span><Home size={17} aria-hidden="true" /> Quiero hacer</span><select value={type} onChange={(event) => setType(event.target.value)}>{projectTypes.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
           <label><span><Layers3 size={17} aria-hidden="true" /> Hoy estoy en esta etapa</span><select value={stage} onChange={(event) => setStage(event.target.value)}>{stages.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>

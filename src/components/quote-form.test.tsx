@@ -153,4 +153,22 @@ describe("QuoteForm", () => {
     expect(screen.getByRole("textbox", { name: "Mensaje" })).toHaveValue("Mi borrador detallado sobre la vivienda que quiero construir.");
     expect(screen.getByRole("combobox", { name: "Tipo de proyecto" })).toHaveValue("Obra nueva");
   });
+
+  it("opens optional details and focuses a validation error hidden by the visitor", async () => {
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+    render(<QuoteForm sourcePage="/contacto" />);
+    completeRequiredFields();
+    const details = screen.getByText("Agregar superficie, presupuesto, visita o archivos").closest("details")!;
+    details.open = true;
+    fireEvent.click(screen.getByRole("checkbox", { name: "Necesito visita técnica" }));
+    fireEvent.change(screen.getByLabelText("Fecha preferida"), { target: { value: "2000-01-01" } });
+    details.open = false;
+    submitConsultation();
+    await waitFor(() => expect(details.open).toBe(true));
+    await waitFor(() => expect(screen.getByLabelText("Fecha preferida")).toHaveFocus());
+    expect(screen.getByLabelText("Fecha preferida")).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByRole("textbox", { name: "Nombre completo" })).toHaveValue("Cliente Prueba");
+    expect(fetch).not.toHaveBeenCalled();
+  });
 });

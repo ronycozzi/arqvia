@@ -71,6 +71,12 @@ export function SiteHeader({
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const closeOnDesktop = () => {
+      if (desktop.matches) setOpen(false);
+    };
+    desktop.addEventListener("change", closeOnDesktop);
+    closeOnDesktop();
 
     const focusableSelector =
       'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -113,6 +119,7 @@ export function SiteHeader({
     return () => {
       window.clearTimeout(focusTimer);
       document.body.style.overflow = previousOverflow;
+      desktop.removeEventListener("change", closeOnDesktop);
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);

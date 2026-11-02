@@ -1201,7 +1201,7 @@ test("contact form preserves project source from detail CTA", async ({ page }) =
   });
 });
 
-test("local SEO CTA preserves landing source in the quote flow", async ({ page }) => {
+test("local SEO CTA preserves landing source in the quote flow", async ({ page }, testInfo) => {
   let submittedPayload: Record<string, unknown> | undefined;
 
   await page.route("**/api/leads", async (route) => {
@@ -1214,7 +1214,9 @@ test("local SEO CTA preserves landing source in the quote flow", async ({ page }
   });
 
   await page.goto("/remodelacion-de-cocinas-cordoba");
-  await expect(page.getByTestId("local-seo-primary-cta")).toHaveAttribute(
+  const primaryCta = page.getByTestId("local-seo-primary-cta");
+  await expect(primaryCta).toBeVisible();
+  await expect(primaryCta).toHaveAttribute(
     "href",
     /origen=%2Fremodelacion-de-cocinas-cordoba/,
   );
@@ -1222,16 +1224,30 @@ test("local SEO CTA preserves landing source in the quote flow", async ({ page }
     "href",
     /origen=%2Fremodelacion-de-cocinas-cordoba/,
   );
+  const mobileMenuButton = page.locator('button[aria-controls="mobile-site-menu"]');
+  if (testInfo.project.name === "mobile") {
+    await mobileMenuButton.click();
+    await expect(mobileMenuButton).toHaveAttribute("aria-expanded", "true");
+  }
+  const headerCta = page.locator("header").getByRole("link", { name: /solicitar presupuesto/i });
+  await expect(headerCta).toBeVisible();
+  await expect(headerCta).toHaveAttribute("href", /origen=%2Fremodelacion-de-cocinas-cordoba/);
+  if (testInfo.project.name === "mobile") {
+    await page.keyboard.press("Escape");
+    await expect(mobileMenuButton).toHaveAttribute("aria-expanded", "false");
+  }
+
+  const footerResources = page.locator('footer [data-footer-group="Recursos"]');
+  if (testInfo.project.name === "mobile") {
+    await footerResources.locator("summary").click();
+    await expect(footerResources.locator("details")).toHaveAttribute("open", "");
+  }
+  const footerCta = footerResources.getByRole("link", { name: /solicitar presupuesto/i });
+  await expect(footerCta).toBeVisible();
   await expect(
-    page.getByRole("link", { name: /solicitar|pedir|evaluar/i }).first(),
+    footerCta,
   ).toHaveAttribute("href", /origen=%2Fremodelacion-de-cocinas-cordoba/);
-  await expect(
-    page
-      .locator("footer")
-      .getByRole("link", { name: /solicitar presupuesto/i })
-      .first(),
-  ).toHaveAttribute("href", /origen=%2Fremodelacion-de-cocinas-cordoba/);
-  await page.getByRole("link", { name: /solicitar|pedir|evaluar/i }).first().click();
+  await primaryCta.click();
   await expect(
     page.getByText(/tomamos como referencia inicial/i),
   ).toBeVisible();
